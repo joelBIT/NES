@@ -1,18 +1,7 @@
-import { apu } from './apu.js';
-import { ppu } from './ppu.js';
-import { cpu } from './cpu.js';
-import { Cartridge } from './cartridge.js';
-
-/**
- *  Mirror
- */
-const Mirror = Object.freeze({
-  HORIZONTAL: "horizontal",
-  VERTICAL: "vertical",
-  HARDWARE: "hardware",
-  ONE_SCREEN_LOW: "one screen_low",
-  ONE_SCREEN_HIGH: "one screen_high"
-});
+import { apu } from './apu/apu.js';
+import { ppu } from './ppu/ppu.js';
+import { cpu } from './cpu/cpu.js';
+import { Cartridge } from './cartridge/cartridge.js';
 
 /**
  * A bus is used for communication between components such as CPU, Memory, and PPU.
