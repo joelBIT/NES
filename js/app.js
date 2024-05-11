@@ -1,8 +1,12 @@
 'use strict';
 
-const worker = new Worker('js/emulator.js');
+const worker = new Worker('js/emulator.js',{ type: "module" });
+let audioContext;
+let audioBuffer;
 
 window.onload = e => {
+  audioContext = new AudioContext();
+  audioBuffer = audioContext.createBuffer(1, audioContext.sampleRate*2, audioContext.sampleRate);
   const canvas = document.getElementById("nesCanvas").transferControlToOffscreen();
   worker.postMessage({ canvas: canvas }, [canvas]);
 };
@@ -19,16 +23,23 @@ const keyDownEventLogger =  function (e) {
 window.addEventListener("keyup", keyUpEventLogger);
 window.addEventListener("keydown", keyDownEventLogger);
 
-worker.onmessage = function(message) {
-  console.log(message);
-};
-
 function readFile(event) {
   worker.postMessage({event: 'readFile', data: event.target.result});
 }
 
-document.getElementById('press').addEventListener("click", (e) => {
-  worker.postMessage({event: 'press'});
+worker.onmessage = function(message) {
+  const source = audioContext.createBufferSource();
+  const receivedBuffer = message.data.audioSample;
+  source.buffer = audioBuffer;
+  source.connect(audioContext.destination);
+  source.start();
+  audioBuffer.copyToChannel(new Float32Array(receivedBuffer), 0);
+};
+
+document.getElementById('audio').addEventListener("click", (e) => {
+  audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
+    worker.postMessage({event: 'audio'});
+  });
 });
 
 document.getElementById('infinite').addEventListener("click", (e) => {
@@ -50,8 +61,3 @@ document.getElementById("nesfile").addEventListener('change', input => {
   fileReader.addEventListener('load', readFile);
   fileReader.readAsArrayBuffer(input.target.files[0]);
 });
-
-
-
-
-
