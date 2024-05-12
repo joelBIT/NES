@@ -1,12 +1,9 @@
 'use strict';
 
 const worker = new Worker('js/emulator.js',{ type: "module" });
-let audioContext;
-let audioBuffer;
+let nesWorkletNode;
 
 window.onload = e => {
-  audioContext = new AudioContext();
-  audioBuffer = audioContext.createBuffer(1, audioContext.sampleRate*2, audioContext.sampleRate);
   const canvas = document.getElementById("nesCanvas").transferControlToOffscreen();
   worker.postMessage({ canvas: canvas }, [canvas]);
 };
@@ -24,27 +21,20 @@ window.addEventListener("keyup", keyUpEventLogger);
 window.addEventListener("keydown", keyDownEventLogger);
 
 function readFile(event) {
-  worker.postMessage({event: 'readFile', data: event.target.result});
+  const audioContext = new AudioContext();
+  nesWorkletNode = audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
+    nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
+    nesWorkletNode.connect(audioContext.destination);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
+    source.start();
+    worker.postMessage({event: 'readFile', data: event.target.result});
+  });
 }
 
 worker.onmessage = function(message) {
-  const source = audioContext.createBufferSource();
-  const receivedBuffer = message.data.audioSample;
-  source.buffer = audioBuffer;
-  source.connect(audioContext.destination);
-  source.start();
-  audioBuffer.copyToChannel(new Float32Array(receivedBuffer), 0);
+  nesWorkletNode.port.postMessage(message.data);   // Send address and data to APU
 };
-
-document.getElementById('audio').addEventListener("click", (e) => {
-  audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
-    worker.postMessage({event: 'audio'});
-  });
-});
-
-document.getElementById('infinite').addEventListener("click", (e) => {
-  worker.postMessage({event: 'infinite'});
-});
 
 document.getElementById("nesfile").addEventListener('change', input => {
   if (!input.target.files.length) {

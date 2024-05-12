@@ -1,3 +1,5 @@
+import { APU } from './apu/apu.js';
+
 /**
  * Does the actual audio processing in a Web Audio rendering thread.
  *
@@ -6,24 +8,40 @@
  */
 class NesApuProcessor extends AudioWorkletProcessor {
   audioSamples = [];
+  apu = new APU();
+
+  /**
+   * The sound system will be running at approximately 44kHz and the NES clock is running in MHz, therefore a number of
+   * NES clocks must be executed to be equivalent to 1 sound sample duration. This method informs the APU about the
+   * temporal properties of the surrounding emulation system.
+   */
+  audioTime = 0.0;                              // Accumulates elapsed audio time in between system samples
+  audioTimePerSystemSample = 1.0 / 44100;       // The real-time duration between samples required by the sound hardware
+  audioTimePerNesClock = 1.0 / 5369318.0;       // The real-time duration that elapses during a real-time NES clock. This will be a constant describing how much artificial real-time passes per NES clock.
 
   constructor() {
     super();
     this.port.onmessage = (e) => {
-      this.audioSamples = this.audioSamples.concat(e.data);
+      this.apu.writeByCPU(e.data.address, e.data.data);
     }
   }
-
-
-  /**
-
-   */
 
   /**
    *  Here is the sound processed and outputted to the speakers.
    */
   process(inputs, outputs, parameters) {
     const output = outputs[0];
+
+    // Synchronising with Audio
+    while (this.audioSamples.length < 8800) {
+      this.apu.clock();
+      this.audioTime += this.audioTimePerNesClock;
+      if (this.audioTime >= this.audioTimePerSystemSample) {
+        this.audioTime -= this.audioTimePerSystemSample;
+        this.audioSamples.push(this.apu.getOutputSample());     // The outputted audio sample (mix of the channels output samples)
+
+      }
+    }
 
     if (this.audioSamples.length >= 128) {
       output.forEach((channel) => {
@@ -34,6 +52,7 @@ class NesApuProcessor extends AudioWorkletProcessor {
         }
       });
     }
+
     return true
   }
 }

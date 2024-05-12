@@ -145,39 +145,28 @@ export class APU {
         this.square2Sweeper.clock(this.square2Sequencer.reload[0], 1);
       }
 
+      this.square1Sequencer.clock(this.enableSquare1);
 
-      {
-        this.square1Sequencer.clock(this.enableSquare1);
+      this.squareWave1.frequency = 1789773.0 / (16.0 * (this.square1Sequencer.reload[0] + 1));
+      this.squareWave1.amplitude = (this.square1Envelope.output[0] - 1.0) / 16.0;
+      this.square1Sample = this.squareWave1.sample(this.globalTime);
+
+      if (this.square1LengthCounter.counter > 0 && this.square1Sequencer.timer[0] >= 8 && !this.square1Sweeper.mute && this.square1Envelope.output[0] > 2) {
+        this.square1Output += (this.square1Sample - this.square1Output) * 0.5;
+      } else {
+        this.square1Output = 0.0;
       }
 
-      {
-        this.squareWave1.frequency = 1789773.0 / (16.0 * (this.square1Sequencer.reload[0] + 1));
-        this.squareWave1.amplitude = (this.square1Envelope.output[0] - 1.0) / 16.0;
-        this.square1Sample = this.squareWave1.sample(this.globalTime);
+      this.square2Sequencer.clock(this.enableSquare2);
 
-        if (this.square1LengthCounter.counter > 0 && this.square1Sequencer.timer[0] >= 8 && !this.square1Sweeper.mute && this.square1Envelope.output[0] > 2) {
-          this.square1Output += (this.square1Sample - this.square1Output) * 0.5;
-        } else {
-          this.square1Output = 0.0;
-        }
+      this.squareWave2.frequency = 1789773.0 / (16.0 * (this.square2Sequencer.reload[0] + 1));
+      this.squareWave2.amplitude = (this.square2Envelope.output[0]-1) / 16.0;
+      this.square2Sample = this.squareWave2.sample(this.globalTime);
 
-      }
-
-      {
-        this.square2Sequencer.clock(this.enableSquare2);
-      }
-
-      {
-        this.squareWave2.frequency = 1789773.0 / (16.0 * (this.square2Sequencer.reload[0] + 1));
-        this.squareWave2.amplitude = (this.square2Envelope.output[0]-1) / 16.0;
-        this.square2Sample = this.squareWave2.sample(this.globalTime);
-
-        if (this.square2LengthCounter.counter > 0 && this.square2Sequencer.timer[0] >= 8 && !this.square2Sweeper.mute && this.square2Envelope.output[0] > 2) {
-          this.square2Output += (this.square2Sample - this.square2Output) * 0.5;
-        } else {
-          this.square2Output = 0.0;
-        }
-
+      if (this.square2LengthCounter.counter > 0 && this.square2Sequencer.timer[0] >= 8 && !this.square2Sweeper.mute && this.square2Envelope.output[0] > 2) {
+        this.square2Output += (this.square2Sample - this.square2Output) * 0.5;
+      } else {
+        this.square2Output = 0.0;
       }
 
       this.noiseSequencer.clock(this.enableNoise, true);
@@ -387,5 +376,3 @@ export class APU {
   }
 }
 
-
-export const apu = new APU();
