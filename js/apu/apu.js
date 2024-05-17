@@ -1,97 +1,47 @@
-import { LengthCounter } from "./counter.js";
-import { Sweeper } from "./sweeper.js";
-import { Envelope } from "./envelope.js";
-import { Sequencer } from "./sequencer.js";
-import { SquareWave } from "./square.js";
+import { SquareChannel } from "./square.js";
+import { TriangleChannel } from "./triangle.js";
+import { NoiseChannel } from "./noise.js";
 
 /**
  * The sample rate for the system is 44100 Hz.
  *
- * The CPU talks to the Lc_apu via ports $4000 - $4015 and $4017. The Lc_apu has 5 channels: Square1, Square2, Triangle, Noise,
+ * The CPU talks to the APU via ports $4000 - $4015 and $4017. The APU has 5 channels: Square1, Square2, Triangle, Noise,
  * and DMC. The DMC channel plays samples (often vocals). Before the channels can be used to produce sounds, they need
  * to be enabled. Channels are toggled on and off via port $4015.
- *
- * The formula for knowing which 11-bit period values correspond to which notes? is:
- *    P = C/(F*16) - 1      where P = Period, C = CPU speed (in Hz), F = Frequency of the note (also in Hz).
- *
- * The value of C differs between NTSC and PAL machines, which is why a game made for NTSC will sound funny
- * on a PAL NES, and vice-versa.
  */
 export class APU {
-  enableTriangle = false;
-  enableSquare1 = false;
-  enableSquare2 = false;
-  enableNoise = false;
   enableDMC = false;
 
   globalTime = 0.0;
   frameClockCounter = new Uint32Array(1);   // Used to maintain the musical timing of the APU
   clockCounter = new Uint32Array(1);
-  useRawMode = false;
-  lengthTable = [10, 254, 20,  2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26, 14, 12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30 ];
 
   //  Square wave 1 channel
-  period1 = new Uint16Array(1);
-  volumeSquare1 = 0x0;
-  disableSawEnvelopeSquare1 = false;      // Saw Envelope Disable (0: use internal counter for volume; 1: use Volume for volume)
-  disableLengthCounterSquare1 = false;    // Length Counter Disable (0: use Length Counter; 1: disable Length Counter)
-  haltSquare1 = false;
-  dutyCycleSquare1 = 0x00;
-  square1Sample = 0.0;                    // Is outputted to he sound source
   square1Output = 0.0;
-  square1Sequencer = new Sequencer();
-  squareWave1 = new SquareWave();
-  square1Envelope = new Envelope();
-  square1Sweeper = new Sweeper();
-  square1LengthCounter = new LengthCounter();
+  squareChannel1 = new SquareChannel();
 
   //  Square wave 2 channel
-  period2 = new Uint16Array(1);
-  volumeSquare2 = 0x0;
-  disableSawEnvelopeSquare2 = false;      // Saw Envelope Disable (0: use internal counter for volume; 1: use Volume for volume)
-  disableLengthCounterSquare2 = false;    // Length Counter Disable (0: use Length Counter; 1: disable Length Counter)
-  haltSquare2 = false;
-  dutyCycleSquare2 = 0x00;
-  square2Sample = 0.0;
   square2Output = 0.0;
-  square2Sequencer = new Sequencer();
-  squareWave2 = new SquareWave();
-  square2Envelope = new Envelope();
-  square2Sweeper = new Sweeper();
-  square2LengthCounter = new LengthCounter();
+  squareChannel2 = new SquareChannel();
+
+  // Triangle channel
+  triangleOutput = 0.0;
+  triangleChannel = new TriangleChannel();
+  triReloadLinear = false;
+  triLinearReload = 0;
 
   //  Noise channel
-  volumeNoise = 0x0;
-  disableSawEnvelopeNoise = false;      // Saw Envelope Disable (0: use internal counter for volume; 1: use Volume for volume)
-  disableLengthCounterNoise = false;    // Length Counter Disable (0: use Length Counter; 1: disable Length Counter)
-  haltNoise = false;
   noiseOutput = 0.0;
-  noiseSequencer = new Sequencer();
-  noiseEnvelope = new Envelope();
-  noiseLengthCounter = new LengthCounter();
-
-  constructor() {
-    this.noiseSequencer.sequence[0] = 0xDBDB;
-  }
+  noiseChannel = new NoiseChannel();
 
   /**
-   * All output samples from different channels get mixed together.
+   * All output samples from the channels get mixed together.
    */
-  getOutputSample() {
-    if (this.useRawMode) {
-      return (this.square1Sample - 0.5) * 0.5 + (this.square2Sample - 0.5) * 0.5;
-    } else {
-      return (this.square1Output - 0.8) * 0.1 + (this.square2Output - 0.8) * 0.1 +
-        ((2.0 * (this.noiseOutput - 0.5))) * 0.1;
-    }
+  mixedOutputSample() {
+    return 0.00752 * (this.square1Output + this.square2Output) + 0.00494 * this.noiseOutput + 0.00851 * this.triangleOutput;   // + 0.00851 * this.triangleOutput + 0.00335 * this.dmcOutput
   }
 
   /**
-   * Change Bus clock() to return boolean to main thread loop?
-   * Returns true if that particular clock cycle yielded a new audio sample in real time. This way we can repeatedly
-   * clock until this method returns true, because we are clocking from our sound thread and the sound thread is
-   * requesting a single sample.
-   *
    * Runs at half the speed of the CPU clock. Thus, the PPU clock is 6 times faster than the APU clock.
    *
    * Depending on the frame count, we set a flag to tell us where we are in the sequence. Essentially, changes
@@ -103,7 +53,7 @@ export class APU {
 
     this.globalTime += (0.3333333333 / 1789773);
 
-    if (this.clockCounter[0] % 6 === 0) {     // The PPU clock runs 6 times faster than the APU clock
+    if (this.clockCounter[0] % 6 === 0) {
 
       this.frameClockCounter[0]++;
 
@@ -127,242 +77,227 @@ export class APU {
         this.frameClockCounter[0] = 0;
       }
 
-      // Update functional units
-
       // Quarter frame "beats" adjust the volume envelope
       if (quarterFrameClock) {
-        this.square1Envelope.clock(this.haltSquare1);
-        this.square2Envelope.clock(this.haltSquare2);
-        this.noiseEnvelope.clock(this.haltNoise);
+        this.squareChannel1.clockEnvelope();
+        this.squareChannel2.clockEnvelope();
+        this.noiseChannel.clockEnvelope();
+
+        // handle triangle linear counter
+        if (this.triReloadLinear) {
+          //this.triangleChannel.linearCounter.counter[0] = this.triLinearReload;
+        } else if (this.triangleChannel.getLinearCounterValue() !== 0) {
+          this.triangleChannel.decrementLinearCounter();
+        }
+        if (!this.triangleChannel.isHalted()) {
+          this.triReloadLinear = false;
+        }
       }
 
       // Half frame "beats" adjust the note length and frequency sweepers
       if (halfFrameClock) {
-        this.square1LengthCounter.clock(this.enableSquare1, this.haltSquare1);
-        this.square2LengthCounter.clock(this.enableSquare2, this.haltSquare2);
-        this.noiseLengthCounter.clock(this.enableNoise, this.haltNoise);
-        this.square1Sweeper.clock(this.square1Sequencer.reload[0], 0);
-        this.square2Sweeper.clock(this.square2Sequencer.reload[0], 1);
+        this.squareChannel1.clockCounter();
+        this.squareChannel2.clockCounter();
+        this.noiseChannel.clockCounter();
+        this.squareChannel1.clockSweeper(0);
+        this.squareChannel2.clockSweeper(1);
+
+        this.triangleChannel.clockCounter();
       }
 
-      this.square1Sequencer.clock(this.enableSquare1);
+      this.squareChannel1.clock();
+      this.square1Output = this.squareChannel1.getOutput(this.globalTime);
 
-      this.squareWave1.frequency = 1789773.0 / (16.0 * (this.square1Sequencer.reload[0] + 1));
-      this.squareWave1.amplitude = (this.square1Envelope.output[0] - 1.0) / 16.0;
-      this.square1Sample = this.squareWave1.sample(this.globalTime);
+      this.squareChannel2.clock();
+      this.square2Output = this.squareChannel2.getOutput(this.globalTime);
 
-      if (this.square1LengthCounter.counter > 0 && this.square1Sequencer.timer[0] >= 8 && !this.square1Sweeper.mute && this.square1Envelope.output[0] > 2) {
-        this.square1Output += (this.square1Sample - this.square1Output) * 0.5;
-      } else {
+      this.triangleChannel.clock();
+      this.triangleOutput = this.triangleChannel.getOutput(this.globalTime);
+
+      this.noiseChannel.clock();
+      this.noiseOutput = this.noiseChannel.getOutput();
+
+      if (!this.squareChannel1.isEnabled()) {
         this.square1Output = 0.0;
       }
-
-      this.square2Sequencer.clock(this.enableSquare2);
-
-      this.squareWave2.frequency = 1789773.0 / (16.0 * (this.square2Sequencer.reload[0] + 1));
-      this.squareWave2.amplitude = (this.square2Envelope.output[0]-1) / 16.0;
-      this.square2Sample = this.squareWave2.sample(this.globalTime);
-
-      if (this.square2LengthCounter.counter > 0 && this.square2Sequencer.timer[0] >= 8 && !this.square2Sweeper.mute && this.square2Envelope.output[0] > 2) {
-        this.square2Output += (this.square2Sample - this.square2Output) * 0.5;
-      } else {
+      if (!this.squareChannel2.isEnabled()) {
         this.square2Output = 0.0;
       }
-
-      this.noiseSequencer.clock(this.enableNoise, true);
-
-      if (this.noiseLengthCounter.counter > 0 && this.noiseSequencer.timer[0] >= 8) {
-        this.noiseOutput = this.noiseSequencer.output[0] * ((this.noiseEnvelope.output[0]-1) / 16.0);
+      if (!this.triangleChannel.isEnabled()) {
+        this.triangleOutput = 0.0;
       }
-
-      if (!this.enableSquare1) {
-        this.square1Output = 0.0;
-      }
-      if (!this.enableSquare2) {
-        this.square2Output = 0.0;
-      }
-      if (!this.enableNoise) {
-        this.noiseOutput = 0;
+      if (!this.noiseChannel.isEnabled()) {
+        this.noiseOutput = 0.0;
       }
     }
 
-    // Frequency sweepers change at high frequency
-    this.square1Sweeper.track(this.square1Sequencer.reload[0]);
-    this.square2Sweeper.track(this.square2Sequencer.reload[0]);
+    this.squareChannel1.trackSweeper();
+    this.squareChannel2.trackSweeper();
 
     this.clockCounter[0]++;
   }
 
   /**
-   * Square1 is controlled with ports $4000 - $4003. Square2 is controlled with ports $4004 - $4007.
-   * The Triangle channel produces triangle waveforms. Unlike the Square channels, we have no control over the Triangle
-   * channel's volume or tone. The Triangle channel is manipulated via ports $4008-$400B.
+   * Square 1 channel is controlled with ports $4000 - $4003. Square 2 channel is controlled with ports $4004 - $4007.
+   * Unlike the Square channels, we have no control over the Triangle channel's volume or tone. The Triangle channel
+   * is manipulated via ports $4008-$400B.
    */
   writeByCPU(address, data) {
     switch (address) {
+
+        /*
+           *********************
+           | First Square Wave |
+           *********************
+       */
+
+      /**
+       *    76543210
+       *    ||||||||
+       *    ||||++++- Volume
+       *    |||+----- Saw Envelope Disable (0: use internal counter for volume; 1: use Volume for volume)
+       *    ||+------ Length Counter Disable (0: use Length Counter; 1: disable Length Counter)
+       *    ++------- Duty Cycle
+       */
       case 0x4000:
-        switch ((data & 0xC0) >> 6) {
-          case 0x00:
-            this.square1Sequencer.newSequence[0] = 0b01000000;
-            this.squareWave1.dutyCycle = 0.125;
-            break;
-          case 0x01:
-            this.square1Sequencer.newSequence[0] = 0b01100000;
-            this.squareWave1.dutyCycle = 0.250;
-            break;
-          case 0x02:
-            this.square1Sequencer.newSequence[0] = 0b01111000;
-            this.squareWave1.dutyCycle = 0.500;
-            break;
-          case 0x03:
-            this.square1Sequencer.newSequence[0] = 0b10011111;
-            this.squareWave1.dutyCycle = 0.750;
-            break;
-        }
-        this.square1Sequencer.sequence[0] = this.square1Sequencer.newSequence[0];
-        this.haltSquare1 = (data & 0x20) > 0;
-        this.square1Envelope.volume[0] = (data & 0x0F);
-        this.square1Envelope.disable = (data & 0x10) > 0;
+        this.squareChannel1.setDuty((data & 0xC0) >> 6);
+        this.squareChannel1.setSequence();
+        this.squareChannel1.setHalt((data & 0x20) > 0);
+        this.squareChannel1.setVolume(data & 0x0F);
+        this.squareChannel1.disableEnvelope((data & 0x10) > 0);
+        this.squareChannel1.haltCounter((data & 0x20) > 0);
         break;
 
       case 0x4001:
-        this.square1Sweeper.enabled = (data & 0x80) > 0;
-        this.square1Sweeper.period = (data & 0x70) >> 4;
-        this.square1Sweeper.down = (data & 0x08) > 0;
-        this.square1Sweeper.shift = data & 0x07;
-        this.square1Sweeper.reload = true;
+        this.squareChannel1.setSweeperEnable((data & 0x80) > 0);
+        this.squareChannel1.setSweeperPeriod((data & 0x70) >> 4);
+        this.squareChannel1.setSweeperDown((data & 0x08) > 0);
+        this.squareChannel1.setSweeperShift(data & 0x07);
+        this.squareChannel1.setSweeperReload(true);
         break;
 
       case 0x4002:
-        this.square1Sequencer.reload[0] = (this.square1Sequencer.reload[0] & 0xFF00) | data;
+        this.squareChannel1.setReloadValue((this.squareChannel1.getSequencerReload() & 0xFF00) | data);
         break;
 
       case 0x4003:
-        this.square1Sequencer.reload[0] = ((data & 0x07) << 8) | (this.square1Sequencer.reload[0] & 0x00FF);
-        this.square1Sequencer.timer[0] = this.square1Sequencer.reload[0];
-        this.square1Sequencer.sequence[0] = this.square1Sequencer.newSequence[0];
-        this.square1LengthCounter.counter = this.lengthTable[(data & 0xF8) >> 3];
-        this.square1Envelope.start = true;
+        this.squareChannel1.setReloadValue(((data & 0x07) << 8) | (this.squareChannel1.getSequencerReload() & 0x00FF));
+        this.squareChannel1.reloadTimer();
+        this.squareChannel1.setSequence();
+        this.squareChannel1.setCounter((data & 0xF8) >> 3);
+        this.squareChannel1.startEnvelope(true);
         break;
 
+
+        /*
+           **********************
+           | Second Square Wave |
+           **********************
+       */
+
       case 0x4004:
-        switch ((data & 0xC0) >> 6) {
-          case 0x00:
-            this.square2Sequencer.newSequence[0] = 0b01000000;
-            this.squareWave2.dutyCycle = 0.125;
-            break;
-          case 0x01:
-            this.square2Sequencer.newSequence[0] = 0b01100000;
-            this.squareWave2.dutyCycle = 0.250;
-            break;
-          case 0x02:
-            this.square2Sequencer.newSequence[0] = 0b01111000;
-            this.squareWave2.dutyCycle = 0.500;
-            break;
-          case 0x03:
-            this.square2Sequencer.newSequence[0] = 0b10011111;
-            this.squareWave2.dutyCycle = 0.750;
-            break;
-        }
-        this.square2Sequencer.sequence[0] = this.square2Sequencer.newSequence[0];
-        this.haltSquare2 = (data & 0x20) > 0;
-        this.square2Envelope.volume[0] = (data & 0x0F);
-        this.square2Envelope.disable = (data & 0x10) > 0;
+        this.squareChannel2.setDuty((data & 0xC0) >> 6);
+        this.squareChannel2.setSequence();
+        this.squareChannel2.setHalt((data & 0x20) > 0);
+        this.squareChannel2.setVolume(data & 0x0F);
+        this.squareChannel2.disableEnvelope((data & 0x10) > 0);
+        this.squareChannel2.haltCounter((data & 0x20) > 0);
         break;
 
       case 0x4005:
-        this.square2Sweeper.enabled = (data & 0x80) > 0;
-        this.square2Sweeper.period = (data & 0x70) >> 4;
-        this.square2Sweeper.down = (data & 0x08) > 0;
-        this.square2Sweeper.shift = data & 0x07;
-        this.square2Sweeper.reload = true;
+        this.squareChannel2.setSweeperEnable((data & 0x80) > 0);
+        this.squareChannel2.setSweeperPeriod((data & 0x70) >> 4);
+        this.squareChannel2.setSweeperDown((data & 0x08) > 0);
+        this.squareChannel2.setSweeperShift(data & 0x07);
+        this.squareChannel2.setSweeperReload(true);
         break;
 
       case 0x4006:
-        this.square2Sequencer.reload[0] = (this.square2Sequencer.reload[0] & 0xFF00) | data;
+        this.squareChannel2.setReloadValue((this.squareChannel2.getSequencerReload() & 0xFF00) | data);
         break;
 
       case 0x4007:
-        this.square2Sequencer.reload[0] = ((data & 0x07) << 8) | (this.square2Sequencer.reload[0] & 0x00FF);
-        this.square2Sequencer.timer[0] = this.square2Sequencer.reload[0];
-        this.square2Sequencer.sequence[0] = this.square2Sequencer.newSequence[0];
-        this.square2LengthCounter.counter = this.lengthTable[(data & 0xF8) >> 3];
-        this.square2Envelope.start = true;
+        this.squareChannel2.setReloadValue(((data & 0x07) << 8) | (this.squareChannel2.getSequencerReload() & 0x00FF));
+        this.squareChannel2.reloadTimer();
+        this.squareChannel2.setSequence();
+        this.squareChannel2.setCounter((data & 0xF8) >> 3);
+        this.squareChannel2.startEnvelope(true);
         break;
+
+        /*
+            *****************
+            | Triangle Wave |
+            *****************
+        */
 
       case 0x4008:
+        this.triangleChannel.setHalt((data & 0x80) > 0);
+        //this.triangleLinearCounter.counter[0] = (data & 0x7F);
+        this.triLinearReload = data & 0x7F;
         break;
 
+      /**
+       * $400A and $400B control the period of the wave, or in other words what note you hear (A, C#, G, etc).
+       * Like the Squares, Triangle periods are 11-bits long. $400A holds the low 8-bits
+       * and $400B holds the high 3-bits of the period.
+       */
+      case 0x400A:
+        this.triangleChannel.setReloadValue((this.triangleChannel.getSequencerReload() & 0xFF00) | data);
+        break;
+
+      case 0x400B:
+        this.triangleChannel.setReloadValue(((data & 0x07) << 8) | (this.triangleChannel.getSequencerReload() & 0x00FF));
+        this.triangleChannel.reloadTimer();
+        this.triangleChannel.setSequence();   // Here?
+        if (this.triangleChannel.isEnabled()) {
+          this.triangleChannel.setCounter((data & 0xF8) >> 3);
+        }
+        this.triReloadLinear = true;
+        break;
+
+        /*
+           *********
+           | Noise |
+           *********
+       */
+
       case 0x400C:
-        this.noiseEnvelope.volume[0] = (data & 0x0F);
-        this.noiseEnvelope.disable = (data & 0x10) > 0;
-        this.haltNoise = (data & 0x20) > 0;
+        this.noiseChannel.setVolume(data & 0x0F);
+        this.noiseChannel.disableEnvelope((data & 0x10) > 0);
+        this.noiseChannel.setHalt((data & 0x20) > 0);
         break;
 
       case 0x400E:
-        switch (data & 0x0F) {
-          case 0x00:
-            this.noiseSequencer.reload[0] = 0;
-            break;
-          case 0x01:
-            this.noiseSequencer.reload[0] = 4;
-            break;
-          case 0x02:
-            this.noiseSequencer.reload[0] = 8;
-            break;
-          case 0x03:
-            this.noiseSequencer.reload[0] = 16;
-            break;
-          case 0x04:
-            this.noiseSequencer.reload[0] = 32;
-            break;
-          case 0x05:
-            this.noiseSequencer.reload[0] = 64;
-            break;
-          case 0x06:
-            this.noiseSequencer.reload[0] = 96;
-            break;
-          case 0x07:
-            this.noiseSequencer.reload[0] = 128;
-            break;
-          case 0x08:
-            this.noiseSequencer.reload[0] = 160;
-            break;
-          case 0x09:
-            this.noiseSequencer.reload[0] = 202;
-            break;
-          case 0x0A:
-            this.noiseSequencer.reload[0] = 254;
-            break;
-          case 0x0B:
-            this.noiseSequencer.reload[0] = 380;
-            break;
-          case 0x0C:
-            this.noiseSequencer.reload[0] = 508;
-            break;
-          case 0x0D:
-            this.noiseSequencer.reload[0] = 1016;
-            break;
-          case 0x0E:
-            this.noiseSequencer.reload[0] = 2034;
-            break;
-          case 0x0F:
-            this.noiseSequencer.reload[0] = 4068;
-            break;
-        }
-        break;
-
-      case 0x4015: // STATUS
-        this.enableSquare1 = (data & 0x01) > 0;
-        this.enableSquare2 = (data & 0x02) > 0;
-        this.enableNoise = (data & 0x04) > 0;
+        this.noiseChannel.setTonal((data & 0x80) > 0);
+        this.noiseChannel.setReload(data & 0x0F);
         break;
 
       case 0x400F:
-        this.square1Envelope.start = true;
-        this.square2Envelope.start = true;
-        this.noiseEnvelope.start = true;
-        this.noiseLengthCounter.counter = this.lengthTable[(data & 0xF8) >> 3];
+        this.noiseChannel.startEnvelope(true);
+        this.noiseChannel.setCounter((data & 0xF8) >> 3);
+        break;
+
+      case 0x4015:
+        this.squareChannel1.setEnable((data & 0x01) > 0);
+        this.squareChannel2.setEnable((data & 0x02) > 0);
+        this.triangleChannel.setEnable((data & 0x04) > 0);
+        this.noiseChannel.setEnable((data & 0x08) > 0);
+
+        if (!this.squareChannel1.isEnabled()) {
+          this.squareChannel1.clearCounter();
+        }
+        if (!this.squareChannel2.isEnabled()) {
+          this.squareChannel2.clearCounter();
+        }
+        if (!this.triangleChannel.isEnabled()) {
+          this.triangleChannel.clearCounter();
+        }
+        if (!this.noiseChannel.isEnabled()) {
+          this.noiseChannel.clearCounter();
+        }
+        break;
+
+      case 0x4017:
         break;
     }
   }

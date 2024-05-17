@@ -3,15 +3,31 @@
  * Envelope describes how the sound changes over time.
  */
 export class Envelope {
-  start = false;
-  disable = false;
+  started = false;
+  disabled = false;
   dividerCount = new Uint16Array(1);
   volume = new Uint16Array(1);
   output = new Uint16Array(1);
   decayCount = new Uint16Array(1);
 
+  setVolume(volume) {
+    this.volume[0] = volume;
+  }
+
+  getOutput() {
+    return this.output[0];
+  }
+
+  setStart(start) {
+    this.started = start;
+  }
+
+  setDisable(disable) {
+    this.disabled = disable;
+  }
+
   clock(loop) {
-    if (!this.start) {
+    if (!this.started) {
       if (this.dividerCount[0] === 0) {
         this.dividerCount[0] = this.volume[0];
 
@@ -27,11 +43,11 @@ export class Envelope {
         this.dividerCount[0]--;
       }
     } else {
-      this.start = false;
+      this.started = false;
       this.decayCount[0] = 15;
       this.dividerCount[0] = this.volume[0];
     }
-    if (this.disable) {
+    if (this.disabled) {
       this.output[0] = this.volume[0];
     } else {
       this.output[0] = this.decayCount[0];

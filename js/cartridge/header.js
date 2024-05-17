@@ -35,4 +35,8 @@ export class FormatHeader {
   getMapper2() {
     return this.header.getUint8(7);
   }
+
+  getProgramRamSize() {
+    return this.header.getUint8(8);
+  }
 }

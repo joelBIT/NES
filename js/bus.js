@@ -79,6 +79,11 @@ export class Bus {
       cpu.nmi();
     }
 
+    if (this.cartridge.getMapper().irqState()) {
+      this.cartridge.getMapper().irqClear();
+      cpu.irq();
+    }
+
     this.systemClockCounter[0]++;
     return this.writes;
   }

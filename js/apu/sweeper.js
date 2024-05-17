@@ -1,6 +1,6 @@
 
 /**
- * Sweeper
+ * Sweeper produces a continuous bend from one pitch to another.
  */
 export class Sweeper {
   enabled = false;
@@ -10,25 +10,47 @@ export class Sweeper {
   timer = 0x00;
   period = 0x00;
   change = new Uint16Array(1);
-  mute = false;
+  muted = false;
+
+  setReload(reload) {
+    this.reload = reload;
+  }
+
+  isMuted() {
+    return this.muted;
+  }
+
+  setShift(shift) {
+    this.shift = shift;
+  }
+
+  setEnable(enable) {
+    this.enabled = enable;
+  }
+
+  setDown(down) {
+    this.down = down;
+  }
+
+  setPeriod(period) {
+    this.period = period;
+  }
 
   track(target) {
     if (this.enabled) {
       this.change[0] = target >> this.shift;
-      this.mute = (target < 8) || (target > 0x7FF);
+      this.muted = (target < 8) || (target > 0x7FF);
     }
   }
 
   clock(target, channel) {
-    let changed = false;
-    if (this.timer === 0 && this.enabled && this.shift > 0 && !this.mute) {
+    if (this.timer === 0 && this.enabled && this.shift > 0 && !this.muted) {
       if (target >= 8 && this.change[0] < 0x07FF) {
         if (this.down) {
           target -= this.change[0] - channel;
         } else {
           target += this.change[0];
         }
-        changed = true;
       }
     }
 
@@ -38,8 +60,6 @@ export class Sweeper {
     } else {
       this.timer--;
     }
-    this.mute = (target < 8) || (target > 0x7FF);
-
-    return changed;
+    this.muted = (target < 8) || (target > 0x7FF);
   }
 }

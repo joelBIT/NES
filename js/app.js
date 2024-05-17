@@ -26,10 +26,10 @@ function readFile(event) {
     nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
     nesWorkletNode.connect(audioContext.destination);
     const source = audioContext.createBufferSource();
-    source.buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
+    source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
     source.start();
     worker.postMessage({event: 'readFile', data: event.target.result});
-  });
+  }).catch(error => console.log(error));
 }
 
 worker.onmessage = function(message) {

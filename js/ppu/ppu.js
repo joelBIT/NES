@@ -80,10 +80,6 @@ class PPU {
     this.canvasImageData = this.ctx.getImageData(0, 0, 256, 240);
   }
 
-  req(func) {
-    requestAnimationFrame(func);
-  }
-
   /**
    * Stores a pixel in an array for later rendering. The offset corresponds to the pixels' location (X, Y) on the screen
    * and its color (RGBA) is stored in the 4 bytes from the offset, where A = 255;
@@ -514,6 +510,13 @@ class PPU {
     this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
 
     this.cycle++;
+
+    if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
+      if (this.cycle === 260 && this.scanline < 240) {
+        this.cartridge.getMapper().scanLine();
+      }
+    }
+
 
     if (this.cycle >= 341) {
       this.cycle = 0;

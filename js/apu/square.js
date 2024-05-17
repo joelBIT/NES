@@ -1,27 +1,132 @@
+import { LengthCounter } from "./counter.js";
+import { Sequencer } from "./sequencer.js";
+import { Envelope } from "./envelope.js";
+import { Sweeper } from "./sweeper.js";
+
 /**
- * A Square wave (channels 1 and 2). $4002 and $4003 control the period of the wave. Periods are 11-bits long. $4002 holds
- * the low 8-bits and $4003 holds the high 3-bits of the period.
+ * A Square wave (channels 1 and 2).
+ *
  * Once a waveform is generated it is associated with a length (how long is it played for) and it can also be swept (its
- * frequency can be changed in real time). If the frequency is fixed we get a continuous note (a beeeep sound). Both
- * length and frequency are controlled by dedicated hardware.
- *
- * SQ1_ENV ($4000)
- *
- *    76543210
- *    ||||||||
- *    ||||++++- Volume
- *    |||+----- Saw Envelope Disable (0: use internal counter for volume; 1: use Volume for volume)
- *    ||+------ Length Counter Disable (0: use Length Counter; 1: disable Length Counter)
- *    ++------- Duty Cycle
- *
- * Volume is 4 bits long so it can have a value from 0-F, where F is the loudest. Duty Cycle controls the tone.
+ * frequency can be changed in real time).
+ * Volume is 4 bits long so it can have a value from 0-F, where F is the loudest. Duty Cycle controls the tone, i.e., the
+ * amount of time the wave is active or on.
  */
-export class SquareWave {
+export class SquareChannel {
   frequency = 0.0;
   dutyCycle = 0.0;
   amplitude = 1;
   pi = 3.14159;
   harmonics = 20;
+  enabled = false;
+  halted = false;
+
+  dutyCycleSequences = [{duty: 0.125, waveform: 0b01000000}, {duty: 0.250, waveform: 0b01100000},
+                        {duty: 0.500, waveform: 0b01111000}, {duty: 0.750, waveform: 0b10011111}];
+
+  linearCounter = new LengthCounter();
+  lengthCounter = new LengthCounter();
+  output = 0.0;
+  sequencer = new Sequencer();
+  envelope = new Envelope();
+  sweeper = new Sweeper();
+
+  clockSweeper(channel) {
+    this.sweeper.clock(this.sequencer.reload[0], channel);
+  }
+
+  setVolume(volume) {
+    this.envelope.setVolume(volume);
+  }
+
+  disableEnvelope(disable) {
+    this.envelope.setDisable(disable);
+  }
+
+  haltCounter(halt) {
+    this.lengthCounter.setHalt(halt);
+  }
+
+  startEnvelope(start) {
+    this.envelope.setStart(start);
+  }
+
+  setSweeperPeriod(period) {
+    this.sweeper.setPeriod(period);
+  }
+
+  setSweeperShift(shift) {
+    this.sweeper.setShift(shift);
+  }
+
+  setSequence() {
+    this.sequencer.setSequence();
+  }
+
+  setSweeperDown(down) {
+    this.sweeper.setDown(down);
+  }
+
+  setSweeperEnable(enable) {
+    this.sweeper.setEnable(enable);
+  }
+
+  setSweeperReload(reload) {
+    this.sweeper.setReload(reload);
+  }
+
+  setDuty(index) {
+    const sequence = this.dutyCycleSequences[index];
+    this.sequencer.setOutputWaveForm(sequence.waveform);
+    this.dutyCycle = sequence.duty;
+  }
+
+  clockCounter() {
+    this.lengthCounter.clock(this.enabled);
+  }
+
+  clearCounter() {
+    this.lengthCounter.clear();
+  }
+
+  reloadTimer() {
+    this.sequencer.reloadTimer();
+  }
+
+  setReloadValue(value) {
+    this.sequencer.setReloadValue(value);
+  }
+
+  trackSweeper() {
+    this.sweeper.track(this.sequencer.getReload());
+  }
+
+  getSequencerReload() {
+    return this.sequencer.getReload();
+  }
+
+  clockEnvelope() {
+    this.envelope.clock(this.halted);
+  }
+
+  setCounter(index) {
+    this.lengthCounter.setCounter(index);
+  }
+
+  setEnable(enable) {
+    this.enabled = enable;
+  }
+
+  isEnabled() {
+    return this.enabled;
+  }
+
+  setHalt(halt) {
+    this.halted = halt;
+  }
+
+  isHalted() {
+    return this.halted;
+  }
 
   approxsin(t) {
     let j = t * 0.15915;
@@ -41,5 +146,29 @@ export class SquareWave {
     }
 
     return (2.0 * this.amplitude / this.pi) * (a - b);
+  }
+
+  clock() {
+    if (this.enabled) {
+      this.sequencer.decrementTimer();
+      if (this.sequencer.getTimer() === 0xFFFF) {
+        this.sequencer.reloadTimer();
+        this.sequencer.setSequence(((this.sequencer.getSequence() & 0x0001) << 7) | ((this.sequencer.getSequence() & 0x00FE) >> 1));
+        this.sequencer.setOutput(this.sequencer.getSequence() & 0x00000001);
+      }
+    }
+  }
+
+  getOutput(time) {
+    this.frequency = 1789773.0 / (16.0 * (this.sequencer.getReload() + 1));
+    this.amplitude = (this.envelope.getOutput() - 1) / 16.0;
+    const sample = this.sample(time);
+
+    if (this.lengthCounter.getCounter() > 0 && this.sequencer.getTimer() >= 8 && !this.sweeper.isMuted() && this.envelope.getOutput() > 2) {
+      this.output += (sample - this.output) * 0.5;
+    } else {
+      this.output = 0.0;
+    }
+    return this.output;
   }
 }

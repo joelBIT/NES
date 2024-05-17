@@ -33,13 +33,12 @@ class NesApuProcessor extends AudioWorkletProcessor {
     const output = outputs[0];
 
     // Synchronising with Audio
-    while (this.audioSamples.length < 8800) {
+    while (this.audioSamples.length < 2048) {   // 2400
       this.apu.clock();
       this.audioTime += this.audioTimePerNesClock;
       if (this.audioTime >= this.audioTimePerSystemSample) {
         this.audioTime -= this.audioTimePerSystemSample;
-        this.audioSamples.push(this.apu.getOutputSample());     // The outputted audio sample (mix of the channels output samples)
-
+        this.audioSamples.push(15*this.apu.mixedOutputSample());    // increase sound volume by a factor of 15
       }
     }
 

@@ -35,6 +35,14 @@ export class Mapper {
 
   }
 
+  scanLine() {
+
+  }
+
+  irqState() {
+    return false;
+  }
+
   mirror() {
     return Mirror.HARDWARE;
   }
