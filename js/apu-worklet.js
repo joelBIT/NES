@@ -6,7 +6,7 @@ import { APU } from './apu/apu.js';
  * It lives in the AudioWorkletGlobalScope and runs on the Web Audio rendering thread.
  * In turn, an AudioWorkletNode based on it runs on the main thread.
  */
-class NesApuProcessor extends AudioWorkletProcessor {
+export class NesApuProcessor extends AudioWorkletProcessor {
   audioSamples = [];
   apu = new APU();
 
@@ -33,7 +33,7 @@ class NesApuProcessor extends AudioWorkletProcessor {
     const output = outputs[0];
 
     // Synchronising with Audio
-    while (this.audioSamples.length < 2048) {   // 2400
+    while (this.audioSamples.length < 2048) {
       this.apu.clock();
       this.audioTime += this.audioTimePerNesClock;
       if (this.audioTime >= this.audioTimePerSystemSample) {

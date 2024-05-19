@@ -19,9 +19,7 @@ export class MapperSixtySix extends Mapper {
 
   mapReadCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      const mappedAddress = new Uint32Array(1);
-      mappedAddress[0] = this.programBankSelect * 0x8000 + (address & 0x7FFF);
-      return { "address": mappedAddress };
+      return { "address": this.programBankSelect[0] * 0x8000 + (address & 0x7FFF) };
     }
     return false;
   }
@@ -31,14 +29,12 @@ export class MapperSixtySix extends Mapper {
       this.characterBankSelect[0] = data & 0x03;
       this.programBankSelect[0] = (data & 0x30) >> 4;
     }
-    return false;     // Mapper has handled write, but do not update ROMs
+    return false;
   }
 
   mapReadPPU(address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
-      const mappedAddress = new Uint32Array(1);
-      mappedAddress[0] = this.characterBankSelect[0] * 0x2000 + address;
-      return { "address": mappedAddress };
+      return { "address": this.characterBankSelect[0] * 0x2000 + address };
     }
     return false;
   }

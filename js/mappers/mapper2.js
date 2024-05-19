@@ -2,6 +2,9 @@ import { Mapper } from "./mapper.js";
 
 /**
  * Mapper 2
+ *
+ * CPU $8000-$BFFF: 16 KB switchable PRG ROM bank
+ * CPU $C000-$FFFF: 16 KB PRG ROM bank, fixed to the last bank
  */
 export class MapperTwo extends Mapper {
   id = 2;

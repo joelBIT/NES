@@ -18,12 +18,10 @@ export class MapperThree extends Mapper {
   mapReadCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       if (this.programBanks === 1) {                // 16K ROM
-        const mappedAddress = address & 0x3FFF;
-        return { "address": mappedAddress };
+        return { "address": address & 0x3FFF };
       }
       if (this.programBanks === 2) {              // 32K ROM
-        const mappedAddress = address & 0x7FFF;
-        return { "address": mappedAddress };
+        return { "address": address & 0x7FFF };
       }
       return true;
     }
@@ -40,8 +38,7 @@ export class MapperThree extends Mapper {
 
   mapReadPPU(address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
-      const mappedAddress = this.characterBankSelect[0] * 0x2000 + address;
-      return { "address": mappedAddress };
+      return { "address": this.characterBankSelect[0] * 0x2000 + address };
     }
     return false;
   }

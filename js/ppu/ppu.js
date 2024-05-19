@@ -1,6 +1,9 @@
 import { Mirror } from "../mirror.js";
 import { MemoryArea } from "./memory.js";
-import { MaskRegister, ControlRegister, LoopyRegister, StatusRegister } from "./registers.js";
+import { MaskRegister } from "./registers/mask.js";
+import { ControlRegister } from './registers/control.js';
+import { LoopyRegister } from './registers/loopy.js';
+import { StatusRegister } from './registers/status.js';
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.

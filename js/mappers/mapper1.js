@@ -21,6 +21,9 @@ export class MapperOne extends Mapper {
   characterBankSelect4High = new Uint8Array(1);
   characterBankSelect8 = new Uint8Array(1);
 
+  targetRegister = new Uint8Array(1);
+  programMode = new Uint8Array(1);
+
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
   }
@@ -34,22 +37,19 @@ export class MapperOne extends Mapper {
       return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };      // Read is from static ram on cartridge
     }
     if (address >= 0x8000) {
-      if (this.controlRegister[0] & 0b01000) {        // 16K Mode
+      if ((this.controlRegister[0] & 0b01000) > 0) {        // 16K Mode
         if (address >= 0x8000 && address <= 0xBFFF) {
           return {"address": this.programBankSelect16Low[0] * 0x4000 + (address & 0x3FFF)};
         }
         if (address >= 0xC000 && address <= 0xFFFF) {
           return {"address": this.programBankSelect16High[0] * 0x4000 + (address & 0x3FFF)};
         }
+      } else {      // 32K Mode
+        return { "address": this.programBankSelect32[0] * 0x8000 + (address & 0x7FFF) };        //  <- den här verkar aldrig köras, borde köras på Megaman2 ?
       }
-    } else {      // 32K Mode
-      return { "address": this.programBankSelect32[0] * 0x8000 + (address & 0x7FFF) };
     }
     return false;
   }
-
-  targetRegister = new Uint8Array(1);
-  programMode = new Uint8Array(1);
 
   mapWriteCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
@@ -93,20 +93,19 @@ export class MapperOne extends Mapper {
                 break;
             }
           } else if (this.targetRegister[0] === 1) {      // 0xA000 - 0xBFFF
-            if (this.controlRegister[0] & 0b10000) {
+            if ((this.controlRegister[0] & 0b10000) > 0) {
               this.characterBankSelect4Low[0] = this.loadRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x0000
             } else {
               this.characterBankSelect8[0] = this.loadRegister[0] & 0x1E;        // 8K CHR Bank at PPU 0x0000
             }
           } else if (this.targetRegister[0] === 2) {      // 0xC000 - 0xDFFF
-            if ((this.controlRegister[0] & 0x10) > 0) {
+            if ((this.controlRegister[0] & 0b10000) > 0) {
               this.characterBankSelect4High[0] = this.loadRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x1000
             }
           } else if (this.targetRegister[0] === 3) {      // 0xE000 - 0xFFFF
             // Configure PRG Banks
 
             this.programMode[0] = (this.controlRegister[0] >> 2) & 0x03;
-
             if (this.programMode[0] === 0 || this.programMode[0] === 1) {
               this.programBankSelect32[0] = (this.loadRegister[0] & 0x0E) >> 1;  // Set 32K PRG Bank at CPU 0x8000
             } else if (this.programMode[0] === 2) {
@@ -130,17 +129,17 @@ export class MapperOne extends Mapper {
   mapReadPPU(address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
       if (this.characterBanks === 0) {
-        return { "mappedAddress": address };
+        return { "address": address };
       } else {
-        if (this.controlRegister[0] & 0b10000) {        // 4K CHR Bank Mode
+        if ((this.controlRegister[0] & 0b10000) > 0) {        // 4K CHR Bank Mode
           if (address >= 0x0000 && address <= 0x0FFF) {
-            return { "mappedAddress": this.characterBankSelect4Low[0] * 0x1000 + (address & 0x0FFF) };
+            return { "address": this.characterBankSelect4Low[0] * 0x1000 + (address & 0x0FFF) };
           }
           if (address >= 0x1000 && address <= 0x1FFF) {
-            return { "mappedAddress": this.characterBankSelect4High[0] * 0x1000 + (address & 0x0FFF) };
+            return { "address": this.characterBankSelect4High[0] * 0x1000 + (address & 0x0FFF) };
           }
         } else {      // 8K CHR Bank Mode
-          return { "mappedAddress": this.characterBankSelect8[0] * 0x2000 + (address & 0x1FFF) };
+          return { "address": this.characterBankSelect8[0] * 0x2000 + (address & 0x1FFF) };
         }
       }
     }
@@ -150,7 +149,7 @@ export class MapperOne extends Mapper {
   mapWritePPU(address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
       if (this.characterBanks === 0) {
-        return { "mappedAddress": address };
+        return { "address": address };
       }
     }
     return false;
