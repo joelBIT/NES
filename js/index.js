@@ -38,14 +38,16 @@ worker.onmessage = function(message) {
 
 document.getElementById("nesfile").addEventListener('change', input => {
   if (!input.target.files.length) {
-    alert('no files');
+    alert('No file');
     return;
   }
   console.log(input.target.files[0]);
 
-// alert(input.target.files[0].name);
-//   alert(input.target.files[0].size);
-//   alert(input.target.files[0].type);      // check for type: application/x-nes-rom      ??
+  if (input.target.files[0].type !== 'application/x-nes-rom') {
+    document.getElementById("nesfile").value = '';
+    alert('File is not a NES ROM');
+    return;
+  }
 
   const fileReader = new FileReader();
   fileReader.addEventListener('load', readFile);

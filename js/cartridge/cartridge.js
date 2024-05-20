@@ -40,10 +40,6 @@ export class Cartridge {
       fileType = 2;
     }
 
-    if (fileType === 0) {
-
-    }
-
     if (fileType === 1) {
       this.programBanks = this.header.getProgramChunks();
       const programMemoryLength = this.header.getProgramChunks() * 16384;
@@ -130,7 +126,9 @@ export class Cartridge {
   ppuWriteCart(address, data) {
     const mapped = this.mapper.mapWritePPU(address);
     if (mapped) {
-      this.characterMemory[mapped.address] = data;
+      if (mapped.address) {
+        this.characterMemory[mapped.address] = data;
+      }
       return true;
     }
     return false;

@@ -33,7 +33,7 @@ export class MapperThree extends Mapper {
       this.characterBankSelect[0] = data & 0x03;
       return { "address": address };
     }
-    return false;     // Mapper has handled write, but do not update ROMs
+    return false;
   }
 
   mapReadPPU(address) {
