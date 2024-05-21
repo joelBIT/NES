@@ -6,13 +6,12 @@
   - nestest passes ✔️
 
 
-<b>Fully functional 🖥️ PPU and 🔊 APU</b>
+<b>Fully functional 🖥️ PPU and almost fully functional 🔊 APU</b>
 
 
 🔌 <b>Supported mappers</b>
   - Mapper 0: NROM
   - Mapper 1: MMC1
-  - Mapper 2: UxROM
   - Mapper 3: CNROM
   - Mapper 4: MMC3
   - Mapper 66: GxROM
