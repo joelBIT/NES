@@ -26,6 +26,9 @@ export class Cartridge {
 
   constructor(cartridge) {
     this.header = new FormatHeader(cartridge.subarray(0, 16));
+    if (!this.header.isINES()) {
+      throw 'Not an iNES Rom';
+    }
     let index = 16;
 
     if (this.header.getMapper1() & 0x04) {

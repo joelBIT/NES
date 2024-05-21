@@ -20,6 +20,11 @@ export class FormatHeader {
     }
   }
 
+  isINES() {
+    return this.header.getUint8(0) === 0x4E && this.header.getUint8(1) === 0x45 &&
+      this.header.getUint8(2) === 0x53 && this.header.getUint8(3) === 0x1A;
+  }
+
   getProgramChunks() {
     return this.header.getUint8(4);
   }

@@ -9,7 +9,15 @@ self.onmessage = function(message) {
   switch (message.data.event) {
     case 'readFile':
       const rom = new Uint8Array(message.data.data);
-      bus.insertCartridge(new Cartridge(rom));
+      try {
+        bus.insertCartridge(new Cartridge(rom));
+      } catch (e) {
+        if (e === 'Not an iNES Rom') {
+          alert('Not an INES file');
+        }
+        return;
+      }
+
       bus.reset();
       function tick() {
         do {
