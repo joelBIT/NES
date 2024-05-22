@@ -13,7 +13,6 @@ import { MapperFour } from "../mappers/mapper4.js";
  */
 export class Cartridge {
   header;
-  imageValid = false;
 
   programMemory = [];
   characterMemory = [];
@@ -50,11 +49,10 @@ export class Cartridge {
       index += programMemoryLength;
 
       this.characterBanks = this.header.getCharacterChunks();
-      let characterMemoryLength = 8192;
-      if (this.characterBanks > 1) {
-        characterMemoryLength = this.characterBanks * 8192;
+      if (this.characterBanks !== 0) {
+        const characterMemoryLength = this.characterBanks * 8192;
+        this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
       }
-      this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
     }
 
     if (fileType === 2) {
@@ -64,11 +62,10 @@ export class Cartridge {
       index += programMemoryLength;
 
       this.characterBanks = ((this.header.getProgramRamSize() & 0x38) << 8) | this.header.getCharacterChunks();
-      let characterMemoryLength = 8192;
-      if (this.characterBanks > 1) {
-        characterMemoryLength = this.characterBanks * 8192;
+      if (this.characterBanks !== 0) {
+        const characterMemoryLength = this.characterBanks * 8192;
+        this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
       }
-      this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
     }
 
     switch (this.mapperID) {
@@ -91,8 +88,6 @@ export class Cartridge {
         this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);
         break;
     }
-
-    this.imageValid = true;
   }
 
   cpuReadCart(address) {

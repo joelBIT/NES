@@ -90,13 +90,13 @@ export class MapperOne extends Mapper {
                 break;
             }
           } else if (targetRegister === 1) {      // 0xA000 - 0xBFFF
-            if ((this.controlRegister[0] & 0x10) > 0) {
+            if (this.controlRegister[0] & 0x10) {
               this.characterBankSelect4Low[0] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x0000
             } else {
               this.characterBankSelect8[0] = this.shiftRegister[0] & 0x1E;        // 8K CHR Bank at PPU 0x0000
             }
           } else if (targetRegister === 2) {      // 0xC000 - 0xDFFF
-            if ((this.controlRegister[0] & 0x10) > 0) {
+            if (this.controlRegister[0] & 0x10) {
               this.characterBankSelect4High[0] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x1000
             }
           } else if (targetRegister === 3) {      // 0xE000 - 0xFFFF
@@ -129,7 +129,7 @@ export class MapperOne extends Mapper {
         return { "address": address };
       }
       if (this.controlRegister[0] & 0x10) {        // 4K CHR Bank Mode
-        if (address >= 0x0000 && address <= 0x0FFF) {
+        if (address <= 0x0FFF) {
           return { "address": this.characterBankSelect4Low[0] * 0x1000 + (address & 0x0FFF) };
         }
         if (address >= 0x1000 && address <= 0x1FFF) {
