@@ -6,6 +6,7 @@ import { MapperTwo } from "../mappers/mapper2.js";
 import { MapperThree } from "../mappers/mapper3.js";
 import { MapperSixtySix } from "../mappers/mapper66.js";
 import { MapperFour } from "../mappers/mapper4.js";
+import { MapperSeven } from "../mappers/mapper7.js";
 
 /**
  * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table.
@@ -83,6 +84,9 @@ export class Cartridge {
         break;
       case 4:
         this.mapper = new MapperFour(this.programBanks, this.characterBanks);
+        break;
+      case 7:
+        this.mapper = new MapperSeven(this.programBanks, this.characterBanks);
         break;
       case 66:
         this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);

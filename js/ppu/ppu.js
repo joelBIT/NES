@@ -651,6 +651,26 @@ class PPU {
         } else if (address >= 0x0C00 && address <= 0x0FFF) {
           return this.nameTable2.read(address & 0x03FF);
         }
+      } else if (Object.is(Mirror.ONE_SCREEN_LOW, this.cartridge.getMirror())) {
+        if (address >= 0x0000 && address <= 0x03FF) {
+          return this.nameTable1.read(address & 0x03FF);
+        } else if (address >= 0x0400 && address <= 0x07FF) {
+          return this.nameTable1.read(address & 0x03FF);
+        } else if (address >= 0x0800 && address <= 0x0BFF) {
+          return this.nameTable1.read(address & 0x03FF);
+        } else if (address >= 0x0C00 && address <= 0x0FFF) {
+          return this.nameTable1.read(address & 0x03FF);
+        }
+      } else if (Object.is(Mirror.ONE_SCREEN_HIGH, this.cartridge.getMirror())) {
+        if (address >= 0x0000 && address <= 0x03FF) {
+          return this.nameTable2.read(address & 0x03FF);
+        } else if (address >= 0x0400 && address <= 0x07FF) {
+          return this.nameTable2.read(address & 0x03FF);
+        } else if (address >= 0x0800 && address <= 0x0BFF) {
+          return this.nameTable2.read(address & 0x03FF);
+        } else if (address >= 0x0C00 && address <= 0x0FFF) {
+          return this.nameTable2.read(address & 0x03FF);
+        }
       }
     } else if (address >= 0x3F00 && address <= 0x3FFF) {
       address &= 0x001F;
@@ -696,6 +716,26 @@ class PPU {
           this.nameTable1.write(address & 0x03FF, data);
         } else if (address >= 0x0400 && address <= 0x07FF) {
           this.nameTable1.write(address & 0x03FF, data);
+        } else if (address >= 0x0800 && address <= 0x0BFF) {
+          this.nameTable2.write(address & 0x03FF, data);
+        } else if (address >= 0x0C00 && address <= 0x0FFF) {
+          this.nameTable2.write(address & 0x03FF, data);
+        }
+      } else if (Object.is(Mirror.ONE_SCREEN_LOW, this.cartridge.getMirror())) {
+        if (address >= 0x0000 && address <= 0x03FF) {
+          this.nameTable1.write(address & 0x03FF, data);
+        } else if (address >= 0x0400 && address <= 0x07FF) {
+          this.nameTable1.write(address & 0x03FF, data);
+        } else if (address >= 0x0800 && address <= 0x0BFF) {
+          this.nameTable1.write(address & 0x03FF, data);
+        } else if (address >= 0x0C00 && address <= 0x0FFF) {
+          this.nameTable1.write(address & 0x03FF, data);
+        }
+      } else if (Object.is(Mirror.ONE_SCREEN_HIGH, this.cartridge.getMirror())) {
+        if (address >= 0x0000 && address <= 0x03FF) {
+          this.nameTable2.write(address & 0x03FF, data);
+        } else if (address >= 0x0400 && address <= 0x07FF) {
+          this.nameTable2.write(address & 0x03FF, data);
         } else if (address >= 0x0800 && address <= 0x0BFF) {
           this.nameTable2.write(address & 0x03FF, data);
         } else if (address >= 0x0C00 && address <= 0x0FFF) {
