@@ -2,7 +2,31 @@ import { Mirror } from "../mirror.js";
 import { Mapper } from "./mapper.js";
 
 /**
- * Mapper 4
+ * Mapper 4. The Nintendo MMC3 is a mapper ASIC used in Nintendo's TxROM Game Pak boards. Most common TxROM boards,
+ * along with the NES-HKROM board (which uses the Nintendo MMC6), are assigned to iNES Mapper 004.
+ *
+ * CPU $6000-$7FFF: 8 KB PRG RAM bank (optional)
+ * CPU $8000-$9FFF (or $C000-$DFFF): 8 KB switchable PRG ROM bank
+ * CPU $A000-$BFFF: 8 KB switchable PRG ROM bank
+ * CPU $C000-$DFFF (or $8000-$9FFF): 8 KB PRG ROM bank, fixed to the second-last bank
+ * CPU $E000-$FFFF: 8 KB PRG ROM bank, fixed to the last bank
+ * PPU $0000-$07FF (or $1000-$17FF): 2 KB switchable CHR bank
+ * PPU $0800-$0FFF (or $1800-$1FFF): 2 KB switchable CHR bank
+ * PPU $1000-$13FF (or $0000-$03FF): 1 KB switchable CHR bank
+ * PPU $1400-$17FF (or $0400-$07FF): 1 KB switchable CHR bank
+ * PPU $1800-$1BFF (or $0800-$0BFF): 1 KB switchable CHR bank
+ * PPU $1C00-$1FFF (or $0C00-$0FFF): 1 KB switchable CHR bank
+ *
+ * Example games:
+ *
+ * Mega Man 3
+ * Mega Man 5
+ * Super Mario Bros 2
+ * Super Mario Bros 3
+ * Double Dragon 2
+ * Double Dragon 3
+ * Teenage Mutant Hero Turtles 2
+ *
  */
 export class MapperFour extends Mapper {
   id = 4;
@@ -110,7 +134,7 @@ export class MapperFour extends Mapper {
 
     if (address >= 0xA000 && address <= 0xBFFF) {
       if (!((address & 0x0001) > 0)) {
-        if ((data & 0x01) > 0) {
+        if (data & 0x01) {
           this.mirrorMode = Mirror.HORIZONTAL;
         } else {
           this.mirrorMode = Mirror.VERTICAL;

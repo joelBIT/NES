@@ -2,7 +2,26 @@ import { Mirror } from "../mirror.js";
 import { Mapper } from "./mapper.js";
 
 /**
- * Mapper 1
+ * Mapper 1 is used to designate the SxROM boardset, all of which use Nintendo's MMC1.
+ *
+ * CPU $6000-$7FFF: 8 KB PRG RAM bank, (optional)
+ * CPU $8000-$BFFF: 16 KB PRG ROM bank, either switchable or fixed to the first bank
+ * CPU $C000-$FFFF: 16 KB PRG ROM bank, either fixed to the last bank or switchable
+ * PPU $0000-$0FFF: 4 KB switchable CHR bank
+ * PPU $1000-$1FFF: 4 KB switchable CHR bank
+ * Through writes to the MMC1 control register, it is possible for the program to swap the fixed and switchable PRG ROM
+ * banks or to set up 32 KB PRG bankswitching (like BNROM), but most games use the default setup, which is similar to that of UxROM.
+ *
+ * Example games:
+ *
+ * The Legend of Zelda
+ * Mega Man 2
+ * Metroid
+ * Teenage Mutant Ninja Turtles
+ * Castlevania 2
+ * Chip n' Dale
+ * Double Dragon
+ *
  */
 export class MapperOne extends Mapper {
   id = 1;

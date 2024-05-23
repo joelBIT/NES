@@ -1,7 +1,20 @@
 import { Mapper } from "./mapper.js";
 
 /**
- * Mapper 66
+ * Mapper 66. The designation GxROM refers to Nintendo cartridge boards labeled NES-GNROM and NES-MHROM (and their
+ * HVC counterparts), which use discrete logic to provide up to four 32 KB banks of PRG ROM and up to four 8 KB banks of CHR ROM.
+ *
+ * CPU $8000-$FFFF: 32 KB switchable PRG ROM bank
+ * PPU $0000-$1FFF: 8 KB switchable CHR ROM bank
+ *
+ * Example games:
+ *
+ * Doraemon
+ * Dragon Power
+ * Gumshoe
+ * Thunder & Lightning
+ * Super Mario Bros. + Duck Hunt (MHROM)
+ *
  */
 export class MapperSixtySix extends Mapper {
   id = 66;
@@ -24,6 +37,15 @@ export class MapperSixtySix extends Mapper {
     return false;
   }
 
+  /**
+   * Bank select ($8000-$FFFF)
+   * 7  bit  0
+   * ---- ----
+   * xxPP xxCC
+   *   ||   ||
+   *   ||   ++- Select 8 KB CHR ROM bank for PPU $0000-$1FFF
+   *   ++------ Select 32 KB PRG ROM bank for CPU $8000-$FFFF
+   */
   mapWriteCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       this.characterBankSelect[0] = data & 0x03;

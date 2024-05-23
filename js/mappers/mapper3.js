@@ -1,7 +1,19 @@
 import { Mapper } from "./mapper.js";
 
 /**
- * Mapper 3
+ * Mapper 3 is used to designate the CNROM board, and similar boards used by Bandai, Panesian, Sachen and others,
+ * generalized to support up to 256 banks (2048 KiB) of CHR ROM.
+ *
+ * PPU $0000-$1FFF: 8 KB switchable CHR ROM bank
+ *
+ * Example games:
+ *
+ * Solomon's Key
+ * Arkanoid
+ * Arkista's Ring
+ * Bump 'n' Jump
+ * Donkey Kong Classics
+ *
  */
 export class MapperThree extends Mapper {
   id = 3;
@@ -28,6 +40,18 @@ export class MapperThree extends Mapper {
     return false;
   }
 
+  /**
+   *
+   * Bank select ($8000-$FFFF)
+   * 7  bit  0
+   * ---- ----
+   * cccc ccCC
+   * |||| ||||
+   * ++++-++++- Select 8 KB CHR ROM bank for PPU $0000-$1FFF
+   *
+   * CNROM only implements the lowest 2 bits, capping it at 32 KiB CHR. Other boards may implement 4 or more
+   * bits for larger CHR.
+   */
   mapWriteCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       this.characterBankSelect[0] = data & 0x03;
