@@ -68,7 +68,7 @@ export class MapperSeven extends Mapper {
       if (this.characterBanks === 0) {
         return { "address": address };
       }
-      return { "address": this.programBankSelect * 0x2000 + (address & 0x1FFF) };
+      return { "address": this.programBankSelect * 0x2000 + address };
     }
     return false;
   }

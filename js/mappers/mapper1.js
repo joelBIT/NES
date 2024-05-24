@@ -155,7 +155,7 @@ export class MapperOne extends Mapper {
           return { "address": this.characterBankSelect4High[0] * 0x1000 + (address & 0x0FFF) };
         }
       } else {      // 8K CHR Bank Mode
-        return { "address": this.characterBankSelect8[0] * 0x2000 + (address & 0x1FFF) };
+        return { "address": this.characterBankSelect8[0] * 0x2000 + address };
       }
     }
 

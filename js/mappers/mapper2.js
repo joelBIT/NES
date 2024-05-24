@@ -1,4 +1,5 @@
 import { Mapper } from "./mapper.js";
+import { Mirror } from "../mirror.js";
 
 /**
  * Mapper 2 is the implementation of the most common usage of UxROM compatible boards.
@@ -16,6 +17,7 @@ import { Mapper } from "./mapper.js";
  */
 export class MapperTwo extends Mapper {
   id = 2;
+  mirrorMode = Mirror.VERTICAL;
 
   programBankSelectLow = 0;
   programBankSelectHigh = this.programBanks - 1;
@@ -78,5 +80,9 @@ export class MapperTwo extends Mapper {
   reset() {
     this.programBankSelectLow = 0;
     this.programBankSelectHigh = this.programBanks - 1;
+  }
+
+  mirror() {
+    return this.mirrorMode;
   }
 }

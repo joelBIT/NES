@@ -87,7 +87,7 @@ export class MapperFour extends Mapper {
 
     if (address >= 0x8000 && address <= 0x9FFF) {
       // Bank Select
-      if (!((address & 0x0001) > 0)) {
+      if (!(address & 0x0001)) {
         this.targetRegister[0] = data & 0x07;
         this.programBankMode = (data & 0x40) > 0;
         this.characterInversion = (data & 0x80) > 0;
@@ -133,7 +133,7 @@ export class MapperFour extends Mapper {
     }
 
     if (address >= 0xA000 && address <= 0xBFFF) {
-      if (!((address & 0x0001) > 0)) {
+      if (!(address & 0x0001)) {
         if (data & 0x01) {
           this.mirrorMode = Mirror.HORIZONTAL;
         } else {
@@ -144,7 +144,7 @@ export class MapperFour extends Mapper {
     }
 
     if (address >= 0xC000 && address <= 0xDFFF) {
-      if (!((address & 0x0001) > 0)) {
+      if (!(address & 0x0001)) {
         this.irqReload[0] = data;
       } else {
         this.irqCounter[0] = 0x0000;
@@ -153,7 +153,7 @@ export class MapperFour extends Mapper {
     }
 
     if (address >= 0xE000 && address <= 0xFFFF) {
-      if (!((address & 0x0001) > 0)) {
+      if (!(address & 0x0001)) {
         this.irqEnable = false;
         this.irqActive = false;
       } else {
@@ -161,6 +161,8 @@ export class MapperFour extends Mapper {
       }
       return false;
     }
+
+    return false;
   }
 
   mapReadPPU(address) {
@@ -215,17 +217,17 @@ export class MapperFour extends Mapper {
     this.irqCounter[0] = 0x0000;
     this.irqReload[0] = 0x0000;
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < this.programBank.length; i++) {
       this.programBank[i] = 0;
     }
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < this.characterBank.length; i++) {
       this.characterBank[i] = 0;
       this.register[i] = 0;
     }
 
     this.programBank[0] = 0;
-    this.programBank[1] = 1;
+    this.programBank[1] = 0x2000;
     this.programBank[2] = (this.programBanks * 2 - 2) * 0x2000;
     this.programBank[3] = (this.programBanks * 2 - 1) * 0x2000;
   }
