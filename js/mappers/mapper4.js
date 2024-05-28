@@ -241,6 +241,11 @@ export class MapperFour extends Mapper {
   }
 
   mapWritePPU(address) {
+    if (address < 0x2000) {
+      if (this.characterBanks === 0) {
+        return { "address": address };
+      }
+    }
     return false;
   }
 
