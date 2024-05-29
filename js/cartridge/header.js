@@ -56,7 +56,7 @@ export class FormatHeader {
   }
 
   hasTrainer() {
-    return this.header.getUint8(6) & 0x04 > 0;
+    return this.header.getUint8(6) & 0x04;
   }
 
   /**
