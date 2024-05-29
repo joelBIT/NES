@@ -1,3 +1,5 @@
+import { Mirror } from "../mirror.js";
+
 /**
  *  The iNES Format Header. The .nes file format is the standard for distribution of NES binary programs. An iNES file
  *  consists of several sections, and a 16-byte header is one of them. This class represents that header.
@@ -33,12 +35,50 @@ export class FormatHeader {
     return this.header.getUint8(5);
   }
 
-  getMapper1() {
+  /**
+   *
+   * 76543210
+   * ||||||||
+   * |||||||+- Nametable arrangement: 0: vertical arrangement ("horizontal mirrored") (CIRAM A10 = PPU A11)
+   * |||||||                          1: horizontal arrangement ("vertically mirrored") (CIRAM A10 = PPU A10)
+   * ||||||+-- 1: Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory
+   * |||||+--- 1: 512-byte trainer at $7000-$71FF (stored before PRG data)
+   * ||||+---- 1: Alternative nametable layout
+   * ++++----- Lower nybble of mapper number
+   *
+   */
+  getFlags6() {
     return this.header.getUint8(6);
   }
 
-  getMapper2() {
+  getMirrorMode() {
+    return (this.header.getUint8(6) & 0x01) ? Mirror.VERTICAL : Mirror.HORIZONTAL;
+  }
+
+  hasTrainer() {
+    return this.header.getUint8(6) & 0x04 > 0;
+  }
+
+  /**
+   *
+   * 76543210
+   * ||||||||
+   * |||||||+- VS Unisystem
+   * ||||||+-- PlayChoice-10 (8 KB of Hint Screen data stored after CHR data)
+   * ||||++--- If equal to 2, flags 8-15 are in NES 2.0 format
+   * ++++----- Upper nybble of mapper number
+   *
+   */
+  getFlags7() {
     return this.header.getUint8(7);
+  }
+
+  isINES2() {
+    return this.header.getUint8(7) & 0x0C === 0x08;
+  }
+
+  getMapperID() {
+    return ((this.header.getUint8(7) >> 4) << 4) | (this.header.getUint8(6) >> 4);
   }
 
   getProgramRamSize() {

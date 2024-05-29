@@ -55,7 +55,7 @@ export class MapperSixtySix extends Mapper {
   }
 
   mapReadPPU(address) {
-    if (address >= 0x0000 && address <= 0x1FFF) {
+    if (address < 0x2000) {
       return { "address": this.characterBankSelect[0] * 0x2000 + address };
     }
     return false;

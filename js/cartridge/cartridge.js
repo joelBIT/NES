@@ -19,7 +19,6 @@ export class Cartridge {
   characterMemory = [];
   mapper;
 
-  mapperID = 0;
   programBanks = 0;                   // Single bank of program memory is 16 kB
   characterBanks = 0;                 // Single bank of character memory is 8 kB
   mirror = Mirror.HORIZONTAL;
@@ -31,17 +30,12 @@ export class Cartridge {
     }
     let index = 16;
 
-    if (this.header.getMapper1() & 0x04) {
+    if (this.header.hasTrainer()) {
       index += 512;   // If a "trainer" exists we read past it
     }
 
-    this.mapperID = ((this.header.getMapper2() >> 4) << 4) | (this.header.getMapper1() >> 4);
-    this.mirror = (this.header.getMapper1() & 0x01) ? Mirror.VERTICAL : Mirror.HORIZONTAL;
-
-    let fileType = 1;       // 3 types of iNES file     (0, 1, and 2)
-    if ((this.header.getMapper2() & 0x0C) === 0x08) {
-      fileType = 2;
-    }
+    this.mirror = this.header.getMirrorMode();
+    const fileType = this.header.isINES2() ? 2 : 1;
 
     if (fileType === 1) {
       this.programBanks = this.header.getProgramChunks();
@@ -69,7 +63,7 @@ export class Cartridge {
       }
     }
 
-    switch (this.mapperID) {
+    switch (this.header.getMapperID()) {
       case 0:
         this.mapper = new MapperZero(this.programBanks, this.characterBanks);
         break;
