@@ -1,8 +1,8 @@
-<b>A Nintendo Entertainment System (NES) emulator implemented in JavaScript.</b>
+<b><h2>A Nintendo Entertainment System (NES) emulator implemented in JavaScript.</h2></b>
 
 <br><br>
 
-💻 <b>CPU</b>
+ 💻 <b>CPU</b>
   - All official instructions are implemented
   - nestest passes ✔️
 
