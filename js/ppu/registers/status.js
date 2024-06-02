@@ -10,16 +10,28 @@
 export class StatusRegister {
   status = new Uint8Array(1);
 
-  setSpriteOverflow(value) {
-    value === 0 ? this.status[0] &= ~(1 << 5) : this.status[0] |= (1 << 5);
+  setSpriteOverflow() {
+    this.status[0] |= (1 << 5);
   }
 
-  setSpriteZeroHit(value) {
-    value === 0 ? this.status[0] &= ~(1 << 6) : this.status[0] |= (1 << 6);
+  clearSpriteOverflow() {
+    this.status[0] &= ~(1 << 5);
   }
 
-  setVerticalBlank(value) {
-    value === 0 ? this.status[0] &= ~(1 << 7) : this.status[0] |= (1 << 7);
+  setSpriteZeroHit() {
+    this.status[0] |= (1 << 6);
+  }
+
+  clearSpriteZeroHit() {
+    this.status[0] &= ~(1 << 6);
+  }
+
+  setVerticalBlank() {
+    this.status[0] |= (1 << 7);
+  }
+
+  clearVerticalBlank() {
+    this.status[0] &= ~(1 << 7);
   }
 
   getRegister() {

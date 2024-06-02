@@ -240,9 +240,9 @@ class PPU {
 
       // We leave the vertical blank period when we are at the top left of the screen, which is when scanline is -1 and cycle = 1
       if (this.scanline === -1 && this.cycle === 1) {
-        this.statusRegister.setVerticalBlank(0);        // Effectively start of new frame, so clear vertical blank flag
-        this.statusRegister.setSpriteOverflow(0);
-        this.statusRegister.setSpriteZeroHit(0);
+        this.statusRegister.clearVerticalBlank();        // Effectively start of new frame, so clear vertical blank flag
+        this.statusRegister.clearSpriteOverflow();
+        this.statusRegister.clearSpriteZeroHit();
         this.clearShifters();
       }
 
@@ -317,9 +317,9 @@ class PPU {
         this.spriteEvaluation();
 
         if (this.spriteCount >= 8) {
-          this.statusRegister.setSpriteOverflow(1);
+          this.statusRegister.setSpriteOverflow();
         } else {
-          this.statusRegister.setSpriteOverflow(0);
+          this.statusRegister.clearSpriteOverflow();
         }
       }
 
@@ -395,11 +395,12 @@ class PPU {
     }
 
     if (this.scanline === 240) {
-
+      // The PPU just idles during this scanline. Even though accessing PPU memory from the program would be safe here,
+      // the VBlank flag isn't set until after this scanline.
     }
 
     if (this.scanline === 241 && this.cycle === 1) {
-      this.statusRegister.setVerticalBlank(1);
+      this.statusRegister.setVerticalBlank();
       if (this.controlRegister.getEnableNMI()) {
         this.nmi = true;                                // The PPU must inform the CPU about the nmi(), and this can be done in the bus
       }
@@ -548,11 +549,11 @@ class PPU {
           // This is used to smooth inconsistencies when scrolling (since sprites X coordinate must be >= 0)
           if (!(this.maskRegister.getRenderBackgroundLeft() | this.maskRegister.getRenderSpritesLeft())) {
             if (this.cycle >= 9 && this.cycle < 258) {
-              this.statusRegister.setSpriteZeroHit(1);
+              this.statusRegister.setSpriteZeroHit();
             }
           } else {
             if (this.cycle >= 1 && this.cycle < 258) {
-              this.statusRegister.setSpriteZeroHit(1);
+              this.statusRegister.setSpriteZeroHit();
             }
           }
         }
@@ -580,7 +581,7 @@ class PPU {
       case 0x0002: // Status
         // The act of reading is changing the state of the device
         const result = (this.statusRegister.getRegister() & 0xE0) | (this.dataBuffer & 0x1F);
-        this.statusRegister.setVerticalBlank(0);
+        this.statusRegister.clearVerticalBlank();
         this.addressLatch = 0;
         return result;
       case 0x0003: // OAM Address
