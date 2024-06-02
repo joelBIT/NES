@@ -57,7 +57,7 @@ export class Bus {
           }
         } else {
           if (this.systemClockCounter[0] % 2 === 0) {
-            this.dmaData[0] = this.cpuRead((this.dmaPage[0] << 8) | this.dmaAddress[0]);
+            this.dmaData[0] = this.read((this.dmaPage[0] << 8) | this.dmaAddress[0]);
           } else {
             this.ppu.OAM[this.dmaAddress[0]] = this.dmaData[0];
             this.dmaAddress[0]++;
@@ -91,14 +91,14 @@ export class Bus {
   /**
    *  The RAM is addressed within an 8-kilobyte range. Every 2 kilobyte is mirrored.
    */
-  cpuRead(address) {
-    const read = this.cartridge.cpuReadCart(address);
+  read(address) {
+    const read = this.cartridge.readByCPU(address);
     if (read) {
       return read.data;
     } else if (address >= 0x0000 && address <= 0x1FFF) {
       return this.cpuRAM[address & 0x07FF];                // System RAM Address Range, mirrored every 2048
     } else if (address >= 0x2000 && address <= 0x3FFF) {
-      return this.ppu.readByCPU(address & 0x0007);          // PPU Address range, mirrored every 8
+      return this.ppu.readRegister(address & 0x0007);          // PPU Address range, mirrored every 8
     } else if (address === 0x4015) {
       return 0x00;
     } else if (address >= 0x4016 && address <= 0x4017) {
@@ -112,13 +112,13 @@ export class Bus {
    *  The RAM is addressed within an 8-kilobyte range even though there are only 2 kilobytes available. Every 2 kilobyte
    *  is mirrored.
    */
-  cpuWrite(address, data) {
-    if (this.cartridge.cpuWriteCart(address, data)) {
+  write(address, data) {
+    if (this.cartridge.writeByCPU(address, data)) {
 
     } else if (address >= 0x0000 && address <= 0x1FFF) {
       this.cpuRAM[address & 0x07FF] = data;                 // Using bitwise AND to mask the bottom 11 bits is the same as addr % 2048.
     } else if (address >= 0x2000 && address <= 0x3FFF) {    // PPU Address range. The PPU only has 8 primary registers and these are repeated throughout this range.
-      this.ppu.writeByCPU(address & 0x0007, data);          // bitwise AND operation to mask the bottom 3 bits, which is the equivalent of addr % 8.
+      this.ppu.writeRegister(address & 0x0007, data);          // bitwise AND operation to mask the bottom 3 bits, which is the equivalent of addr % 8.
     } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015 || address === 0x4017) {
       this.writes.push({address: address, data: data});     // Postpone write to the APU
     } else if (address === 0x4014) {

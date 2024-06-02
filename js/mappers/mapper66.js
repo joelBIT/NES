@@ -30,7 +30,7 @@ export class MapperSixtySix extends Mapper {
     return this.id;
   }
 
-  mapReadCPU(address) {
+  mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       return { "address": this.programBankSelect[0] * 0x8000 + (address & 0x7FFF) };
     }
@@ -46,7 +46,7 @@ export class MapperSixtySix extends Mapper {
    *   ||   ++- Select 8 KB CHR ROM bank for PPU $0000-$1FFF
    *   ++------ Select 32 KB PRG ROM bank for CPU $8000-$FFFF
    */
-  mapWriteCPU(address, data) {
+  mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       this.characterBankSelect[0] = data & 0x03;
       this.programBankSelect[0] = (data & 0x30) >> 4;
@@ -54,14 +54,14 @@ export class MapperSixtySix extends Mapper {
     return false;
   }
 
-  mapReadPPU(address) {
+  mapReadByPPU(address) {
     if (address < 0x2000) {
       return { "address": this.characterBankSelect[0] * 0x2000 + address };
     }
     return false;
   }
 
-  mapWritePPU(address) {
+  mapWriteByPPU(address) {
     if (address < 0x2000) {
       if (this.characterBanks === 0) {
         return { "address": address };

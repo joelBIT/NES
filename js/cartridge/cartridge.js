@@ -88,8 +88,8 @@ export class Cartridge {
     }
   }
 
-  cpuReadCart(address) {
-    const mapped = this.mapper.mapReadCPU(address);
+  readByCPU(address) {
+    const mapped = this.mapper.mapReadByCPU(address);
     if (mapped) {
       if (mapped.address === 0xFFFFFFFF) {
         return { "data": mapped.data };
@@ -99,8 +99,8 @@ export class Cartridge {
     return false;
   }
 
-  cpuWriteCart(address, data) {
-    const mapped = this.mapper.mapWriteCPU(address, data);
+  writeByCPU(address, data) {
+    const mapped = this.mapper.mapWriteByCPU(address, data);
     if (mapped) {
       if (mapped.address === 0xFFFFFFFF) {
         return true;
@@ -111,16 +111,16 @@ export class Cartridge {
     return false;
   }
 
-  ppuReadCart(address) {
-    const mapped = this.mapper.mapReadPPU(address);
+  readByPPU(address) {
+    const mapped = this.mapper.mapReadByPPU(address);
     if (mapped) {
       return { "data": this.characterMemory[mapped.address] };
     }
     return false;
   }
 
-  ppuWriteCart(address, data) {
-    const mapped = this.mapper.mapWritePPU(address);
+  writeByPPU(address, data) {
+    const mapped = this.mapper.mapWriteByPPU(address);
     if (mapped) {
       if (mapped.address) {
         this.characterMemory[mapped.address] = data;

@@ -30,7 +30,7 @@ export class MapperTwo extends Mapper {
     return this.id;
   }
 
-  mapReadCPU(address) {
+  mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xBFFF) {
       return { "address": this.programBankSelectLow * 0x4000 + (address & 0x3FFF) };
     }
@@ -53,7 +53,7 @@ export class MapperTwo extends Mapper {
    *
    * (UNROM uses bits 2-0; UOROM uses bits 3-0)
    */
-  mapWriteCPU(address, data) {
+  mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
       this.programBankSelectLow = data & 0x0F;
     }
@@ -61,14 +61,14 @@ export class MapperTwo extends Mapper {
     return false;
   }
 
-  mapReadPPU(address) {
+  mapReadByPPU(address) {
     if (address < 0x2000) {
       return { "address": address };
     }
     return false;
   }
 
-  mapWritePPU(address) {
+  mapWriteByPPU(address) {
     if (address < 0x2000) {
       if (this.characterBanks === 0) {
         return { "address": address };

@@ -203,19 +203,21 @@ class PPU {
   }
 
   /**
-   * PPU is actively drawing screen state during scanlines  0 - 240.
-   * During scanlines 241 - 262, the CPU is updating the state of PPU for the next frame.
+   * The PPU is actively drawing screen state during scanlines  0 - 240.
+   * During scanlines 241 - 262, the CPU is updating the state of the PPU for the next frame.
    *
-   * scanlines represent the horizontal rows across the screen. The NES is 256 pixels across this line, and 240 pixels down.
+   * Scanlines represent the horizontal rows across the screen. The NES is 256 pixels across this line, and 240 pixels down.
    * However, the scanline can exceed this dimension. One cycle is one pixel across the scanline (crudly). Since the scanline goes
    * beyond the edge of the screen so does the cycle count. There are 341 cycles per scanline (an approximation). Scanlines
-   * continue under the bottom of the screen. Thus there are 261 scanlines. This period of unseen scanlines is called
-   * Vertical Blanking Period. Once the vertical bland period has
-   * started, the CPU can change the nature of the PPU. It is during this period
-   * that the CPU is setting up the PPU for the next frame. In this emulator we use a -1 scanline as a starting point after
-   * the last scanline in the period is finished.
+   * continue under the bottom of the screen. Thus there are 261 scanlines. This period of unseen scanlines is called the
+   * Vertical Blanking Period.
+   *
+   * Once the vertical blank period has started, the CPU can change the nature of the PPU. It is during this period
+   * that the CPU is setting up the PPU for the next frame. In this emulator a -1 scanline is used as a starting point
+   * after the last scanline in the period is finished.
+   *
    * It is important that the CPU finishes what it is doing while the screen is being rendered, otherwise we will get lag.
-   * The vertical_blank bit in the STATUS word tells us if we are in screen space (0) or vertical bland period (1).
+   * The vertical_blank bit in the STATUS word tells us if we are in screen space (0) or vertical blank period (1).
    * The CPU might have to wait an entire frame before the screen is updated.
    */
   clock() {
@@ -249,10 +251,10 @@ class PPU {
         switch ((this.cycle - 1) % 8) {    // These cycles are for pre-loading the PPU with the information it needs to render the next 8 pixels
           case 0:
             this.loadBackgroundShifters();          // Load the current background tile pattern and attributes into the "shifter"
-            this.bgNextTileID[0] = this.ppuRead(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
+            this.bgNextTileID[0] = this.readMemory(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
             break;
           case 2:
-            this.bgNextTileAttribute[0] = this.ppuRead(0x23C0 | (this.loopyVRAM.getNameTableY() << 11)
+            this.bgNextTileAttribute[0] = this.readMemory(0x23C0 | (this.loopyVRAM.getNameTableY() << 11)
               | (this.loopyVRAM.getNameTableX() << 10)
               | ((this.loopyVRAM.getCoarseY() >> 2) << 3)
               | (this.loopyVRAM.getCoarseX() >> 2));
@@ -265,12 +267,12 @@ class PPU {
             this.bgNextTileAttribute[0] &= 0x03;
             break;
           case 4:
-            this.bgNextTileLSB[0] = this.ppuRead((this.controlRegister.getPatternBackground() << 12)
+            this.bgNextTileLSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
               + (this.bgNextTileID[0] << 4)
               + this.loopyVRAM.getFineY());
             break;
           case 6:
-            this.bgNextTileMSB[0] = this.ppuRead((this.controlRegister.getPatternBackground() << 12)
+            this.bgNextTileMSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
               + (this.bgNextTileID[0] << 4)
               + this.loopyVRAM.getFineY() + 8);
             break;
@@ -290,7 +292,7 @@ class PPU {
       }
 
       if (this.cycle === 338 || this.cycle === 340) {
-        this.bgNextTileID[0] = this.ppuRead(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
+        this.bgNextTileID[0] = this.readMemory(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
       }
 
       if (this.scanline === -1 && this.cycle >= 280 && this.cycle < 305) {    // End of vertical blank period so reset the Y address ready for rendering
@@ -393,8 +395,8 @@ class PPU {
           spritePatternAddressHigh[0] = spritePatternAddressLow[0] + 8;
 
           // Now we have the address of the sprite patterns, we can read them
-          spritePatternBitsLow[0] = this.ppuRead(spritePatternAddressLow[0]);
-          spritePatternBitsHigh[0] = this.ppuRead(spritePatternAddressHigh[0]);
+          spritePatternBitsLow[0] = this.readMemory(spritePatternAddressLow[0]);
+          spritePatternBitsHigh[0] = this.readMemory(spritePatternAddressHigh[0]);
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
           if (this.secondaryOAM[j + 2] & 0x40) {
@@ -519,7 +521,6 @@ class PPU {
       }
     }
 
-
     if (this.cycle >= 341) {
       this.cycle = 0;
       this.scanline++;
@@ -536,7 +537,13 @@ class PPU {
     return this.frameComplete;
   }
 
-  readByCPU(address) {
+  /**
+   * The PPU exposes eight memory-mapped registers to the CPU. These nominally sit at $2000 through $2007 in the
+   * CPU's address space, but because their addresses are incompletely decoded, they're mirrored in every 8 bytes
+   * from $2008 through $3FFF. For example, a write to $3456 is the same as a write to $2006.
+   *
+   */
+  readRegister(address) {
     switch (address) {
       case 0x0000: // Control
         break;
@@ -558,7 +565,7 @@ class PPU {
         break;
       case 0x0007: // PPU Data
         let data  = this.dataBuffer;
-        this.dataBuffer = this.ppuRead(this.loopyVRAM.getRegister());
+        this.dataBuffer = this.readMemory(this.loopyVRAM.getRegister());
         if (this.loopyVRAM.getRegister() >= 0x3F00) {   // Handle palette addresses
           data = this.dataBuffer;
         }
@@ -569,7 +576,13 @@ class PPU {
     return 0x00;
   }
 
-  writeByCPU(address, data) {
+  /**
+   * The PPU exposes eight memory-mapped registers to the CPU. These nominally sit at $2000 through $2007 in the
+   * CPU's address space, but because their addresses are incompletely decoded, they're mirrored in every 8 bytes
+   * from $2008 through $3FFF. For example, a write to $3456 is the same as a write to $2006.
+   *
+   */
+  writeRegister(address, data) {
     switch (address) {
       case 0x0000: // Control
         this.controlRegister.setRegister(data);
@@ -609,20 +622,19 @@ class PPU {
         }
         break;
       case 0x0007: // PPU Data
-        this.ppuWrite(this.loopyVRAM.getRegister(), data);
+        this.writeMemory(this.loopyVRAM.getRegister(), data);
         // Skip 32 tiles at a time along the X-axis (which is the same as going down 1 row in the Y-axis), or increment 1 along the X-axis
         this.loopyVRAM.setRegister(this.loopyVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
         break;
     }
   }
 
-  ppuRead(address) {
+  readMemory(address) {
     address &= 0x3FFF;
-    const read = this.cartridge.ppuReadCart(address);
+    const read = this.cartridge.readByPPU(address);
     if (read) {
       return read.data;
     } else if (address >= 0x0000 && address <= 0x1FFF) {
-      // If the cartridge cant map the address, have a physical location ready here
       if ((address & 0x1000) >> 12) {
         return this.patternTable2.read(address & 0x0FFF);
       } else {
@@ -647,10 +659,10 @@ class PPU {
     return 0x00;
   }
 
-  ppuWrite(address, data) {
+  writeMemory(address, data) {
     address &= 0x3FFF;
 
-    if (this.cartridge.ppuWriteCart(address, data)) {
+    if (this.cartridge.writeByPPU(address, data)) {
 
     } else if (address >= 0x0000 && address <= 0x1FFF) {
       if ((address & 0x1000) >> 12) {
@@ -684,7 +696,7 @@ class PPU {
    * "& 0x3F"       - Prevents reading beyond the bounds of the palScreen array
    */
   getColorFromPalScreen(palette, pixel) {
-    return this.palScreen[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F];
+    return this.palScreen[this.readMemory(0x3F00 + (palette << 2) + pixel) & 0x3F];
   }
 
   reset() {

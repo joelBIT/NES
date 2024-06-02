@@ -18,19 +18,19 @@ export class Mapper {
     this.characterBanks = characterBanks;
   }
 
-  mapReadCPU(address) {
+  mapReadByCPU(address) {
     return false;
   }
 
-  mapWriteCPU(address) {
+  mapWriteByCPU(address) {
     return false;
   }
 
-  mapReadPPU(address) {
+  mapReadByPPU(address) {
     return false;
   }
 
-  mapWritePPU(address) {
+  mapWriteByPPU(address) {
     return false;
   }
 

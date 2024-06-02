@@ -281,14 +281,14 @@ class CPU {
    *  Writes 8-bit data to a 16-bit address on the bus.
    */
   write(address, data) {
-    this.bus.cpuWrite(address, data);
+    this.bus.write(address, data);
   }
 
   /**
    *  Reads a 16-bit address on the bus and receives 8-bit data.
    */
   read(address) {
-    return this.bus.cpuRead(address);
+    return this.bus.read(address);
   }
 
   /*

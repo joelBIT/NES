@@ -82,7 +82,7 @@ export class MapperFour extends Mapper {
     return this.id;
   }
 
-  mapReadCPU(address) {
+  mapReadByCPU(address) {
     if (address >= 0x6000 && address <= 0x7FFF) {
       return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };
     }
@@ -135,7 +135,7 @@ export class MapperFour extends Mapper {
    *                               1: two 2 KB banks at $1000-$1FFF, four 1 KB banks at $0000-$0FFF)
    *
    */
-  mapWriteCPU(address, data) {
+  mapWriteByCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
       this.VRAM[address & 0x1FFF] = data;
       return { "address": 0xFFFFFFFF };
@@ -204,7 +204,7 @@ export class MapperFour extends Mapper {
     return false;
   }
 
-  mapReadPPU(address) {
+  mapReadByPPU(address) {
     if (address < 0x0400) {
       return { "address": this.characterBank[0] + (address & 0x03FF) };
     }
@@ -240,7 +240,7 @@ export class MapperFour extends Mapper {
     return false;
   }
 
-  mapWritePPU(address) {
+  mapWriteByPPU(address) {
     if (address < 0x2000) {
       if (this.characterBanks === 0) {
         return { "address": address };
