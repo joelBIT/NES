@@ -1,9 +1,9 @@
-import { Mirror } from "../mirror.js";
 import { MemoryArea } from "./memory.js";
 import { MaskRegister } from "./registers/mask.js";
 import { ControlRegister } from './registers/control.js';
 import { LoopyRegister } from './registers/loopy.js';
 import { StatusRegister } from './registers/status.js';
+import { NameTable } from "./nametable.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -20,8 +20,7 @@ import { StatusRegister } from './registers/status.js';
  */
 class PPU {
   palettes = new MemoryArea();      // contains the colors
-  nameTable1 = new MemoryArea(1024);   // describes the layout of the background
-  nameTable2 = new MemoryArea(1024);   // describes the layout of the background
+  nameTables = new NameTable();       // describes the layout of the background
   patternTable1 = new MemoryArea(4096);
   patternTable2 = new MemoryArea(4096);
 
@@ -631,47 +630,7 @@ class PPU {
       }
     } else if (address >= 0x2000 && address <= 0x3EFF) {
       address &= 0x0FFF;
-      if (Object.is(Mirror.VERTICAL, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          return this.nameTable2.read(address & 0x03FF);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          return this.nameTable2.read(address & 0x03FF);
-        }
-      } else if (Object.is(Mirror.HORIZONTAL, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          return this.nameTable2.read(address & 0x03FF);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          return this.nameTable2.read(address & 0x03FF);
-        }
-      } else if (Object.is(Mirror.ONE_SCREEN_LOW, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          return this.nameTable1.read(address & 0x03FF);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          return this.nameTable1.read(address & 0x03FF);
-        }
-      } else if (Object.is(Mirror.ONE_SCREEN_HIGH, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          return this.nameTable2.read(address & 0x03FF);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          return this.nameTable2.read(address & 0x03FF);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          return this.nameTable2.read(address & 0x03FF);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          return this.nameTable2.read(address & 0x03FF);
-        }
-      }
+      return this.nameTables.read(address, this.cartridge.getMirror());
     } else if (address >= 0x3F00 && address <= 0x3FFF) {
       address &= 0x001F;
       if (address === 0x0010) {
@@ -701,47 +660,7 @@ class PPU {
       }
     } else if (address >= 0x2000 && address <= 0x3EFF) {
       address &= 0x0FFF;
-      if (Object.is(Mirror.VERTICAL, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        }
-      } else if (Object.is(Mirror.HORIZONTAL, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        }
-      } else if (Object.is(Mirror.ONE_SCREEN_LOW, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          this.nameTable1.write(address & 0x03FF, data);
-        }
-      } else if (Object.is(Mirror.ONE_SCREEN_HIGH, this.cartridge.getMirror())) {
-        if (address >= 0x0000 && address <= 0x03FF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        } else if (address >= 0x0400 && address <= 0x07FF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        } else if (address >= 0x0800 && address <= 0x0BFF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        } else if (address >= 0x0C00 && address <= 0x0FFF) {
-          this.nameTable2.write(address & 0x03FF, data);
-        }
-      }
+      this.nameTables.write(address, data, this.cartridge.getMirror());
     } else if (address >= 0x3F00 && address <= 0x3FFF) {
       address &= 0x001F;
       if (address === 0x0010) {
@@ -790,8 +709,7 @@ class PPU {
     this.scanlineTrigger = false;
     this.oddFrame = false;
     this.palettes = new MemoryArea();
-    this.nameTable1 = new MemoryArea(1024);
-    this.nameTable2 = new MemoryArea(1024);
+    this.nameTables.reset();
     this.patternTable1 = new MemoryArea(4096);
     this.patternTable2 = new MemoryArea(4096);
   }

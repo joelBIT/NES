@@ -146,8 +146,8 @@ export class MapperFour extends Mapper {
     if (address >= 0x8000 && address <= 0x9FFF) {   // CPU $8000-$9FFF (or $C000-$DFFF): 8 KB switchable PRG ROM bank
       if (isEven) {   // Bank Select
         this.targetBankRegister[0] = data & 0x07;
-        this.programBankMode = (data & 0x40) > 0;
-        this.characterInversion = (data & 0x80) > 0;
+        this.programBankMode = data & 0x40;
+        this.characterInversion = data & 0x80;
 
         /**
          * Bank data ($8001-$9FFF, odd)
