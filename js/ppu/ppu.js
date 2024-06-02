@@ -425,7 +425,69 @@ class PPU {
       }
     }
 
-    // Background =============================================================
+    let { pixel, palette } = this.getPrioritizedPixel();
+
+    // At each location on the screen we want to store a pixel's X and Y coordinate along with the pixel's color
+    //this.storePixel(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
+    this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
+
+    this.cycle++;
+
+    if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
+      if (this.cycle === 260 && this.scanline < 240) {
+        this.cartridge.getMapper().scanLine();
+      }
+    }
+
+    if (this.cycle >= 341) {
+      this.cycle = 0;
+      this.scanline++;
+      if (this.scanline >= 261) {
+        this.drawImageData();
+        this.scanline = -1;
+        this.frameComplete = true;
+        this.oddFrame = !this.oddFrame;
+      }
+    }
+  }
+
+  /**
+   *  The (sprite) pixel to be rendered in the foreground at a specific x and y location.
+   */
+  getForegroundPixel() {
+    let fgPixel = 0x00;     // The 2-bit pixel to be rendered
+    let fgPalette = 0x00;   // The 3-bit index of the palette the pixel indexes
+    let fgPriority = 0x00;
+    if (this.maskRegister.getRenderSprites()) {
+      if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
+        this.spriteZeroBeingRendered = false;
+        for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
+          // Scanline cycle has "collided" with sprite, shifters taking over
+          if (this.secondaryOAM[j + 3] === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
+            let fgPixelLow = (this.spriteShifterPatternLow[i] & 0x80) > 0 ? 1 : 0;
+            let fgPixelHigh = (this.spriteShifterPatternHigh[i] & 0x80) > 0 ? 1 : 0;
+            fgPixel = (fgPixelHigh << 1) | fgPixelLow;
+
+            fgPalette = (this.secondaryOAM[j + 2] & 0x03) + 0x04;     // OAE attributes
+            fgPriority = (this.secondaryOAM[j + 2] & 0x20) === 0 ? 1 : 0;    // OAE attributes
+
+            if (fgPixel !== 0) {
+              if (i === 0) {
+                this.spriteZeroBeingRendered = true;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    return { fgPixel, fgPalette, fgPriority };
+  }
+
+  /**
+   *  The pixel to be rendered in the background at a specific x and y location.
+   */
+  getBackgroundPixel() {
     let bgPixel = 0x00;                                     // The 2-bit pixel to be rendered
     let bgPalette = 0x00;                                   // The 3-bit index of the palette the pixel indexes
     if (this.maskRegister.getRenderBackground()) {
@@ -442,37 +504,17 @@ class PPU {
       }
     }
 
-    // Foreground =============================================================
-    let fgPixel = 0x00;     // The 2-bit pixel to be rendered
-    let fgPalette = 0x00;   // The 3-bit index of the palette the pixel indexes
-    let fgPriority = 0x00;  // A bit of the sprite attribute indicates if its
+    return { bgPixel, bgPalette };
+  }
 
-    if (this.maskRegister.getRenderSprites()) {
-      if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
-        this.spriteZeroBeingRendered = false;
-        for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
-          // Scanline cycle has "collided" with sprite, shifters taking over
-          if (this.secondaryOAM[j + 3] === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
-            let fg_pixel_lo = (this.spriteShifterPatternLow[i] & 0x80) > 0 ? 1 : 0;
-            let fg_pixel_hi = (this.spriteShifterPatternHigh[i] & 0x80) > 0 ? 1 : 0;
-            fgPixel = (fg_pixel_hi << 1) | fg_pixel_lo;
-
-            fgPalette = (this.secondaryOAM[j + 2] & 0x03) + 0x04;     // OAE attributes
-            fgPriority = (this.secondaryOAM[j + 2] & 0x20) === 0 ? 1 : 0;    // OAE attributes
-
-            if (fgPixel !== 0) {
-              if (i === 0) {
-                this.spriteZeroBeingRendered = true;
-              }
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // Decide if the background pixel or the sprite pixel has priority. It is possible for sprites
-    // to go behind background tiles that are not "transparent" (value 0).
+  /**
+   * Decide if the background pixel or the sprite pixel has priority. It is possible for sprites
+   * to go behind background tiles that are not "transparent" (value 0).
+   *
+   */
+  getPrioritizedPixel() {
+    let { bgPixel, bgPalette } = this.getBackgroundPixel();
+    let { fgPixel, fgPalette, fgPriority } = this.getForegroundPixel();
     let pixel = 0x00;
     let palette = 0x00;
     if (bgPixel === 0 && fgPixel > 0) {
@@ -508,29 +550,7 @@ class PPU {
         }
       }
     }
-
-    // At each location on the screen we want to store a pixel's X and Y coordinate along with the pixel's color
-    //this.storePixel(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
-    this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
-
-    this.cycle++;
-
-    if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.cycle === 260 && this.scanline < 240) {
-        this.cartridge.getMapper().scanLine();
-      }
-    }
-
-    if (this.cycle >= 341) {
-      this.cycle = 0;
-      this.scanline++;
-      if (this.scanline >= 261) {
-        this.drawImageData();
-        this.scanline = -1;
-        this.frameComplete = true;
-        this.oddFrame = !this.oddFrame;
-      }
-    }
+    return { pixel, palette };
   }
 
   isFrameCompleted() {
