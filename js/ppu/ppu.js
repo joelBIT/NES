@@ -83,6 +83,8 @@ class PPU {
   }
 
   /**
+   * At each location on the screen we want to store a pixel's X and Y coordinate along with the pixel's color.
+   *
    * Stores a pixel in an array for later rendering. The offset corresponds to the pixels' location (X, Y) on the screen
    * and its color (RGBA) is stored in the 4 bytes from the offset, where A = 255;
    */
@@ -202,6 +204,13 @@ class PPU {
     }
   }
 
+  clearShifters() {
+    for (let i = 0; i < 8; i++) {
+      this.spriteShifterPatternHigh[i] = 0;
+      this.spriteShifterPatternLow[i] = 0;
+    }
+  }
+
   /**
    * The PPU is actively drawing screen state during scanlines  0 - 240.
    * During scanlines 241 - 262, the CPU is updating the state of the PPU for the next frame.
@@ -234,11 +243,7 @@ class PPU {
         this.statusRegister.setVerticalBlank(0);        // Effectively start of new frame, so clear vertical blank flag
         this.statusRegister.setSpriteOverflow(0);
         this.statusRegister.setSpriteZeroHit(0);
-        // Clear Shifters
-        for (let i = 0; i < 8; i++) {
-          this.spriteShifterPatternHigh[i] = 0;
-          this.spriteShifterPatternLow[i] = 0;
-        }
+        this.clearShifters();
       }
 
       if (this.scanline === 0 && this.cycle === 0 && this.oddFrame && (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites())) {
@@ -308,31 +313,8 @@ class PPU {
         this.secondaryOAM.fill(0xFF);
         this.spriteCount = 0;
 
-        // Secondly, clear out any residual information in sprite pattern shifters
-        for (let i = 0; i < 8; i++) {
-          this.spriteShifterPatternLow[i] = 0;
-          this.spriteShifterPatternHigh[i] = 0;
-        }
-        this.spriteZeroHitPossible = false;
-
-        let OAMEntry = 0;
-        while (OAMEntry < 256 && this.spriteCount < 9) {
-          let diff = new Int16Array(1);
-          diff[0] = this.scanline - this.OAM[OAMEntry];
-          if (diff[0] >= 0 && diff[0] < (this.controlRegister.getSpriteSize() ? 16 : 8) && this.spriteCount < 8) {
-            if (this.spriteCount < 8) {
-              if (OAMEntry === 0) {     // Is this sprite sprite zero?
-                this.spriteZeroHitPossible = true;
-              }
-              this.secondaryOAM[this.spriteCount * 4] = this.OAM[OAMEntry];           // Copy OAE Y
-              this.secondaryOAM[this.spriteCount * 4 + 1] = this.OAM[OAMEntry + 1];   // Copy OAE Tile ID
-              this.secondaryOAM[this.spriteCount * 4 + 2] = this.OAM[OAMEntry + 2];   // Copy OAE Attributes
-              this.secondaryOAM[this.spriteCount * 4 + 3] = this.OAM[OAMEntry + 3];   // Copy OAE X
-            }
-            this.spriteCount++;
-          }
-          OAMEntry += 4;
-        } // End of sprite evaluation for next scanline
+        this.clearShifters();
+        this.spriteEvaluation();
 
         if (this.spriteCount >= 8) {
           this.statusRegister.setSpriteOverflow(1);
@@ -416,19 +398,14 @@ class PPU {
 
     }
 
-    if (this.scanline >= 241 && this.scanline < 261) {
-      if (this.scanline === 241 && this.cycle === 1) {
-        this.statusRegister.setVerticalBlank(1);
-        if (this.controlRegister.getEnableNMI()) {
-          this.nmi = true;                                // The PPU must inform the CPU about the nmi(), and this can be done in the bus
-        }
+    if (this.scanline === 241 && this.cycle === 1) {
+      this.statusRegister.setVerticalBlank(1);
+      if (this.controlRegister.getEnableNMI()) {
+        this.nmi = true;                                // The PPU must inform the CPU about the nmi(), and this can be done in the bus
       }
     }
 
     let { pixel, palette } = this.getPrioritizedPixel();
-
-    // At each location on the screen we want to store a pixel's X and Y coordinate along with the pixel's color
-    //this.storePixel(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
     this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
 
     this.cycle++;
@@ -448,6 +425,37 @@ class PPU {
         this.frameComplete = true;
         this.oddFrame = !this.oddFrame;
       }
+    }
+  }
+
+  /**
+   * PPU sprite evaluation is an operation done by the PPU once each scanline. It prepares the set of sprites and
+   * fetches their data to be rendered on the next scanline.
+   *
+   * Evaluate which sprites are visible in the next scanline. Iterates through the OAM until 8 sprites are found that
+   * have Y-positions and heights that are within vertical range of the next scanline. When 8 sprites are found, or the OAM
+   * is exhausted, the method terminates. Now, notice I count to 9 sprites. The sprite overflow flag is set in the event
+   * of there being more than 8 sprites.
+   */
+  spriteEvaluation() {
+    this.spriteZeroHitPossible = false;
+    let OAMEntry = 0;
+    while (OAMEntry < 256 && this.spriteCount < 9) {
+      let diff = new Int16Array(1);
+      diff[0] = this.scanline - this.OAM[OAMEntry];
+      if (diff[0] >= 0 && diff[0] < (this.controlRegister.getSpriteSize() ? 16 : 8) && this.spriteCount < 8) {
+        if (this.spriteCount < 8) {
+          if (OAMEntry === 0) {     // Is sprite zero?
+            this.spriteZeroHitPossible = true;
+          }
+          this.secondaryOAM[this.spriteCount * 4] = this.OAM[OAMEntry];           // Copy OAE Y
+          this.secondaryOAM[this.spriteCount * 4 + 1] = this.OAM[OAMEntry + 1];   // Copy OAE Tile ID
+          this.secondaryOAM[this.spriteCount * 4 + 2] = this.OAM[OAMEntry + 2];   // Copy OAE Attributes
+          this.secondaryOAM[this.spriteCount * 4 + 3] = this.OAM[OAMEntry + 3];   // Copy OAE X
+        }
+        this.spriteCount++;
+      }
+      OAMEntry += 4;
     }
   }
 
