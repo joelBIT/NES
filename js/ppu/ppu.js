@@ -1,9 +1,9 @@
 import { MemoryArea } from "./memory.js";
 import { MaskRegister } from "./registers/mask.js";
 import { ControlRegister } from './registers/control.js';
-import { LoopyRegister } from './registers/loopy.js';
+import { ScrollRegister } from './registers/scroll.js';
 import { StatusRegister } from './registers/status.js';
-import { NameTable } from "./nametable.js";
+import { NameTableContainer } from "./nametable.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -20,7 +20,7 @@ import { NameTable } from "./nametable.js";
  */
 class PPU {
   palettes = new MemoryArea();      // contains the colors
-  nameTables = new NameTable();       // describes the layout of the background
+  nameTables = new NameTableContainer();       // describes the layout of the background
   patternTable1 = new MemoryArea(4096);
   patternTable2 = new MemoryArea(4096);
 
@@ -29,12 +29,11 @@ class PPU {
   secondaryOAM = new Uint8Array(0x20);   // Stores information about up to 8 sprites
   spriteCount = 0;    // How many sprites we find from the OAM that are going to be rendered on the next scanline, fill secondaryOAM with those
 
-  // Sprite Zero Collision Flags
   spriteZeroHitPossible = false;
   spriteZeroBeingRendered = false;
 
-  loopyVRAM = new LoopyRegister();      // Active "pointer" address into nametable to extract background tile info
-  loopyTRAM = new LoopyRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
+  scrollVRAM = new ScrollRegister();      // Active "pointer" address into nametable to extract background tile info
+  scrollTRAM = new ScrollRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
   fineX;
 
   statusRegister = new StatusRegister();
@@ -127,28 +126,28 @@ class PPU {
    */
   incrementScrollX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.loopyVRAM.getCoarseX() === 31) {
-        this.loopyVRAM.setCoarseX(0);
-        this.loopyVRAM.setNameTableX(this.loopyVRAM.getNameTableX() > 0 ? 0 : 1);     // Flip a bit
+      if (this.scrollVRAM.getCoarseX() === 31) {
+        this.scrollVRAM.setCoarseX(0);
+        this.scrollVRAM.setNameTableX(this.scrollVRAM.getNameTableX() > 0 ? 0 : 1);     // Flip a bit
       } else {
-        this.loopyVRAM.setCoarseX(this.loopyVRAM.getCoarseX() + 1);
+        this.scrollVRAM.setCoarseX(this.scrollVRAM.getCoarseX() + 1);
       }
     }
   }
 
   incrementScrollY() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.loopyVRAM.getFineY() < 7) {
-        this.loopyVRAM.setFineY(this.loopyVRAM.getFineY() + 1);
+      if (this.scrollVRAM.getFineY() < 7) {
+        this.scrollVRAM.setFineY(this.scrollVRAM.getFineY() + 1);
       } else {
-        this.loopyVRAM.setFineY(0);
-        if (this.loopyVRAM.getCoarseY() === 29) {
-          this.loopyVRAM.setCoarseY(0);
-          this.loopyVRAM.setNameTableY(this.loopyVRAM.getNameTableY() > 0 ? 0 : 1);   // Flip a bit
-        } else if (this.loopyVRAM.getCoarseY() === 31) {
-          this.loopyVRAM.setCoarseY(0);
+        this.scrollVRAM.setFineY(0);
+        if (this.scrollVRAM.getCoarseY() === 29) {
+          this.scrollVRAM.setCoarseY(0);
+          this.scrollVRAM.setNameTableY(this.scrollVRAM.getNameTableY() > 0 ? 0 : 1);   // Flip a bit
+        } else if (this.scrollVRAM.getCoarseY() === 31) {
+          this.scrollVRAM.setCoarseY(0);
         } else {
-          this.loopyVRAM.setCoarseY(this.loopyVRAM.getCoarseY() + 1);
+          this.scrollVRAM.setCoarseY(this.scrollVRAM.getCoarseY() + 1);
         }
       }
     }
@@ -156,16 +155,16 @@ class PPU {
 
   transferAddressX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      this.loopyVRAM.setNameTableX(this.loopyTRAM.getNameTableX());
-      this.loopyVRAM.setCoarseX(this.loopyTRAM.getCoarseX());
+      this.scrollVRAM.setNameTableX(this.scrollTRAM.getNameTableX());
+      this.scrollVRAM.setCoarseX(this.scrollTRAM.getCoarseX());
     }
   }
 
   transferAddressY() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      this.loopyVRAM.setFineY(this.loopyTRAM.getFineY());
-      this.loopyVRAM.setNameTableY(this.loopyTRAM.getNameTableY());
-      this.loopyVRAM.setCoarseY(this.loopyTRAM.getCoarseY());
+      this.scrollVRAM.setFineY(this.scrollTRAM.getFineY());
+      this.scrollVRAM.setNameTableY(this.scrollTRAM.getNameTableY());
+      this.scrollVRAM.setCoarseY(this.scrollTRAM.getCoarseY());
     }
   }
 
@@ -256,17 +255,17 @@ class PPU {
         switch ((this.cycle - 1) % 8) {    // These cycles are for pre-loading the PPU with the information it needs to render the next 8 pixels
           case 0:
             this.loadBackgroundShifters();          // Load the current background tile pattern and attributes into the "shifter"
-            this.bgNextTileID[0] = this.readMemory(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
+            this.bgNextTileID[0] = this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF));
             break;
           case 2:
-            this.bgNextTileAttribute[0] = this.readMemory(0x23C0 | (this.loopyVRAM.getNameTableY() << 11)
-              | (this.loopyVRAM.getNameTableX() << 10)
-              | ((this.loopyVRAM.getCoarseY() >> 2) << 3)
-              | (this.loopyVRAM.getCoarseX() >> 2));
-            if (this.loopyVRAM.getCoarseY() & 0x02) {
+            this.bgNextTileAttribute[0] = this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
+              | (this.scrollVRAM.getNameTableX() << 10)
+              | ((this.scrollVRAM.getCoarseY() >> 2) << 3)
+              | (this.scrollVRAM.getCoarseX() >> 2));
+            if (this.scrollVRAM.getCoarseY() & 0x02) {
               this.bgNextTileAttribute[0] >>= 4;
             }
-            if (this.loopyVRAM.getCoarseX() & 0x02) {
+            if (this.scrollVRAM.getCoarseX() & 0x02) {
               this.bgNextTileAttribute[0] >>= 2;
             }
             this.bgNextTileAttribute[0] &= 0x03;
@@ -274,12 +273,12 @@ class PPU {
           case 4:
             this.bgNextTileLSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
               + (this.bgNextTileID[0] << 4)
-              + this.loopyVRAM.getFineY());
+              + this.scrollVRAM.getFineY());
             break;
           case 6:
             this.bgNextTileMSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
               + (this.bgNextTileID[0] << 4)
-              + this.loopyVRAM.getFineY() + 8);
+              + this.scrollVRAM.getFineY() + 8);
             break;
           case 7:
             this.incrementScrollX();
@@ -297,7 +296,7 @@ class PPU {
       }
 
       if (this.cycle === 338 || this.cycle === 340) {
-        this.bgNextTileID[0] = this.readMemory(0x2000 | (this.loopyVRAM.getRegister() & 0x0FFF));
+        this.bgNextTileID[0] = this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF));
       }
 
       if (this.scanline === -1 && this.cycle >= 280 && this.cycle < 305) {    // End of vertical blank period so reset the Y address ready for rendering
@@ -594,11 +593,11 @@ class PPU {
         break;
       case 0x0007: // PPU Data
         let data  = this.dataBuffer;
-        this.dataBuffer = this.readMemory(this.loopyVRAM.getRegister());
-        if (this.loopyVRAM.getRegister() >= 0x3F00) {   // Handle palette addresses
+        this.dataBuffer = this.readMemory(this.scrollVRAM.getRegister());
+        if (this.scrollVRAM.getRegister() >= 0x3F00) {   // Handle palette addresses
           data = this.dataBuffer;
         }
-        this.loopyVRAM.setRegister(this.loopyVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
+        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
         return data;
     }
 
@@ -615,8 +614,8 @@ class PPU {
     switch (address) {
       case 0x0000: // Control
         this.controlRegister.setRegister(data);
-        this.loopyTRAM.setNameTableX(this.controlRegister.getNameTableX());
-        this.loopyTRAM.setNameTableY(this.controlRegister.getNameTableY());
+        this.scrollTRAM.setNameTableX(this.controlRegister.getNameTableX());
+        this.scrollTRAM.setNameTableY(this.controlRegister.getNameTableY());
         break;
       case 0x0001: // Mask
         this.maskRegister.setRegister(data);
@@ -632,28 +631,28 @@ class PPU {
       case 0x0005: // Scroll
         if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
           this.fineX = data & 0x07;     // offset (0 - 7) into a single cell
-          this.loopyTRAM.setCoarseX(data >> 3);
+          this.scrollTRAM.setCoarseX(data >> 3);
           this.addressLatch = 1;
         } else {
-          this.loopyTRAM.setFineY(data & 0x07);
-          this.loopyTRAM.setCoarseY(data >> 3);
+          this.scrollTRAM.setFineY(data & 0x07);
+          this.scrollTRAM.setCoarseY(data >> 3);
           this.addressLatch = 0;
         }
         break;
       case 0x0006: // PPU Address
         if (this.addressLatch === 0) {
-          this.loopyTRAM.setRegister(((data & 0x3F) << 8) | (this.loopyTRAM.getRegister() & 0x00FF));   // Store the lower 8 bits of the PPU address
+          this.scrollTRAM.setRegister(((data & 0x3F) << 8) | (this.scrollTRAM.getRegister() & 0x00FF));   // Store the lower 8 bits of the PPU address
           this.addressLatch = 1;
         } else {
-          this.loopyTRAM.setRegister((this.loopyTRAM.getRegister() & 0xFF00) | data);     // LoopyTram holds the desired scroll address which the PPU uses to refresh loopyV
-          this.loopyVRAM.setRegister(this.loopyTRAM.getRegister());
+          this.scrollTRAM.setRegister((this.scrollTRAM.getRegister() & 0xFF00) | data);     // LoopyTram holds the desired scroll address which the PPU uses to refresh loopyV
+          this.scrollVRAM.setRegister(this.scrollTRAM.getRegister());
           this.addressLatch = 0;
         }
         break;
       case 0x0007: // PPU Data
-        this.writeMemory(this.loopyVRAM.getRegister(), data);
+        this.writeMemory(this.scrollVRAM.getRegister(), data);
         // Skip 32 tiles at a time along the X-axis (which is the same as going down 1 row in the Y-axis), or increment 1 along the X-axis
-        this.loopyVRAM.setRegister(this.loopyVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
+        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
         break;
     }
   }
@@ -745,8 +744,8 @@ class PPU {
     this.statusRegister.setRegister(0x00);
     this.maskRegister.setRegister(0x00);
     this.controlRegister.setRegister(0x00);
-    this.loopyVRAM.setRegister(0x0000);
-    this.loopyTRAM.setRegister(0x0000);
+    this.scrollVRAM.setRegister(0x0000);
+    this.scrollTRAM.setRegister(0x0000);
     this.scanlineTrigger = false;
     this.oddFrame = false;
     this.palettes = new MemoryArea();

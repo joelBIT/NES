@@ -1,15 +1,19 @@
 /**
- * The PPU mask register. This register is really just a series of switches that determine which parts of
- * the PPU are switched on or off.
+ * The PPU Mask Register. This register controls the rendering of sprites and backgrounds, as well as colour effects.
  *
- * Bit 0: Greyscale (0: normal color, 1: produce a greyscale display).
- * Bit 1: Value 1: Show background in leftmost 8 pixels of screen, 0: Hide.
- * Bit 2: Value 1: Show sprites in leftmost 8 pixels of screen, 0: Hide.
- * Bit 3: Value 1: Show background.
- * Bit 4: Value 1: Show sprites.
- * Bit 5: Emphasize red (green on PAL/Dendy).
- * Bit 6: Emphasize green (red on PAL/Dendy).
- * Bit 7: Emphasize blue.
+ * 7  bit  0
+ * ---- ----
+ * BGRs bMmG
+ * |||| ||||
+ * |||| |||+- Greyscale (0: normal color, 1: produce a greyscale display)
+ * |||| ||+-- 1: Show background in leftmost 8 pixels of screen, 0: Hide
+ * |||| |+--- 1: Show sprites in leftmost 8 pixels of screen, 0: Hide
+ * |||| +---- 1: Show background
+ * |||+------ 1: Show sprites
+ * ||+------- Emphasize red (green on PAL/Dendy)
+ * |+-------- Emphasize green (red on PAL/Dendy)
+ * +--------- Emphasize blue
+ *
  */
 export class MaskRegister {
   mask = new Uint8Array(1);

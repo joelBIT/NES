@@ -17,7 +17,7 @@ import { MemoryArea } from "./memory.js";
  *    CIRAM address bit 10 (e.g. many Rare games using AxROM).
  *  - Four-screen mirroring: The cartridge contains additional VRAM used for all nametables (e.g. Gauntlet, Rad Racer 2).
  */
-export class NameTable {
+export class NameTableContainer {
   nameTable1 = new MemoryArea(1024);
   nameTable2 = new MemoryArea(1024);
 
