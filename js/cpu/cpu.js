@@ -1,4 +1,4 @@
-import { unofficialOperations, officialOperations } from "./operations.js";
+import { UnofficialOperations, OfficialOperations } from "./operations.js";
 import { Flags } from "./flags.js";
 import { Instruction, AddressMode } from "./instruction.js";
 import { Register8Bits, Register16Bits } from "./registers.js";
@@ -99,15 +99,15 @@ class CPU {
   }
 
   createInstructions() {
-    for (const opcode in officialOperations) {
-      officialOperations[opcode].forEach(operation => {
+    for (const opcode in OfficialOperations) {
+      OfficialOperations[opcode].forEach(operation => {
         this.instructions.set(operation.opcode, new Instruction(opcode, operation.cycles, this[opcode].bind(this),
           new AddressMode(operation.addressMode, this[operation.addressMode].bind(this))));
       });
     }
 
-    for (const opcode in unofficialOperations) {
-      unofficialOperations[opcode].forEach(operation => {
+    for (const opcode in UnofficialOperations) {
+      UnofficialOperations[opcode].forEach(operation => {
         this.instructions.set(operation.opcode, new Instruction(opcode, operation.cycles, this[opcode].bind(this),
           new AddressMode(operation.addressMode, this[operation.addressMode].bind(this))));
       });

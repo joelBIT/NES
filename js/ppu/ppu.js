@@ -4,6 +4,7 @@ import { ControlRegister } from './registers/control.js';
 import { ScrollRegister } from './registers/scroll.js';
 import { StatusRegister } from './registers/status.js';
 import { NameTableContainer } from "./nametable.js";
+import { Color } from './color.js';
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -48,16 +49,6 @@ class PPU {
   frameComplete = false;
   addressLatch = 0x00;      // This is used to govern writing to the low byte or high byte
   dataBuffer;   // When we read data from the PPU it is delayed by 1 cycle so we need to buffer that byte
-
-  palScreen = [
-    [101,101,101], [0,45,105], [19,31,127], [60,19,124], [96,11,98], [115,10,55], [113,15,7], [90,26,0], [52,40,0], [11,52,0],
-    [0,60,0], [0,61,16], [0,56,64], [0,0,0], [0,0,0], [0,0,0], [174,174,174], [15,99,179], [64,81,208], [120,65,204], [167,54,169],
-    [192,52,112], [189,60,48], [159,74,0], [109,92,0], [54,109,0], [7,119,4], [0,121,61], [0,114,125], [0,0,0], [0,0,0], [0,0,0],
-    [254,254,255], [93,179,255], [143,161,255], [200,144,255], [247,133,250], [255,131,192], [255,139,127], [239,154,73],
-    [189,172,44], [133,188,47], [85,199,83], [60,201,140], [62,194,205], [78,78,78], [0,0,0], [0,0,0], [254,254,255], [188,223,255],
-    [209,216,255], [232,209,255], [251,205,253], [255,204,229], [255,207,202], [248,213,180], [228,220,168], [204,227,169],
-    [185,232,184], [174,232,208], [175,229,234], [182,182,182], [0,0,0], [0,0,0]
-  ];
 
   // Background rendering
   bgNextTileID = new Uint8Array(1);
@@ -406,7 +397,7 @@ class PPU {
     }
 
     let { pixel, palette } = this.getPrioritizedPixel();
-    this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColorFromPalScreen(palette, pixel));
+    this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColor(palette, pixel));
 
     this.cycle++;
 
@@ -723,8 +714,8 @@ class PPU {
    * "pixel"        - Each pixel index is either 0, 1, 2 or 3
    * "& 0x3F"       - Prevents reading beyond the bounds of the palScreen array
    */
-  getColorFromPalScreen(palette, pixel) {
-    return this.palScreen[this.readMemory(0x3F00 + (palette << 2) + pixel) & 0x3F];
+  getColor(palette, pixel) {
+    return Color[this.readMemory(0x3F00 + (palette << 2) + pixel) & 0x3F];
   }
 
   reset() {
