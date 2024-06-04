@@ -42,7 +42,7 @@ export class NameTableContainer {
       } else if (address >= 0x0C00 && address <= 0x0FFF) {
         return this.nameTable2.read(address & 0x03FF);
       }
-    } else if (Object.is(Mirror.ONE_SCREEN_LOW, mirrorMode)) {
+    } else if (Object.is(Mirror.SINGLE_SCREEN_LOW, mirrorMode)) {
       if (address >= 0x0000 && address <= 0x03FF) {
         return this.nameTable1.read(address & 0x03FF);
       } else if (address >= 0x0400 && address <= 0x07FF) {
@@ -52,7 +52,7 @@ export class NameTableContainer {
       } else if (address >= 0x0C00 && address <= 0x0FFF) {
         return this.nameTable1.read(address & 0x03FF);
       }
-    } else if (Object.is(Mirror.ONE_SCREEN_HIGH, mirrorMode)) {
+    } else if (Object.is(Mirror.SINGLE_SCREEN_HIGH, mirrorMode)) {
       if (address >= 0x0000 && address <= 0x03FF) {
         return this.nameTable2.read(address & 0x03FF);
       } else if (address >= 0x0400 && address <= 0x07FF) {
@@ -86,7 +86,7 @@ export class NameTableContainer {
       } else if (address >= 0x0C00 && address <= 0x0FFF) {
         this.nameTable2.write(address & 0x03FF, data);
       }
-    } else if (Object.is(Mirror.ONE_SCREEN_LOW, mirrorMode)) {
+    } else if (Object.is(Mirror.SINGLE_SCREEN_LOW, mirrorMode)) {
       if (address >= 0x0000 && address <= 0x03FF) {
         this.nameTable1.write(address & 0x03FF, data);
       } else if (address >= 0x0400 && address <= 0x07FF) {
@@ -96,7 +96,7 @@ export class NameTableContainer {
       } else if (address >= 0x0C00 && address <= 0x0FFF) {
         this.nameTable1.write(address & 0x03FF, data);
       }
-    } else if (Object.is(Mirror.ONE_SCREEN_HIGH, mirrorMode)) {
+    } else if (Object.is(Mirror.SINGLE_SCREEN_HIGH, mirrorMode)) {
       if (address >= 0x0000 && address <= 0x03FF) {
         this.nameTable2.write(address & 0x03FF, data);
       } else if (address >= 0x0400 && address <= 0x07FF) {

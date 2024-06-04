@@ -20,8 +20,9 @@ self.onmessage = function(message) {
         return;
       }
 
-      bus.reset();
       bus.addController(controller);
+      bus.reset();
+
       function tick() {
         do {
           let writes = bus.clock();

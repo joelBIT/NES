@@ -33,6 +33,9 @@ export class Bus {
     this.cartridge.reset();
     this.cpu.reset();
     this.ppu.reset();
+    for (let i = 0; i < this.controllers.length; i++) {
+      this.controllers[i].reset();
+    }
     this.systemClockCounter[0] = 0;
 
     this.dmaPage[0] = 0x00;

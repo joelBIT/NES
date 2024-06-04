@@ -62,7 +62,7 @@ export class StatusRegister {
     return this.status[0];
   }
 
-  setRegister(data) {
-    this.status[0] = data;
+  reset() {
+    this.status[0] = 0x00;
   }
 }

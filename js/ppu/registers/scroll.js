@@ -90,4 +90,8 @@ export class ScrollRegister {
   setRegister(data) {
     this.scroll[0] = data;
   }
+
+  reset() {
+    this.scroll[0] = 0x0000;
+  }
 }

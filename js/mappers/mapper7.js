@@ -54,9 +54,9 @@ export class MapperSeven extends Mapper {
       this.programBankSelect = data & 0x07;
 
       if (data & 0x10) {
-        this.mirrorMode = Mirror.ONE_SCREEN_LOW;
+        this.mirrorMode = Mirror.SINGLE_SCREEN_LOW;
       } else {
-        this.mirrorMode = Mirror.ONE_SCREEN_HIGH;
+        this.mirrorMode = Mirror.SINGLE_SCREEN_HIGH;
       }
     }
 

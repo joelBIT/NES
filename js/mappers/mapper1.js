@@ -96,10 +96,10 @@ export class MapperOne extends Mapper {
 
             switch (this.controlRegister[0] & 0x03) {
               case 0:
-                this.mirrorMode = Mirror.ONE_SCREEN_LOW;
+                this.mirrorMode = Mirror.SINGLE_SCREEN_LOW;
                 break;
               case 1:
-                this.mirrorMode = Mirror.ONE_SCREEN_HIGH;
+                this.mirrorMode = Mirror.SINGLE_SCREEN_HIGH;
                 break;
               case 2:
                 this.mirrorMode = Mirror.VERTICAL;

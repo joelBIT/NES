@@ -73,4 +73,8 @@ export class Controller {
   getCurrentButton() {
     return this.button;
   }
+
+  reset() {
+    this.button = 0x00;
+  }
 }

@@ -532,8 +532,7 @@ class PPU {
       }
 
       if (this.spriteZeroHitPossible && this.spriteZeroBeingRendered) {   // Sprite Zero Hit detection
-        // Sprite zero is a collision between foreground and background
-        // so they must both be enabled
+        // Sprite zero is a collision between foreground and background so they must both be enabled
         if (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites()) {
           // The left edge of the screen has specific switches to control its appearance.
           // This is used to smooth inconsistencies when scrolling (since sprites X coordinate must be >= 0)
@@ -732,11 +731,11 @@ class PPU {
     this.bgNextTileAttribute[0] = 0x00;
     this.bgNextTileLSB[0] = 0x00;
     this.bgNextTileMSB[0] = 0x00;
-    this.statusRegister.setRegister(0x00);
-    this.maskRegister.setRegister(0x00);
-    this.controlRegister.setRegister(0x00);
-    this.scrollVRAM.setRegister(0x0000);
-    this.scrollTRAM.setRegister(0x0000);
+    this.statusRegister.reset();
+    this.maskRegister.reset();
+    this.controlRegister.reset();
+    this.scrollVRAM.reset();
+    this.scrollTRAM.reset();
     this.scanlineTrigger = false;
     this.oddFrame = false;
     this.palettes = new MemoryArea();

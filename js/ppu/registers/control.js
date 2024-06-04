@@ -78,4 +78,8 @@ export class ControlRegister {
   setRegister(data) {
     this.control[0] = data;
   }
+
+  reset() {
+    this.control[0] = 0x00;
+  }
 }

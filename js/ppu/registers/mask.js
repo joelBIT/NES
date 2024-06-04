@@ -41,4 +41,8 @@ export class MaskRegister {
   setRegister(data) {
     this.mask[0] = data;
   }
+
+  reset() {
+    this.mask[0] = 0x00;
+  }
 }
