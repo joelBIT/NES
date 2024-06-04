@@ -142,7 +142,7 @@ export class APU {
    * Unlike the Square channels, we have no control over the Triangle channel's volume or tone. The Triangle channel
    * is manipulated via ports $4008-$400B.
    */
-  writeByCPU(address, data) {
+  write(address, data) {
     switch (address) {
 
         /*

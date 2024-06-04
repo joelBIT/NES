@@ -2,8 +2,10 @@ import { Bus } from './bus.js';
 import { ppu } from './ppu/ppu.js';
 import { cpu } from './cpu/cpu.js';
 import { Cartridge } from './cartridge/cartridge.js';
+import { Controller } from "./controller.js";
 
 const bus = new Bus(cpu, ppu);
+const controller = new Controller();
 
 self.onmessage = function(message) {
   switch (message.data.event) {
@@ -19,6 +21,7 @@ self.onmessage = function(message) {
       }
 
       bus.reset();
+      bus.addController(controller);
       function tick() {
         do {
           let writes = bus.clock();
@@ -34,56 +37,56 @@ self.onmessage = function(message) {
     case 'keyup':
       switch (message.data.value) {
         case 'KeyX':
-          bus.controllers[0] &= (~(1 << 7)) & 0xff;
+          controller.releaseA();
           break;
         case 'KeyZ':
-          bus.controllers[0] &= (~(1 << 6)) & 0xff;
+          controller.releaseB();
           break;
         case 'KeyA':
-          bus.controllers[0] &= (~(1 << 5)) & 0xff;
+          controller.releaseSelect();
           break;
         case 'KeyS':
-          bus.controllers[0] &= (~(1 << 4)) & 0xff;
+          controller.releaseStart();
           break;
         case 'ArrowUp':
-          bus.controllers[0] &= (~(1 << 3)) & 0xff;
+          controller.releaseUp();
           break;
         case 'ArrowDown':
-          bus.controllers[0] &= (~(1 << 2)) & 0xff;
+          controller.releaseDown();
           break;
         case 'ArrowLeft':
-          bus.controllers[0] &= (~(1 << 1)) & 0xff;
+          controller.releaseLeft();
           break;
         case 'ArrowRight':
-          bus.controllers[0] &= (~(1 << 0)) & 0xff;
+          controller.releaseRight();
           break;
       }
       break;
     case 'keydown':
       switch (message.data.value) {
         case 'KeyX':
-          bus.controllers[0] |= 0x80;
+          controller.pressA();
           break;
         case 'KeyZ':
-          bus.controllers[0] |= 0x40;
+          controller.pressB();
           break;
         case 'KeyA':
-          bus.controllers[0] |= 0x20;
+          controller.pressSelect();
           break;
         case 'KeyS':
-          bus.controllers[0] |= 0x10;
+          controller.pressStart();
           break;
         case 'ArrowUp':
-          bus.controllers[0] |= 0x08;
+          controller.pressUp();
           break;
         case 'ArrowDown':
-          bus.controllers[0] |= 0x04;
+          controller.pressDown();
           break;
         case 'ArrowLeft':
-          bus.controllers[0] |= 0x02;
+          controller.pressLeft();
           break;
         case 'ArrowRight':
-          bus.controllers[0] |= 0x01;
+          controller.pressRight();
           break;
       }
       break;

@@ -7,7 +7,7 @@ import { cpu } from './cpu/cpu.js';
 export class Bus {
   cpuRAM = new Uint8Array(2048);
   systemClockCounter = new Uint32Array(1);
-  controllers = new Uint8Array(2);            // Controllers
+
   controllerState = new Uint8Array(2);        // Internal cache of controller state
 
   dmaPage = new Uint8Array(1);              // This together with dmaAddress form a 16-bit address on the CPU's address bus, dmaPage is the low byte
@@ -21,6 +21,7 @@ export class Bus {
   cpu;
   ppu;
   cartridge;
+  controllers = [];
 
   constructor(cpu, ppu) {
     this.cpu = cpu;
@@ -44,6 +45,10 @@ export class Bus {
   insertCartridge(cartridge) {
     this.cartridge = cartridge;
     this.ppu.connectCartridge(cartridge);
+  }
+
+  addController(controller) {
+    this.controllers.push(controller);
   }
 
   clock() {
@@ -126,7 +131,7 @@ export class Bus {
       this.dmaAddress[0] = 0x00;
       this.dmaTransfer = true;
     } else if (address >= 0x4016 && address <= 0x4017) {
-      this.controllerState[address & 0x0001] = this.controllers[address & 0x0001];
+      this.controllerState[address & 0x0001] = this.controllers[address & 0x0001].getCurrentButton();
     }
   }
 }
