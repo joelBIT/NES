@@ -4,12 +4,26 @@ import { Envelope } from "./envelope.js";
 import { Sweeper } from "./sweeper.js";
 
 /**
- * A Square wave (channels 1 and 2).
+ * A Square wave (channels 1 and 2). Each of the two NES APU pulse (square) wave channels generate a pulse wave with variable duty.
  *
  * Once a waveform is generated it is associated with a length (how long is it played for) and it can also be swept (its
  * frequency can be changed in real time).
  * Volume is 4 bits long so it can have a value from 0-F, where F is the loudest. Duty Cycle controls the tone, i.e., the
  * amount of time the wave is active or on.
+ *
+ * Each pulse channel contains the following: envelope generator, sweep unit, timer, 8-step sequencer, length counter.
+ *
+ *
+ *                               Sweep -----> Timer
+ *                                |            |
+ *                                |            |
+ *                                |            v
+ *                                |        Sequencer   Length Counter
+ *                                |            |             |
+ *                                |            |             |
+ *                                v            v             v
+ *            Envelope -------> Gate -----> Gate -------> Gate --->(to mixer)
+ *
  */
 export class SquareChannel {
   frequency = 0.0;

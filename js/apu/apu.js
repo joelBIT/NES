@@ -38,7 +38,7 @@ export class APU {
    * All output samples from the channels get mixed together.
    */
   mixedOutputSample() {
-    return 0.00752 * (this.square1Output + this.square2Output) + 0.00494 * this.noiseOutput + 0.00851 * this.triangleOutput;   // + 0.00851 * this.triangleOutput + 0.00335 * this.dmcOutput
+    return 0.00752 * (this.square1Output + this.square2Output) + 0.00494 * this.noiseOutput + 0.00851 * this.triangleOutput;   //  + 0.00335 * this.dmcOutput
   }
 
   /**
@@ -162,16 +162,16 @@ export class APU {
       case 0x4000:
         this.squareChannel1.setDuty((data & 0xC0) >> 6);
         this.squareChannel1.setSequence();
-        this.squareChannel1.setHalt((data & 0x20) > 0);
+        this.squareChannel1.setHalt(data & 0x20);
         this.squareChannel1.setVolume(data & 0x0F);
-        this.squareChannel1.disableEnvelope((data & 0x10) > 0);
-        this.squareChannel1.haltCounter((data & 0x20) > 0);
+        this.squareChannel1.disableEnvelope(data & 0x10);
+        this.squareChannel1.haltCounter(data & 0x20);
         break;
 
       case 0x4001:
-        this.squareChannel1.setSweeperEnable((data & 0x80) > 0);
+        this.squareChannel1.setSweeperEnable(data & 0x80);
         this.squareChannel1.setSweeperPeriod((data & 0x70) >> 4);
-        this.squareChannel1.setSweeperDown((data & 0x08) > 0);
+        this.squareChannel1.setSweeperDown(data & 0x08);
         this.squareChannel1.setSweeperShift(data & 0x07);
         this.squareChannel1.setSweeperReload(true);
         break;
@@ -198,16 +198,16 @@ export class APU {
       case 0x4004:
         this.squareChannel2.setDuty((data & 0xC0) >> 6);
         this.squareChannel2.setSequence();
-        this.squareChannel2.setHalt((data & 0x20) > 0);
+        this.squareChannel2.setHalt(data & 0x20);
         this.squareChannel2.setVolume(data & 0x0F);
-        this.squareChannel2.disableEnvelope((data & 0x10) > 0);
-        this.squareChannel2.haltCounter((data & 0x20) > 0);
+        this.squareChannel2.disableEnvelope(data & 0x10);
+        this.squareChannel2.haltCounter(data & 0x20);
         break;
 
       case 0x4005:
-        this.squareChannel2.setSweeperEnable((data & 0x80) > 0);
+        this.squareChannel2.setSweeperEnable(data & 0x80);
         this.squareChannel2.setSweeperPeriod((data & 0x70) >> 4);
-        this.squareChannel2.setSweeperDown((data & 0x08) > 0);
+        this.squareChannel2.setSweeperDown(data & 0x08);
         this.squareChannel2.setSweeperShift(data & 0x07);
         this.squareChannel2.setSweeperReload(true);
         break;
@@ -231,7 +231,7 @@ export class APU {
         */
 
       case 0x4008:
-        this.triangleChannel.setHalt((data & 0x80) > 0);
+        this.triangleChannel.setHalt(data & 0x80);
         //this.triangleLinearCounter.counter[0] = (data & 0x7F);
         this.triLinearReload = data & 0x7F;
         break;
@@ -263,12 +263,12 @@ export class APU {
 
       case 0x400C:
         this.noiseChannel.setVolume(data & 0x0F);
-        this.noiseChannel.disableEnvelope((data & 0x10) > 0);
-        this.noiseChannel.setHalt((data & 0x20) > 0);
+        this.noiseChannel.disableEnvelope(data & 0x10);
+        this.noiseChannel.setHalt(data & 0x20);
         break;
 
       case 0x400E:
-        this.noiseChannel.setTonal((data & 0x80) > 0);
+        this.noiseChannel.setTonal(data & 0x80);
         this.noiseChannel.setReload(data & 0x0F);
         break;
 
@@ -278,10 +278,10 @@ export class APU {
         break;
 
       case 0x4015:
-        this.squareChannel1.setEnable((data & 0x01) > 0);
-        this.squareChannel2.setEnable((data & 0x02) > 0);
-        this.triangleChannel.setEnable((data & 0x04) > 0);
-        this.noiseChannel.setEnable((data & 0x08) > 0);
+        this.squareChannel1.setEnable(data & 0x01);
+        this.squareChannel2.setEnable(data & 0x02);
+        this.triangleChannel.setEnable(data & 0x04);
+        this.noiseChannel.setEnable(data & 0x08);
 
         if (!this.squareChannel1.isEnabled()) {
           this.squareChannel1.clearCounter();

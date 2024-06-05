@@ -3,7 +3,14 @@ import { Envelope } from "./envelope.js";
 import { Sequencer } from "./sequencer.js";
 
 /**
- * Generates a psuedo-random noise at 16 different frequencies.
+ * The NES APU noise channel generates pseudo-random 1-bit noise at 16 different frequencies.
+ * The noise channel contains the following: envelope generator, timer, Linear Feedback Shift Register, length counter.
+ *
+ *        Timer --> Shift Register   Length Counter
+ *                        |                |
+ *                        v                v
+ *    Envelope -------> Gate ----------> Gate --> (to mixer)
+ *
  */
 export class NoiseChannel {
   enabled = false;

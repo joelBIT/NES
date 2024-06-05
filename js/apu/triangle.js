@@ -2,8 +2,18 @@ import { LengthCounter } from './counter.js';
 import { Sequencer} from "./sequencer.js";
 
 /**
+ *  The NES APU triangle channel generates a pseudo-triangle wave. It has no volume control; the waveform is either
+ *  cycling or suspended. It includes a linear counter, an extra duration timer of higher accuracy than the length counter.
+ *  For any given period, the triangle channel's frequency is half that of the pulse channel, or a pitch one octave lower.
  *
- * For any given period, the triangle channel's frequency is half that of the pulse channel, or a pitch one octave lower.
+ *  The triangle channel contains the following: timer, length counter, linear counter, linear counter reload flag,
+ *  control flag, sequencer.
+ *
+ *                Linear Counter   Length Counter
+ *                        |                |
+ *                        v                v
+ *            Timer ---> Gate ----------> Gate ---> Sequencer ---> (to mixer)
+ *
  */
 export class TriangleChannel {
   enabled = false;
