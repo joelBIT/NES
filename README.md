@@ -20,7 +20,7 @@
   - Mapper 66: GxROM
 
 <br><br>
-<b>Controls</b>
+:video_game: <b>Controls</b>
 - It is possible to configure controller 1 (configuration is stored in local storage)
   
  | Input	| Keyboard Key(s) |
