@@ -21,6 +21,7 @@
 
 <br><br>
 <b>Controls</b>
+- It is possible to configure controller 1 (configuration is stored in local storage)
   
  | Input	| Keyboard Key(s) |
  | :----: | :------------: |
@@ -30,7 +31,6 @@
  | Select|	A               |
  | Start	| S            |
 
-
 <br><br>
 <b>Roadmap</b>
   - Implement Delta Modulation Channel
@@ -38,7 +38,6 @@
   - More mappers
   - Fix some bugs
   - Ability to save games
-  - Enable configuration of controller keys
   - Improve APU
 
 
