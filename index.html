@@ -1,41 +1,56 @@
 <!doctype html>
 <html class="no-js" lang="en">
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link rel="stylesheet" href="css/nes.css">
-  <meta name="description" content="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="css/nes.css">
+    <meta name="description" content="">
 
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
 
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.png">
 
-  <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#fafafa">
-</head>
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#fafafa">
+  </head>
 
-<body>
-      <header>
-          <h1>NES Emulator</h1>
-      </header>
+  <body>
+    <header>
+      <h1>NES Emulator</h1>
+    </header>
 
+    <canvas id="canvas" width="256" height="240"></canvas>
+    <input id="nesfile" type="file" accept=".nes">
 
+    <dialog id="dialog">
 
+      <section class="joypad">
+        <article><h3>Up</h3><input type="text" value="ArrowUp" class="key" id="ArrowUp" required></article>
+        <article><h3>Down</h3><input type="text" value="ArrowDown" class="key" id="ArrowDown"></article>
+        <article><h3>Left</h3><input type="text" value="ArrowLeft" class="key" id="ArrowLeft"></article>
+        <article><h3>Right</h3><input type="text" value="ArrowRight" class="key" id="ArrowRight"></article>
+      </section>
+      <section class="buttons">
+        <article><h3>A</h3><input type="text" value="KeyB" class="key" id="A"></article>
+        <article><h3>B</h3><input type="text" value="KeyZ" class="key" id="B"></article>
+        <article><h3>Start</h3><input type="text" value="KeyS" class="key" id="Start"></article>
+        <article><h3>Select</h3><input type="text" value="KeyA" class="key" id="Select"></article>
+      </section>
+      <button class="close" autofocus>Close</button>
+      <button class="save">Save</button>
+    </dialog>
 
+    <button class="show">Configure controller</button>
 
-  <canvas id="nesCanvas" width="256" height="240"></canvas>
-      <input id="nesfile" type="file">
+    <script src="js/index.js"></script>
 
-
-  <script src="js/index.js"></script>
-
-</body>
+  </body>
 
 </html>

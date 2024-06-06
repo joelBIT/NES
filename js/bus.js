@@ -134,7 +134,7 @@ export class Bus {
       this.dmaAddress[0] = 0x00;
       this.dmaTransfer = true;
     } else if (address >= 0x4016 && address <= 0x4017) {
-      this.controllerState[address & 0x0001] = this.controllers[address & 0x0001].getCurrentButton();
+      this.controllerState[address & 0x0001] = this.controllers[address & 0x0001].getActiveButton();
     }
   }
 }

@@ -4,77 +4,149 @@
  *
  */
 export class Controller {
-  button = 0x00;
+  activeButton = 0x00;
+  a = 'KeyX';
+  b = 'KeyZ';
+  start = 'KeyS';
+  select = 'KeyA';
+  up = 'ArrowUp';
+  down = 'ArrowDown';
+  right = 'ArrowRight';
+  left = 'ArrowLeft';
 
   pressA() {
-    this.button |= 0x80;
+    this.activeButton |= 0x80;
   }
 
   releaseA() {
-    this.button &= (~(1 << 7)) & 0xff;
+    this.activeButton &= (~(1 << 7)) & 0xff;
   }
 
   pressB() {
-    this.button |= 0x40;
+    this.activeButton |= 0x40;
   }
 
   releaseB() {
-    this.button &= (~(1 << 6)) & 0xff;
+    this.activeButton &= (~(1 << 6)) & 0xff;
   }
 
   pressStart() {
-    this.button |= 0x10;
+    this.activeButton |= 0x10;
   }
 
   releaseStart() {
-    this.button &= (~(1 << 4)) & 0xff;
+    this.activeButton &= (~(1 << 4)) & 0xff;
   }
 
   pressSelect() {
-    this.button |= 0x20;
+    this.activeButton |= 0x20;
   }
 
   releaseSelect() {
-    this.button &= (~(1 << 5)) & 0xff;
+    this.activeButton &= (~(1 << 5)) & 0xff;
   }
 
   pressUp() {
-    this.button |= 0x08;
+    this.activeButton |= 0x08;
   }
 
   releaseUp() {
-    this.button &= (~(1 << 3)) & 0xff;
+    this.activeButton &= (~(1 << 3)) & 0xff;
   }
 
   pressDown() {
-    this.button |= 0x04;
+    this.activeButton |= 0x04;
   }
 
   releaseDown() {
-    this.button &= (~(1 << 2)) & 0xff;
+    this.activeButton &= (~(1 << 2)) & 0xff;
   }
 
   pressRight() {
-    this.button |= 0x01;
+    this.activeButton |= 0x01;
   }
 
   releaseRight() {
-    this.button &= (~(1 << 0)) & 0xff;
+    this.activeButton &= (~(1 << 0)) & 0xff;
   }
 
   pressLeft() {
-    this.button |= 0x02;
+    this.activeButton |= 0x02;
   }
 
   releaseLeft() {
-    this.button &= (~(1 << 1)) & 0xff;
+    this.activeButton &= (~(1 << 1)) & 0xff;
   }
 
-  getCurrentButton() {
-    return this.button;
+  getActiveButton() {
+    return this.activeButton;
   }
 
   reset() {
-    this.button = 0x00;
+    this.activeButton = 0x00;
+  }
+
+  getA() {
+    return this.a;
+  }
+
+  setA(a) {
+    this.a = a;
+  }
+
+  getB() {
+    return this.b;
+  }
+
+  setB(b) {
+    this.b = b;
+  }
+
+  getSelect() {
+    return this.select;
+  }
+
+  setSelect(select) {
+    this.select = select;
+  }
+
+  getStart() {
+    return this.start;
+  }
+
+  setStart(start) {
+    this.start = start;
+  }
+
+  getUp() {
+    return this.up;
+  }
+
+  setUp(up) {
+    this.up = up;
+  }
+
+  getDown() {
+    return this.down;
+  }
+
+  setDown(down) {
+    this.down = down;
+  }
+
+  getRight() {
+    return this.right;
+  }
+
+  setRight(right) {
+    this.right = right;
+  }
+
+  getLeft() {
+    return this.left;
+  }
+
+  setLeft(left) {
+    this.left = left;
   }
 }

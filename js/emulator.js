@@ -6,9 +6,15 @@ import { Controller } from "./controller.js";
 
 const bus = new Bus(cpu, ppu);
 const controller = new Controller();
+const controllerConfiguration = [];
 
 self.onmessage = function(message) {
   switch (message.data.event) {
+    case 'configuration':
+      controllerConfiguration.length = 0;
+      controllerConfiguration.push(...message.data.data);
+      setControllerButtons();
+      break;
     case 'readFile':
       const rom = new Uint8Array(message.data.data);
       try {
@@ -37,56 +43,56 @@ self.onmessage = function(message) {
       break;
     case 'keyup':
       switch (message.data.value) {
-        case 'KeyX':
+        case controller.getA():
           controller.releaseA();
           break;
-        case 'KeyZ':
+        case controller.getB():
           controller.releaseB();
           break;
-        case 'KeyA':
+        case controller.getSelect():
           controller.releaseSelect();
           break;
-        case 'KeyS':
+        case controller.getStart():
           controller.releaseStart();
           break;
-        case 'ArrowUp':
+        case controller.getUp():
           controller.releaseUp();
           break;
-        case 'ArrowDown':
+        case controller.getDown():
           controller.releaseDown();
           break;
-        case 'ArrowLeft':
+        case controller.getLeft():
           controller.releaseLeft();
           break;
-        case 'ArrowRight':
+        case controller.getRight():
           controller.releaseRight();
           break;
       }
       break;
     case 'keydown':
       switch (message.data.value) {
-        case 'KeyX':
+        case controller.getA():
           controller.pressA();
           break;
-        case 'KeyZ':
+        case controller.getB():
           controller.pressB();
           break;
-        case 'KeyA':
+        case controller.getSelect():
           controller.pressSelect();
           break;
-        case 'KeyS':
+        case controller.getStart():
           controller.pressStart();
           break;
-        case 'ArrowUp':
+        case controller.getUp():
           controller.pressUp();
           break;
-        case 'ArrowDown':
+        case controller.getDown():
           controller.pressDown();
           break;
-        case 'ArrowLeft':
+        case controller.getLeft():
           controller.pressLeft();
           break;
-        case 'ArrowRight':
+        case controller.getRight():
           controller.pressRight();
           break;
       }
@@ -101,3 +107,35 @@ self.onmessage = function(message) {
 };
 
 
+function setControllerButtons() {
+  controllerConfiguration.forEach((button) => setButton(button));
+}
+
+function setButton(button) {
+  switch (button.button) {
+    case 'A':
+      controller.setA(button.value);
+      break;
+    case 'B':
+      controller.setB(button.value);
+      break;
+    case 'Start':
+      controller.setStart(button.value);
+      break;
+    case 'Select':
+      controller.setSelect(button.value);
+      break;
+    case 'ArrowUp':
+      controller.setUp(button.value);
+      break;
+    case 'ArrowDown':
+      controller.setDown(button.value);
+      break;
+    case 'ArrowLeft':
+      controller.setLeft(button.value);
+      break;
+    case 'ArrowRight':
+      controller.setRight(button.value);
+      break;
+  }
+}
