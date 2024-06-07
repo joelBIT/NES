@@ -4,10 +4,10 @@
 
  💻 <b>CPU</b>
   - All official instructions are implemented
-  - nestest passes ✔️
+  - nestest passes :heavy_check_mark:
 
 <br>
-<b>Fully functional 🖥️ PPU and almost fully functional 🔊 APU</b>
+<b>Fully functional 🖥️ PPU and almost fully functional :musical_note: APU</b>
 <br><br><br>
 
 🔌 <b>Supported mappers</b>
@@ -21,20 +21,36 @@
 
 <br><br>
 :video_game: <b>Controls</b>
-- It is possible to configure controller 1 (configuration is stored in local storage)
+- Support for controller 1 and 2 :heavy_check_mark:
+- It is possible to configure controller 1 and 2 (configuration is stored in local storage)
+
+
+<b>Controller 1:</b>
   
- | Input	| Keyboard Key(s) |
- | :----: | :------------: |
+ | Input	| Keyboard Key(s) | 
+ | :----: | :------------: | 
  | D-Pad	| arrows          |
  | A     |	Z               |
  | B	    | X               |
  | Select|	A               |
  | Start	| S            |
 
+ <b>Controller 2:</b>
+  
+ | Input	| Keyboard Key(s) | 
+ | :----: | :------------: | 
+ | Up    	| U          |
+ | Down    	| J          |
+| Left    	| H          |
+| Right    	| K          |
+ | A     |	G               |
+ | B	    | F               |
+ | Select|	R               |
+ | Start	| T            |
+
 <br><br>
 <b>Roadmap</b>
   - Implement Delta Modulation Channel
-  - Support for controller 2
   - More mappers
   - Fix some bugs
   - Ability to save games
