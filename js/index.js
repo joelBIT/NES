@@ -85,7 +85,6 @@ document.getElementById("nesfile").addEventListener('change', input => {
   fileReader.readAsArrayBuffer(input.target.files[0]);
 });
 
-
 /**
  * |**************************|
  * | Controller Configuration |
@@ -102,6 +101,7 @@ const saveButton = document.querySelector(".save");
  */
 showButton.addEventListener("click", () => {
   for (const key of keys) {
+    console.log(key);
     const button = localStorage.getItem(key.id);
     if (button) {
       key.value = button;

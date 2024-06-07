@@ -5,14 +5,14 @@
  */
 export class Controller {
   activeButton = 0x00;
-  a = 'KeyX';
-  b = 'KeyZ';
-  start = 'KeyS';
-  select = 'KeyA';
-  up = 'ArrowUp';
-  down = 'ArrowDown';
-  right = 'ArrowRight';
-  left = 'ArrowLeft';
+  a;
+  b;
+  start;
+  select;
+  up;
+  down;
+  right;
+  left;
 
   pressA() {
     this.activeButton |= 0x80;

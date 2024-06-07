@@ -17,7 +17,6 @@ canvas {
 body {
   margin: 0;
   text-align:center;
-  overflow-y: hidden;
   margin-top: 1rem;
 }
 
@@ -36,13 +35,14 @@ dialog {
   display: grid;
   grid-template: auto / 1fr 1fr;
   opacity: 0;
+  padding-right: 3rem;
 }
 
 dialog[open] {
   opacity: 1;
 }
 
-.buttons, .joypad {
+.player1, .player2 {
   display: flex;
   flex-direction: column;
   margin-bottom: 3rem;

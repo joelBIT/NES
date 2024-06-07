@@ -109,7 +109,7 @@ export class Bus {
       return this.ppu.readRegister(address & 0x0007);          // PPU Address range, mirrored every 8
     } else if (address === 0x4015) {
       return 0x00;
-    } else if (address >= 0x4016 && address <= 0x4017) {
+    } else if (address === 0x4016 || address === 0x4017) {
       const data = (this.controllerState[address & 0x0001] & 0x80) > 0 ? 1 : 0;
       this.controllerState[address & 0x0001] <<= 1;      // Read out the MSB of the controller status word
       return data;
@@ -127,14 +127,15 @@ export class Bus {
       this.cpuRAM[address & 0x07FF] = data;                 // Using bitwise AND to mask the bottom 11 bits is the same as addr % 2048.
     } else if (address >= 0x2000 && address <= 0x3FFF) {    // PPU Address range. The PPU only has 8 primary registers and these are repeated throughout this range.
       this.ppu.writeRegister(address & 0x0007, data);          // bitwise AND operation to mask the bottom 3 bits, which is the equivalent of addr % 8.
-    } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015 || address === 0x4017) {
+    } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015) {
       this.writes.push({address: address, data: data});     // Postpone write to the APU
     } else if (address === 0x4014) {
       this.dmaPage[0] = data;
       this.dmaAddress[0] = 0x00;
       this.dmaTransfer = true;
-    } else if (address >= 0x4016 && address <= 0x4017) {
-      this.controllerState[address & 0x0001] = this.controllers[address & 0x0001].getActiveButton();
+    } else if (address === 0x4016 || address === 0x4017) {
+      this.controllerState[0] = this.controllers[0].getActiveButton();
+      this.controllerState[1] = this.controllers[1].getActiveButton();
     }
   }
 }

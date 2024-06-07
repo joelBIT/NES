@@ -5,7 +5,8 @@ import { Cartridge } from './cartridge/cartridge.js';
 import { Controller } from "./controller.js";
 
 const bus = new Bus(cpu, ppu);
-const controller = new Controller();
+const controller1 = new Controller();
+const controller2 = new Controller();
 const controllerConfiguration = [];
 
 self.onmessage = function(message) {
@@ -26,7 +27,8 @@ self.onmessage = function(message) {
         return;
       }
 
-      bus.addController(controller);
+      bus.addController(controller1);
+      bus.addController(controller2);
       bus.reset();
 
       function tick() {
@@ -43,57 +45,105 @@ self.onmessage = function(message) {
       break;
     case 'keyup':
       switch (message.data.value) {
-        case controller.getA():
-          controller.releaseA();
+        case controller1.getA():
+          controller1.releaseA();
           break;
-        case controller.getB():
-          controller.releaseB();
+        case controller1.getB():
+          controller1.releaseB();
           break;
-        case controller.getSelect():
-          controller.releaseSelect();
+        case controller1.getSelect():
+          controller1.releaseSelect();
           break;
-        case controller.getStart():
-          controller.releaseStart();
+        case controller1.getStart():
+          controller1.releaseStart();
           break;
-        case controller.getUp():
-          controller.releaseUp();
+        case controller1.getUp():
+          controller1.releaseUp();
           break;
-        case controller.getDown():
-          controller.releaseDown();
+        case controller1.getDown():
+          controller1.releaseDown();
           break;
-        case controller.getLeft():
-          controller.releaseLeft();
+        case controller1.getLeft():
+          controller1.releaseLeft();
           break;
-        case controller.getRight():
-          controller.releaseRight();
+        case controller1.getRight():
+          controller1.releaseRight();
+          break;
+        case controller2.getA():
+          controller2.releaseA();
+          break;
+        case controller2.getB():
+          controller2.releaseB();
+          break;
+        case controller2.getSelect():
+          controller2.releaseSelect();
+          break;
+        case controller2.getStart():
+          controller2.releaseStart();
+          break;
+        case controller2.getUp():
+          controller2.releaseUp();
+          break;
+        case controller2.getDown():
+          controller2.releaseDown();
+          break;
+        case controller2.getLeft():
+          controller2.releaseLeft();
+          break;
+        case controller2.getRight():
+          controller2.releaseRight();
           break;
       }
       break;
     case 'keydown':
       switch (message.data.value) {
-        case controller.getA():
-          controller.pressA();
+        case controller1.getA():
+          controller1.pressA();
           break;
-        case controller.getB():
-          controller.pressB();
+        case controller1.getB():
+          controller1.pressB();
           break;
-        case controller.getSelect():
-          controller.pressSelect();
+        case controller1.getSelect():
+          controller1.pressSelect();
           break;
-        case controller.getStart():
-          controller.pressStart();
+        case controller1.getStart():
+          controller1.pressStart();
           break;
-        case controller.getUp():
-          controller.pressUp();
+        case controller1.getUp():
+          controller1.pressUp();
           break;
-        case controller.getDown():
-          controller.pressDown();
+        case controller1.getDown():
+          controller1.pressDown();
           break;
-        case controller.getLeft():
-          controller.pressLeft();
+        case controller1.getLeft():
+          controller1.pressLeft();
           break;
-        case controller.getRight():
-          controller.pressRight();
+        case controller1.getRight():
+          controller1.pressRight();
+          break;
+        case controller2.getA():
+          controller2.pressA();
+          break;
+        case controller2.getB():
+          controller2.pressB();
+          break;
+        case controller2.getSelect():
+          controller2.pressSelect();
+          break;
+        case controller2.getStart():
+          controller2.pressStart();
+          break;
+        case controller2.getUp():
+          controller2.pressUp();
+          break;
+        case controller2.getDown():
+          controller2.pressDown();
+          break;
+        case controller2.getLeft():
+          controller2.pressLeft();
+          break;
+        case controller2.getRight():
+          controller2.pressRight();
           break;
       }
       break;
@@ -106,7 +156,6 @@ self.onmessage = function(message) {
   }
 };
 
-
 function setControllerButtons() {
   controllerConfiguration.forEach((button) => setButton(button));
 }
@@ -114,28 +163,52 @@ function setControllerButtons() {
 function setButton(button) {
   switch (button.button) {
     case 'A':
-      controller.setA(button.value);
+      controller1.setA(button.value);
       break;
     case 'B':
-      controller.setB(button.value);
+      controller1.setB(button.value);
       break;
     case 'Start':
-      controller.setStart(button.value);
+      controller1.setStart(button.value);
       break;
     case 'Select':
-      controller.setSelect(button.value);
+      controller1.setSelect(button.value);
       break;
     case 'ArrowUp':
-      controller.setUp(button.value);
+      controller1.setUp(button.value);
       break;
     case 'ArrowDown':
-      controller.setDown(button.value);
+      controller1.setDown(button.value);
       break;
     case 'ArrowLeft':
-      controller.setLeft(button.value);
+      controller1.setLeft(button.value);
       break;
     case 'ArrowRight':
-      controller.setRight(button.value);
+      controller1.setRight(button.value);
+      break;
+    case 'A2':
+      controller2.setA(button.value);
+      break;
+    case 'B2':
+      controller2.setB(button.value);
+      break;
+    case 'Start2':
+      controller2.setStart(button.value);
+      break;
+    case 'Select2':
+      controller2.setSelect(button.value);
+      break;
+    case 'ArrowUp2':
+      controller2.setUp(button.value);
+      break;
+    case 'ArrowDown2':
+      controller2.setDown(button.value);
+      break;
+    case 'ArrowLeft2':
+      controller2.setLeft(button.value);
+      break;
+    case 'ArrowRight2':
+      controller2.setRight(button.value);
       break;
   }
 }
