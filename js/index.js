@@ -120,6 +120,7 @@ closeButton.addEventListener("click", () => {
   dialog.close();
   for (const key of keys) {
     key.value = key.defaultValue;
+    key.classList.remove('missing');
   }
 });
 
