@@ -8,16 +8,14 @@ canvas {
   vertical-align: middle;
   background: #eee;
   display: block;
-  margin: 0 auto;
   width: 768px;
   height: 720px;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem;
 }
 
 body {
-  margin: 0;
   text-align:center;
-  margin-top: 1rem;
+  margin: 1rem 0 0;
 }
 
 header {

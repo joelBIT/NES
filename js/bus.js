@@ -2,12 +2,13 @@ import { ppu } from './ppu/ppu.js';
 import { cpu } from './cpu/cpu.js';
 
 /**
- * A bus is used for communication between components such as CPU, Memory, and PPU.
+ * A bus is used for communication between NES components such as CPU, Memory, and PPU (i.e., the communication that
+ * takes place within the actual NES console). When a cartridge has been inserted into the console, the bus is used for
+ * communicating with the cartridge as well.
+ *
  */
 export class Bus {
-  cpuRAM = new Uint8Array(2048);
   systemClockCounter = new Uint32Array(1);
-
   controllerState = new Uint8Array(2);        // Internal cache of controller state
 
   dmaPage = new Uint8Array(1);              // This together with dmaAddress form a 16-bit address on the CPU's address bus, dmaPage is the low byte
@@ -22,6 +23,7 @@ export class Bus {
   ppu;
   cartridge;
   controllers = [];
+  cpuRAM = new Uint8Array(2048);
 
   constructor(cpu, ppu) {
     this.cpu = cpu;

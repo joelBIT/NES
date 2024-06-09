@@ -9,8 +9,11 @@ import { MapperFour } from "../mappers/mapper4.js";
 import { MapperSeven } from "../mappers/mapper7.js";
 
 /**
- * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table.
- * Pattern memory is also known as Character memory. A Cartridge is connected to both buses.
+ * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table. An NES cartridge
+ * has at least two memory chips on it: PRG (connected to the CPU) and CHR (connected to the PPU). There is always at
+ * least one PRG ROM, and there may be an additional PRG RAM to hold data. A Cartridge is connected to both buses (CPU
+ * bus and PPU bus), though, only one Bus is used for both the CPU and PPU in this emulator.
+ *
  */
 export class Cartridge {
   header;

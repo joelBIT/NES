@@ -9,6 +9,13 @@ const controller1 = new Controller();
 const controller2 = new Controller();
 const controllerConfiguration = [];
 
+/**
+ * This class is a worker thread handling the communication between the user interface and the NES. Conceptually, this
+ * class can be viewed as the NES console. A player puts in a cartridge into the console, or press buttons on a
+ * controller. That player interaction with the console is handled in this class. The Bus class is used for
+ * communication that takes place within the actual NES console.
+ *
+ */
 self.onmessage = function(message) {
   switch (message.data.event) {
     case 'configuration':

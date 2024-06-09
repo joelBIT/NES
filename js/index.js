@@ -101,7 +101,6 @@ const saveButton = document.querySelector(".save");
  */
 showButton.addEventListener("click", () => {
   for (const key of keys) {
-    console.log(key);
     const button = localStorage.getItem(key.id);
     if (button) {
       key.value = button;
@@ -125,8 +124,8 @@ closeButton.addEventListener("click", () => {
 });
 
 /**
- * Abort function if player has left empty input fields when trying to save the controller configuration.
- * Store the controller configuration in local storage if no fields are empty.
+ * Do not store configuration if player has left empty input fields when trying to save the controller configuration.
+ * Store the controller configuration in local storage if all fields are nonempty.
  */
 saveButton.addEventListener("click", (event) => {
   let missingValue = false;
