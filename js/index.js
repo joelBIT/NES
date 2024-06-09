@@ -3,7 +3,13 @@
 const worker = new Worker('js/emulator.js',{ type: "module" });
 let nesWorkletNode;
 
-window.onload = e => {
+/**
+ * The control of the canvas is transferred to the NES worker thread when the page has been loaded. As a result, the
+ * worker thread takes care of the graphical processing and the player can interact with the interface without noticing
+ * too much lag.
+ */
+window.onload = () => {
+  window.scrollTo(0,0);
   const canvas = document.getElementById("canvas").transferControlToOffscreen();
   worker.postMessage({ canvas: canvas }, [canvas]);
 };
@@ -14,12 +20,12 @@ window.onload = e => {
  * |*************************|
  */
 
-const keyUpEventLogger = function (e) {
-  worker.postMessage({event: 'keyup', value: e.code});
+const keyUpEventLogger = function(event) {
+  worker.postMessage({event: 'keyup', value: event.code});
 };
 
-const keyDownEventLogger = function (e) {
-  worker.postMessage({event: 'keydown', value: e.code});
+const keyDownEventLogger = function(event) {
+  worker.postMessage({event: 'keydown', value: event.code});
 };
 
 window.addEventListener("keyup", keyUpEventLogger);
