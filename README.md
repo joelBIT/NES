@@ -29,7 +29,10 @@
   
  | Input	| Keyboard Key(s) | 
  | :----: | :------------: | 
- | D-Pad	| arrows          |
+ | Up	| Arrow Up          |
+ | Down	| Arrow Down          |
+ | Left	| Arrow Left          |
+ | Right	| Arrow Right          |
  | A     |	Z               |
  | B	    | X               |
  | Select|	A               |
