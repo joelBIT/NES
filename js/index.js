@@ -162,23 +162,23 @@ saveButton.addEventListener("click", (event) => {
 
 const keys = document.getElementsByClassName('key');
 for (const key of keys) {
-  key.addEventListener('focus', onFocus);
-  key.addEventListener('focusout', onFocusOut);
-  key.addEventListener('keydown', onKeyDown);
-  key.addEventListener('keyup', onKeyUp);
+  key.addEventListener('focus', removeInputCharacter);
+  key.addEventListener('focusout', addDefaultValueIfEmpty);
+  key.addEventListener('keydown', setKeyCode);
+  key.addEventListener('keyup', setDefaultValueIfKeyCodeMissing);
 }
 
 /**
  *  Remove the input character in order to prepare the field for the pressed key's code.
  */
-function onFocus(event) {
+function removeInputCharacter(event) {
   event.target.value = '';
 }
 
 /**
  *  If input text field is empty when focus is removed, add the button's default value instead.
  */
-function onFocusOut(event) {
+function addDefaultValueIfEmpty(event) {
   event.target.classList.remove('missing');
   if (!event.target.value) {
     event.target.value = event.target.defaultValue;
@@ -188,7 +188,7 @@ function onFocusOut(event) {
 /**
  *  Set default value if button has no value.
  */
-function onKeyUp(event) {
+function setDefaultValueIfKeyCodeMissing(event) {
   if (!event.code) {
     event.target.value = event.target.defaultValue;
   }
@@ -197,8 +197,8 @@ function onKeyUp(event) {
 /**
  *  Show key code in input text field.
  */
-function onKeyDown(event) {
-  removeKeyAlreadyTaken(event);
+function setKeyCode(event) {
+  removeKeyWhereAlreadyUsed(event);
   event.target.value = event.code;
   event.preventDefault();
 }
@@ -206,7 +206,7 @@ function onKeyDown(event) {
 /**
  *  Removes the chosen key from other buttons if already in use.
  */
-function removeKeyAlreadyTaken(event) {
+function removeKeyWhereAlreadyUsed(event) {
   const keyCode = event.code;
   for (const key of keys) {
     if (Object.is(key.value, keyCode)) {
