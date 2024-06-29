@@ -51,12 +51,6 @@
  | Select|	R               |
  | Start	| T            |
 
-<br><br>
-<b>Roadmap</b>
-  - Implement Delta Modulation Channel
-  - More mappers
-  - Fix some bugs
-  - Ability to save games
-  - Improve APU
+
 
 
