@@ -2,6 +2,7 @@ import { UnofficialOperations, OfficialOperations } from "./operations.js";
 import { Flags } from "./flags.js";
 import { Instruction, AddressMode } from "./instruction.js";
 import { Register8Bits, Register16Bits } from "./registers.js";
+import { ProgramCounter } from "./registers/programCounter.js";
 
 /**
  * 16-bit Address Space and 8-bit Data Space. The CPU communicates with a Bus.
@@ -13,7 +14,7 @@ class CPU {
   registerY = new Register8Bits();
   stackPointer = new Register8Bits();
   statusRegister = new Register8Bits();
-  programCounter = new Register16Bits();
+  programCounter = new ProgramCounter();
 
   // Helper Registers used in this specific emulator
   fetched = new Register8Bits();
@@ -33,14 +34,6 @@ class CPU {
 
   connectBus(bus) {
     this.bus = bus;
-  }
-
-  incrementPC() {
-    this.programCounter.set(this.programCounter.get() + 1);
-  }
-
-  decrementPC() {
-    this.programCounter.set(this.programCounter.get() - 1);
   }
 
   incrementSP() {
@@ -81,7 +74,7 @@ class CPU {
 
       this.operationCode.set(this.read(this.programCounter.get()));
       this.setFlag(Flags.U);
-      this.incrementPC();
+      this.programCounter.incrementPC();
 
       const instruction = this.instructions.get(this.operationCode.get());
       this.cycles = instruction.cycles;
@@ -127,10 +120,10 @@ class CPU {
    */
   ABS() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.absoluteAddress.set((this.tempHigh.get() << 8) | this.tempLow.get());
 
@@ -142,10 +135,10 @@ class CPU {
    */
   ABX() {
     let address = this.read(this.programCounter.get());
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     address |= (this.read(this.programCounter.get()) << 8);
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.absoluteAddress.set(address + this.registerX.get());
 
@@ -157,10 +150,10 @@ class CPU {
    */
   ABY() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.absoluteAddress.set(((this.tempHigh.get() << 8) | this.tempLow.get()) + this.registerY.get());
 
@@ -172,7 +165,7 @@ class CPU {
    */
   IMM() {
     this.absoluteAddress.set(this.programCounter.get());
-    this.incrementPC();
+    this.programCounter.incrementPC();
     return 0;
   }
 
@@ -189,10 +182,10 @@ class CPU {
    */
   IND() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempValue.set((this.tempHigh.get() << 8) | this.tempLow.get());
 
@@ -210,7 +203,7 @@ class CPU {
    */
   IZX() {
     this.tempValue.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempLow.set(this.read((this.tempValue.get() + this.registerX.get()) & 0x00FF));
     this.tempHigh.set(this.read((this.tempValue.get() + this.registerX.get() + 1) & 0x00FF));
@@ -224,7 +217,7 @@ class CPU {
    */
   IZY() {
     this.tempValue.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     this.tempLow.set(this.read((this.tempValue.get() & 0x00FF)));
     this.tempHigh.set(this.read((this.tempValue.get() + 1) & 0x00FF));
@@ -239,7 +232,7 @@ class CPU {
    */
   REL() {
     this.relativeAddress.set(this.read(this.programCounter.get()));
-    this.incrementPC();
+    this.programCounter.incrementPC();
     if (this.relativeAddress.get() & 0x80) {
       this.relativeAddress.set(this.relativeAddress.get() | 0xFF00);
     }
@@ -252,7 +245,7 @@ class CPU {
    */
   ZP0() {
     this.absoluteAddress.set((this.read(this.programCounter.get())) & 0x00FF);
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     return 0;
   }
@@ -262,7 +255,7 @@ class CPU {
    */
   ZPX() {
     this.absoluteAddress.set((this.read(this.programCounter.get()) + this.registerX.get()) & 0x00FF);
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     return 0;
   }
@@ -272,7 +265,7 @@ class CPU {
    */
   ZPY() {
     this.absoluteAddress.set((this.read(this.programCounter.get()) + this.registerY.get()) & 0x00FF);
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     return 0;
   }
@@ -756,7 +749,7 @@ class CPU {
    * JSR   Jump to subroutine saving return address
    */
   JSR() {
-    this.decrementPC();
+    this.programCounter.decrementPC();
 
     this.write(0x0100 + this.stackPointer.get(), (this.programCounter.get() >> 8) & 0x00FF);
     this.decrementSP();
@@ -972,7 +965,7 @@ class CPU {
     this.programCounter.set(this.read(0x0100 + this.stackPointer.get()));
     this.incrementSP();
     this.programCounter.set(this.programCounter.get() | this.read(0x0100 + this.stackPointer.get()) << 8);
-    this.incrementPC();
+    this.programCounter.incrementPC();
 
     return 0;
   }
