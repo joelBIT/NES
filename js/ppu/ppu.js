@@ -101,6 +101,14 @@ class PPU {
     this.OAM[address] = data;
   }
 
+  isNMI() {
+    return this.nmi;
+  }
+
+  setNMI(value) {
+    this.nmi = value;
+  }
+
   /**
    *  Reverses the bits of an 8-bit value.
    */

@@ -149,4 +149,12 @@ export class Cartridge {
   getMapper() {
     return this.mapper;
   }
+
+  irqState() {
+    return this.mapper.irqState();
+  }
+
+  clearIRQ() {
+    this.mapper.irqClear();
+  }
 }
