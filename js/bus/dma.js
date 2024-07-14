@@ -5,7 +5,7 @@
  * This is the DMA unit for copying sprite data to the PPU OAM.
  */
 export class DMA {
-  page = new Uint8Array(1);        // This together with dmaAddress form a 16-bit address on the CPU's address bus, dmaPage is the low byte
+  page = new Uint8Array(1);        // This together with address form a 16-bit address on the CPU's address bus, page is the low byte
   address = new Uint8Array(1);
   data = new Uint8Array(1);        // Represents the byte of data in transit from the CPU's memory to the OAM
   transfer = false;
@@ -56,7 +56,7 @@ export class DMA {
   }
 
   /**
-   * If this wraps around (is equal to 0), we know that 256 bytes have been written, so end the dma transfer, and proceed as normal.
+   * If this wraps around (is equal to 0), we know that 256 bytes have been written.
    *
    * @returns {boolean} true if wraps, false otherwise
    */

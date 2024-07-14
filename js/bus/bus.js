@@ -1,6 +1,7 @@
-import { ppu } from './ppu/ppu.js';
-import { cpu } from './cpu/cpu.js';
+import { ppu } from '../ppu/ppu.js';
+import { cpu } from '../cpu/cpu.js';
 import { DMA } from './dma.js';
+import { SystemClock } from "./systemClock.js";
 
 /**
  * A bus is used for communication between NES components such as CPU, Memory, and PPU (i.e., the communication that
@@ -9,10 +10,10 @@ import { DMA } from './dma.js';
  *
  */
 export class Bus {
-  systemClockCounter = new Uint32Array(1);
   controllerState = new Uint8Array(2);        // Internal cache of controller state
   writes = [];                                // Contain writes made by the CPU to the APU
   dma = new DMA();
+  systemClock = new SystemClock();
 
   // NES components
   cpu;
@@ -35,7 +36,7 @@ export class Bus {
     for (let i = 0; i < this.controllers.length; i++) {
       this.controllers[i].reset();
     }
-    this.systemClockCounter[0] = 0;
+    this.systemClock.reset();
   }
 
   insertCartridge(cartridge) {
@@ -50,14 +51,14 @@ export class Bus {
   clock() {
     this.writes = [];
     ppu.clock();
-    if (this.systemClockCounter[0] % 3 === 0) {   // The CPU runs 3 times slower than the PPU so we only call its clock() function every 3 times this function is called
+    if (this.systemClock.isTimeToClockPPU()) {
       if (this.dma.isTransfer()) {
         if (this.dma.isDummy()) {
-          if (this.systemClockCounter[0] % 2 === 1) {
+          if (this.systemClock.isTimeToAllowDMA()) {
             this.dma.setDummy(false);
           }
         } else {
-          if (this.systemClockCounter[0] % 2 === 0) {
+          if (this.systemClock.isTimeToReadBus()) {
             this.dma.setData(this.read((this.dma.getPage() << 8) | this.dma.getAddress()));
           } else {
             this.ppu.writeOAM(this.dma.getAddress(), this.dma.getData());
@@ -84,7 +85,7 @@ export class Bus {
       cpu.irq();
     }
 
-    this.systemClockCounter[0]++;
+    this.systemClock.increment();
     return this.writes;
   }
 
