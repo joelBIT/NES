@@ -9,7 +9,6 @@ let nesWorkletNode;
  * too much lag.
  */
 window.onload = () => {
-  window.scrollTo(0,0);
   const canvas = document.getElementById("canvas").transferControlToOffscreen();
   worker.postMessage({ canvas: canvas }, [canvas]);
 };
