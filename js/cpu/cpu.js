@@ -3,6 +3,7 @@ import { Flags } from "./flags.js";
 import { Instruction, AddressMode } from "./instruction.js";
 import { Register8Bits, Register16Bits } from "./registers.js";
 import { ProgramCounter } from "./registers/programCounter.js";
+import { StackPointer } from "./registers/stackPointer.js";
 
 /**
  * 16-bit Address Space and 8-bit Data Space. The CPU communicates with a Bus.
@@ -12,7 +13,7 @@ class CPU {
   accumulator = new Register8Bits();
   registerX = new Register8Bits();
   registerY = new Register8Bits();
-  stackPointer = new Register8Bits();
+  stackPointer = new StackPointer();
   statusRegister = new Register8Bits();
   programCounter = new ProgramCounter();
 
@@ -34,14 +35,6 @@ class CPU {
 
   connectBus(bus) {
     this.bus = bus;
-  }
-
-  incrementSP() {
-    this.stackPointer.set(this.stackPointer.get() + 1);
-  }
-
-  decrementSP() {
-    this.stackPointer.set(this.stackPointer.get() - 1);
   }
 
   getFlag(flag) {
@@ -74,7 +67,7 @@ class CPU {
 
       this.operationCode.set(this.read(this.programCounter.get()));
       this.setFlag(Flags.U);
-      this.programCounter.incrementPC();
+      this.programCounter.increment();
 
       const instruction = this.instructions.get(this.operationCode.get());
       this.cycles = instruction.cycles;
@@ -120,10 +113,10 @@ class CPU {
    */
   ABS() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.absoluteAddress.set((this.tempHigh.get() << 8) | this.tempLow.get());
 
@@ -135,10 +128,10 @@ class CPU {
    */
   ABX() {
     let address = this.read(this.programCounter.get());
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     address |= (this.read(this.programCounter.get()) << 8);
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.absoluteAddress.set(address + this.registerX.get());
 
@@ -150,10 +143,10 @@ class CPU {
    */
   ABY() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.absoluteAddress.set(((this.tempHigh.get() << 8) | this.tempLow.get()) + this.registerY.get());
 
@@ -165,7 +158,7 @@ class CPU {
    */
   IMM() {
     this.absoluteAddress.set(this.programCounter.get());
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
     return 0;
   }
 
@@ -182,10 +175,10 @@ class CPU {
    */
   IND() {
     this.tempLow.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempHigh.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempValue.set((this.tempHigh.get() << 8) | this.tempLow.get());
 
@@ -203,7 +196,7 @@ class CPU {
    */
   IZX() {
     this.tempValue.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempLow.set(this.read((this.tempValue.get() + this.registerX.get()) & 0x00FF));
     this.tempHigh.set(this.read((this.tempValue.get() + this.registerX.get() + 1) & 0x00FF));
@@ -217,7 +210,7 @@ class CPU {
    */
   IZY() {
     this.tempValue.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     this.tempLow.set(this.read((this.tempValue.get() & 0x00FF)));
     this.tempHigh.set(this.read((this.tempValue.get() + 1) & 0x00FF));
@@ -232,7 +225,7 @@ class CPU {
    */
   REL() {
     this.relativeAddress.set(this.read(this.programCounter.get()));
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
     if (this.relativeAddress.get() & 0x80) {
       this.relativeAddress.set(this.relativeAddress.get() | 0xFF00);
     }
@@ -245,7 +238,7 @@ class CPU {
    */
   ZP0() {
     this.absoluteAddress.set((this.read(this.programCounter.get())) & 0x00FF);
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     return 0;
   }
@@ -255,7 +248,7 @@ class CPU {
    */
   ZPX() {
     this.absoluteAddress.set((this.read(this.programCounter.get()) + this.registerX.get()) & 0x00FF);
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     return 0;
   }
@@ -265,7 +258,7 @@ class CPU {
    */
   ZPY() {
     this.absoluteAddress.set((this.read(this.programCounter.get()) + this.registerY.get()) & 0x00FF);
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     return 0;
   }
@@ -296,11 +289,11 @@ class CPU {
    *  Reset interrupts are triggered when the system first starts and when the user presses the reset button.
    */
   reset() {
-    this.programCounter.set((this.read(0xFFFD) << 8) | this.read(0xFFFC));
+    this.programCounter.reset((this.read(0xFFFD) << 8) | this.read(0xFFFC));
     this.accumulator.set(0x00);
     this.registerX.set(0x00);
     this.registerY.set(0x00);
-    this.stackPointer.set(0xFD);
+    this.stackPointer.reset(0xFD);
     this.statusRegister.set(0x00 | Flags.U);
     this.fetched.set(0x00);
     this.absoluteAddress.set(0x0000);
@@ -316,15 +309,15 @@ class CPU {
   irq() {
     if (this.getFlag(Flags.I) === 0) {
       this.write(0x0100 + this.stackPointer.get(), (this.programCounter.get() >> 8) & 0x00FF);
-      this.decrementSP();
+      this.stackPointer.decrement();
       this.write(0x0100 + this.stackPointer.get(), this.programCounter.get() & 0x00FF);
-      this.decrementSP();
+      this.stackPointer.decrement();
 
       this.clearFlag(Flags.B);
       this.setFlag(Flags.U);
       this.setFlag(Flags.I);
       this.write(0x0100 + this.stackPointer.get(), this.statusRegister.get());
-      this.decrementSP();
+      this.stackPointer.decrement();
 
       this.absoluteAddress.set(0xFFFE);
       this.programCounter.set((this.read(0xFFFF) << 8) | this.read(0xFFFE));
@@ -339,15 +332,15 @@ class CPU {
    */
   nmi() {
     this.write(0x0100 + this.stackPointer.get(), (this.programCounter.get() >> 8) & 0x00FF);
-    this.decrementSP();
+    this.stackPointer.decrement();
     this.write(0x0100 + this.stackPointer.get(), this.programCounter.get() & 0x00FF);
-    this.decrementSP();
+    this.stackPointer.decrement();
 
     this.clearFlag(Flags.B);
     this.setFlag(Flags.U);
     this.setFlag(Flags.I);
     this.write(0x0100 + this.stackPointer.get(), this.statusRegister.get());
-    this.decrementSP();
+    this.stackPointer.decrement();
 
     this.absoluteAddress.set(0xFFFA);
     this.programCounter.set((this.read(0xFFFB) << 8) | this.read(0xFFFA));
@@ -530,13 +523,13 @@ class CPU {
   BRK() {
     this.write(0x0100 + this.stackPointer.get(), (this.programCounter.get() >> 8) & 0x00FF);
 
-    this.decrementSP();
+    this.stackPointer.decrement();
     this.write(0x0100 + this.stackPointer.get(), this.programCounter.get() & 0x00FF);
-    this.decrementSP();
+    this.stackPointer.decrement();
 
     this.setFlag(Flags.B);
     this.write(0x0100 + this.stackPointer.get(), this.statusRegister.get());
-    this.decrementSP();
+    this.stackPointer.decrement();
     this.clearFlag(Flags.B);
     this.setFlag(Flags.I);
 
@@ -749,12 +742,12 @@ class CPU {
    * JSR   Jump to subroutine saving return address
    */
   JSR() {
-    this.programCounter.decrementPC();
+    this.programCounter.decrement();
 
     this.write(0x0100 + this.stackPointer.get(), (this.programCounter.get() >> 8) & 0x00FF);
-    this.decrementSP();
+    this.stackPointer.decrement();
     this.write(0x0100 + this.stackPointer.get(), this.programCounter.get() & 0x00FF);
-    this.decrementSP();
+    this.stackPointer.decrement();
     this.programCounter.set(this.absoluteAddress.get());
 
     return 0;
@@ -854,7 +847,7 @@ class CPU {
    */
   PHA() {
     this.write(0x0100 + this.stackPointer.get(), this.accumulator.get());
-    this.decrementSP();
+    this.stackPointer.decrement();
 
     return 0;
   }
@@ -867,7 +860,7 @@ class CPU {
 
     this.clearFlag(Flags.B);
     this.clearFlag(Flags.U);
-    this.decrementSP();
+    this.stackPointer.decrement();
 
     return 0;
   }
@@ -876,7 +869,7 @@ class CPU {
    * PLA   Pull Accumulator from Stack
    */
   PLA() {
-    this.incrementSP();
+    this.stackPointer.increment();
     this.accumulator.set(this.read(0x0100 + this.stackPointer.get()));
 
     this.accumulator.get() === 0x00 ? this.setFlag(Flags.Z) : this.clearFlag(Flags.Z);
@@ -889,7 +882,7 @@ class CPU {
    * PLP   Pull Processor Status from Stack
    */
   PLP() {
-    this.incrementSP();
+    this.stackPointer.increment();
     this.statusRegister.set(this.read(0x0100 + this.stackPointer.get()));
     this.clearFlag(Flags.U);
     this.clearFlag(Flags.B);
@@ -943,15 +936,15 @@ class CPU {
    *       update the Program Counter.
    */
   RTI() {
-    this.incrementSP();
+    this.stackPointer.increment();
 
     this.statusRegister.set((this.read(0x0100 + this.stackPointer.get())));
     this.statusRegister.set(this.statusRegister.get() & ~Flags.B);
     this.statusRegister.set(this.statusRegister.get() & ~Flags.U);
 
-    this.incrementSP();
+    this.stackPointer.increment();
     let pc = this.read(0x0100 + this.stackPointer.get());
-    this.incrementSP();
+    this.stackPointer.increment();
     this.programCounter.set(pc | (this.read(0x0100 + this.stackPointer.get()) << 8));
 
     return 0;
@@ -961,11 +954,11 @@ class CPU {
    * RTS   Return from Subroutine
    */
   RTS() {
-    this.incrementSP();
+    this.stackPointer.increment();
     this.programCounter.set(this.read(0x0100 + this.stackPointer.get()));
-    this.incrementSP();
+    this.stackPointer.increment();
     this.programCounter.set(this.programCounter.get() | this.read(0x0100 + this.stackPointer.get()) << 8);
-    this.programCounter.incrementPC();
+    this.programCounter.increment();
 
     return 0;
   }

@@ -12,15 +12,20 @@ export class ProgramCounter {
     return this.programCounter.get();
   }
 
-  set(value) {
-    this.programCounter.set(value);
+  set(address) {
+    this.programCounter.set(address);
   }
 
-  incrementPC() {
+  increment() {
     this.programCounter.set(this.programCounter.get() + 1);
   }
 
-  decrementPC() {
+  decrement() {
     this.programCounter.set(this.programCounter.get() - 1);
+  }
+
+  reset(vector) {
+    this.programCounter = new Register16Bits();
+    this.programCounter.set(vector);
   }
 }
