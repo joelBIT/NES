@@ -1,5 +1,6 @@
 import { ppu } from './ppu/ppu.js';
 import { cpu } from './cpu/cpu.js';
+import { DMA } from './dma.js';
 
 /**
  * A bus is used for communication between NES components such as CPU, Memory, and PPU (i.e., the communication that
@@ -10,13 +11,8 @@ import { cpu } from './cpu/cpu.js';
 export class Bus {
   systemClockCounter = new Uint32Array(1);
   controllerState = new Uint8Array(2);        // Internal cache of controller state
-
-  dmaPage = new Uint8Array(1);              // This together with dmaAddress form a 16-bit address on the CPU's address bus, dmaPage is the low byte
-  dmaAddress = new Uint8Array(1);
-  dmaData = new Uint8Array(1);            // Represents the byte of data in transit from the CPU's memory to the OAM
-  dmaTransfer = false;
-  dmaDummy = true;
   writes = [];                                // Contain writes made by the CPU to the APU
+  dma = new DMA();
 
   // NES components
   cpu;
@@ -35,16 +31,11 @@ export class Bus {
     this.cartridge.reset();
     this.cpu.reset();
     this.ppu.reset();
+    this.dma.reset();
     for (let i = 0; i < this.controllers.length; i++) {
       this.controllers[i].reset();
     }
     this.systemClockCounter[0] = 0;
-
-    this.dmaPage[0] = 0x00;
-    this.dmaAddress[0] = 0x00;
-    this.dmaData[0] = 0x00;
-    this.dmaDummy = true;
-    this.dmaTransfer = false;
   }
 
   insertCartridge(cartridge) {
@@ -60,21 +51,20 @@ export class Bus {
     this.writes = [];
     ppu.clock();
     if (this.systemClockCounter[0] % 3 === 0) {   // The CPU runs 3 times slower than the PPU so we only call its clock() function every 3 times this function is called
-      if (this.dmaTransfer) {
-        if (this.dmaDummy) {
+      if (this.dma.isTransfer()) {
+        if (this.dma.isDummy()) {
           if (this.systemClockCounter[0] % 2 === 1) {
-            this.dmaDummy = false;
+            this.dma.setDummy(false);
           }
         } else {
           if (this.systemClockCounter[0] % 2 === 0) {
-            this.dmaData[0] = this.read((this.dmaPage[0] << 8) | this.dmaAddress[0]);
+            this.dma.setData(this.read((this.dma.getPage() << 8) | this.dma.getAddress()));
           } else {
-            this.ppu.OAM[this.dmaAddress[0]] = this.dmaData[0];
-            this.dmaAddress[0]++;
-            // If this wraps around, we know that 256 bytes have been written, so end the DMA transfer, and proceed as normal
-            if (this.dmaAddress[0] === 0) {
-              this.dmaDummy = true;
-              this.dmaTransfer = false;
+            this.ppu.writeOAM(this.dma.getAddress(), this.dma.getData());
+            this.dma.incrementAddress();
+            if (this.dma.isWrapping()) {
+              this.dma.setDummy(true);
+              this.dma.setTransfer(false);
             }
           }
         }
@@ -132,9 +122,9 @@ export class Bus {
     } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015) {
       this.writes.push({address: address, data: data});     // Postpone write to the APU
     } else if (address === 0x4014) {
-      this.dmaPage[0] = data;
-      this.dmaAddress[0] = 0x00;
-      this.dmaTransfer = true;
+      this.dma.setPage(data);
+      this.dma.setAddress(0x00);
+      this.dma.setTransfer(true);
     } else if (address === 0x4016 || address === 0x4017) {
       this.controllerState[0] = this.controllers[0].getActiveButton();
       this.controllerState[1] = this.controllers[1].getActiveButton();

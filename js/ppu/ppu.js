@@ -97,6 +97,10 @@ class PPU {
     this.cartridge = cartridge;
   }
 
+  writeOAM(address, data) {
+    this.OAM[address] = data;
+  }
+
   /**
    *  Reverses the bits of an 8-bit value.
    */
