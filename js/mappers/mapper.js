@@ -23,7 +23,7 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns the mapped address
+   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
   mapReadByCPU(address) {
     return false;
@@ -34,7 +34,7 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns the mapped address
+   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
   mapWriteByCPU(address) {
     return false;
@@ -45,7 +45,7 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns the mapped address
+   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
   mapReadByPPU(address) {
     return false;
@@ -56,7 +56,7 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns the mapped address
+   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
   mapWriteByPPU(address) {
     return false;
