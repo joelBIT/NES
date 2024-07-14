@@ -116,6 +116,7 @@ showButton.addEventListener("click", () => {
   }
 
   dialog.showModal();
+  dialog.classList.remove('hidden');
 });
 
 /**
@@ -127,6 +128,7 @@ closeButton.addEventListener("click", () => {
     key.value = key.defaultValue;
     key.classList.remove('missing');
   }
+  dialog.classList.add('hidden');
 });
 
 /**
@@ -158,6 +160,7 @@ saveButton.addEventListener("click", (event) => {
   }
 
   dialog.close();
+  dialog.classList.add('hidden');
 });
 
 const keys = document.getElementsByClassName('key');

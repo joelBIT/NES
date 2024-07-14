@@ -81,3 +81,7 @@ article input {
   );
   opacity: 0.75;
 }
+
+.hidden {
+  display: none;
+}
