@@ -18,18 +18,46 @@ export class Mapper {
     this.characterBanks = characterBanks;
   }
 
+  /**
+   * Maps a read operation made by the CPU. The address that the CPU wants to read from is mapped to the corresponding
+   * address on the cartridge.
+   *
+   * @param address - the address to be mapped
+   * @returns the mapped address
+   */
   mapReadByCPU(address) {
     return false;
   }
 
+  /**
+   * Maps a write operation made by the CPU. The address that the CPU wants to write to is mapped to the corresponding
+   * address on the cartridge.
+   *
+   * @param address - the address to be mapped
+   * @returns the mapped address
+   */
   mapWriteByCPU(address) {
     return false;
   }
 
+  /**
+   * Maps a read operation made by the PPU. The address that the PPU wants to read from is mapped to the corresponding
+   * address on the cartridge.
+   *
+   * @param address - the address to be mapped
+   * @returns the mapped address
+   */
   mapReadByPPU(address) {
     return false;
   }
 
+  /**
+   * Maps a write operation made by the PPU. The address that the PPU wants to write to is mapped to the corresponding
+   * address on the cartridge.
+   *
+   * @param address - the address to be mapped
+   * @returns the mapped address
+   */
   mapWriteByPPU(address) {
     return false;
   }

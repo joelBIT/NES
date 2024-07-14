@@ -2,6 +2,7 @@ import { Register8Bits } from "../registers.js";
 
 /**
  * The register holds 8 flags (bit 0 - 7). The flags are used by the processor when performing operations.
+ * On the NES, decimal mode (bit 3) is disabled and so this flag has no effect.
  *
  * 7  bit  0
  * ---- ----
