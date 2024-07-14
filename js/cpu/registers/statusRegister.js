@@ -1,8 +1,7 @@
 import { Register8Bits } from "../registers.js";
 
 /**
- * The register holds value of 7 different flags which can only have a value of 0 or 1 and hence can be
- * represented in a single register. The bits represent the status of the processor.
+ * The register holds 8 flags (bit 0 - 7). The flags are used by the processor when performing operations.
  *
  * 7  bit  0
  * ---- ----
