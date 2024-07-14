@@ -5,6 +5,7 @@ import { Register8Bits, Register16Bits } from "./registers.js";
 import { ProgramCounter } from "./registers/programCounter.js";
 import { StackPointer } from "./registers/stackPointer.js";
 import { Accumulator } from "./registers/accumulator.js";
+import { RegisterX } from "./registers/registerX.js";
 
 /**
  * 16-bit Address Space and 8-bit Data Space. The CPU communicates with a Bus.
@@ -12,7 +13,7 @@ import { Accumulator } from "./registers/accumulator.js";
 class CPU {
   instructions = new Map();
   accumulator = new Accumulator();
-  registerX = new Register8Bits();
+  registerX = new RegisterX();
   registerY = new Register8Bits();
   stackPointer = new StackPointer();
   statusRegister = new Register8Bits();
@@ -292,7 +293,7 @@ class CPU {
   reset() {
     this.programCounter.reset((this.read(0xFFFD) << 8) | this.read(0xFFFC));
     this.accumulator.reset();
-    this.registerX.set(0x00);
+    this.registerX.reset();
     this.registerY.set(0x00);
     this.stackPointer.reset(0xFD);
     this.statusRegister.set(0x00 | Flags.U);
