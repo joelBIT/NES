@@ -45,12 +45,22 @@ export class Shifter {
     this.attributeHigh[0] = value;
   }
 
+  /**
+   *
+   * @param location  corresponds to which bit in the register we are interested in.
+   * @returns {number}  a 2-bit word that represents the pixel
+   */
   getPixel(location) {
     const pixelPlane0 = (this.patternLow[0] & location) > 0 ? 1 : 0;
     const pixelPlane1 = (this.patternHigh[0] & location) > 0 ? 1 : 0;
-    return (pixelPlane1 << 1) | pixelPlane0;         // Combine to form pixel index
+    return (pixelPlane1 << 1) | pixelPlane0;
   }
 
+  /**
+   *
+   * @param location  corresponds to which bit in the register we are interested in.
+   * @returns {number}  a 2-bit word that represents the palette
+   */
   getPalette(location) {
     const pal0 = (this.attributeLow[0] & location) > 0 ? 1 : 0;
     const pal1 = (this.attributeHigh[0] & location) > 0 ? 1 : 0;

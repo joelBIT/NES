@@ -11,6 +11,7 @@ export class Background {
   nextTile = new Tile();
   shifter = new Shifter();
   fineX = 0x00;     // offset (0 - 7) into a single tile (which is 8x8 pixels) to make the scrolling smooth
+  MSB = 0x8000;
 
   getTileID() {
     return this.nextTile.getID();
@@ -41,7 +42,7 @@ export class Background {
   }
 
   /**
-   * 8 pixels in scanline. Load the current background tile pattern and attributes.
+   * Load the next background tile (8 pixels on scanline) pattern and attributes.
    */
   loadShifter() {
     this.shifter.setPatternLow((this.shifter.getPatternLow() & 0xFF00) | this.nextTile.getLSB());
@@ -56,11 +57,11 @@ export class Background {
   }
 
   getPixel() {
-    return this.shifter.getPixel(0x8000 >> this.fineX);
+    return this.shifter.getPixel(this.MSB >> this.fineX);
   }
 
   getPalette() {
-    return this.shifter.getPalette(0x8000 >> this.fineX);
+    return this.shifter.getPalette(this.MSB >> this.fineX);
   }
 
   reset() {
