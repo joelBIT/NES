@@ -5,6 +5,7 @@ import { ScrollRegister } from './registers/scroll.js';
 import { StatusRegister } from './registers/status.js';
 import { NameTableContainer } from "./nametable.js";
 import { Color } from './color.js';
+import { Background } from "./background/background.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -51,14 +52,7 @@ class PPU {
   dataBuffer;   // When we read data from the PPU it is delayed by 1 cycle so we need to buffer that byte
 
   // Background rendering
-  bgNextTileID = new Uint8Array(1);
-  bgNextTileAttribute = new Uint8Array(1);
-  bgNextTileLSB = new Uint8Array(1);
-  bgNextTileMSB = new Uint8Array(1);
-  bgShifterPatternLow = new Uint16Array(1);
-  bgShifterPatternHigh = new Uint16Array(1);
-  bgShifterAttributeLow = new Uint16Array(1);
-  bgShifterAttributeHigh = new Uint16Array(1);
+  background = new Background();
 
   spriteShifterPatternLow = new Uint8Array(8);      // Low-bit plane of the sprite
   spriteShifterPatternHigh = new Uint8Array(8);      // High-bit plane of the sprite
@@ -172,26 +166,11 @@ class PPU {
   }
 
   /**
-   * 8 pixels in scanline
-   */
-  loadBackgroundShifters() {
-    this.bgShifterPatternLow[0] = (this.bgShifterPatternLow[0] & 0xFF00) | this.bgNextTileLSB[0];
-    this.bgShifterPatternHigh[0] = (this.bgShifterPatternHigh[0] & 0xFF00) | this.bgNextTileMSB[0];
-
-    this.bgShifterAttributeLow[0] = (this.bgShifterAttributeLow[0] & 0xFF00) | ((this.bgNextTileAttribute[0] & 0b01) > 0 ? 0xFF : 0x00);
-    this.bgShifterAttributeHigh[0] = (this.bgShifterAttributeHigh[0] & 0xFF00) | ((this.bgNextTileAttribute[0] & 0b10) > 0 ? 0xFF : 0x00);
-  }
-
-  /**
    * Shifting background tile pattern row and palette attributes by 1
    */
   updateShifters() {
     if (this.maskRegister.getRenderBackground()) {
-      this.bgShifterPatternLow[0] <<= 1;
-      this.bgShifterPatternHigh[0] <<= 1;
-
-      this.bgShifterAttributeLow[0] <<= 1;
-      this.bgShifterAttributeHigh[0] <<= 1;
+      this.background.shift();
     }
 
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
@@ -257,31 +236,31 @@ class PPU {
 
         switch ((this.cycle - 1) % 8) {    // These cycles are for pre-loading the PPU with the information it needs to render the next 8 pixels
           case 0:
-            this.loadBackgroundShifters();          // Load the current background tile pattern and attributes into the "shifter"
-            this.bgNextTileID[0] = this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF));
+            this.background.loadShifter();
+            this.background.setTileID(this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF)));
             break;
           case 2:
-            this.bgNextTileAttribute[0] = this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
+            this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
               | (this.scrollVRAM.getNameTableX() << 10)
               | ((this.scrollVRAM.getCoarseY() >> 2) << 3)
-              | (this.scrollVRAM.getCoarseX() >> 2));
+              | (this.scrollVRAM.getCoarseX() >> 2)));
             if (this.scrollVRAM.getCoarseY() & 0x02) {
-              this.bgNextTileAttribute[0] >>= 4;
+              this.background.setTileAttribute(this.background.getTileAttribute() >> 4);
             }
             if (this.scrollVRAM.getCoarseX() & 0x02) {
-              this.bgNextTileAttribute[0] >>= 2;
+              this.background.setTileAttribute(this.background.getTileAttribute() >> 2);
             }
-            this.bgNextTileAttribute[0] &= 0x03;
+            this.background.setTileAttribute(this.background.getTileAttribute() & 0x03);
             break;
           case 4:
-            this.bgNextTileLSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
-              + (this.bgNextTileID[0] << 4)
-              + this.scrollVRAM.getFineY());
+            this.background.setTileLSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+              + (this.background.getTileID() << 4)
+              + this.scrollVRAM.getFineY()));
             break;
           case 6:
-            this.bgNextTileMSB[0] = this.readMemory((this.controlRegister.getPatternBackground() << 12)
-              + (this.bgNextTileID[0] << 4)
-              + this.scrollVRAM.getFineY() + 8);
+            this.background.setTileMSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+              + (this.background.getTileID() << 4)
+              + this.scrollVRAM.getFineY() + 8));
             break;
           case 7:
             this.incrementScrollX();
@@ -294,12 +273,12 @@ class PPU {
       }
 
       if (this.cycle === 257) {   //  Reset the X position
-        this.loadBackgroundShifters();
+        this.background.loadShifter();
         this.transferAddressX();
       }
 
       if (this.cycle === 338 || this.cycle === 340) {
-        this.bgNextTileID[0] = this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF));
+        this.background.setTileID(this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF)));
       }
 
       if (this.scanline === -1 && this.cycle >= 280 && this.cycle < 305) {    // End of vertical blank period so reset the Y address ready for rendering
@@ -505,12 +484,12 @@ class PPU {
       if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
         const bitMux = new Uint16Array(1);
         bitMux[0] = 0x8000 >> this.fineX;
-        const pixelPlane0 = (this.bgShifterPatternLow[0] & bitMux[0]) > 0 ? 1 : 0;
-        const pixelPlane1 = (this.bgShifterPatternHigh[0] & bitMux[0]) > 0 ? 1 : 0;
+        const pixelPlane0 = (this.background.getShifterPatternLow() & bitMux[0]) > 0 ? 1 : 0;
+        const pixelPlane1 = (this.background.getShifterPatternHigh() & bitMux[0]) > 0 ? 1 : 0;
         bgPixel = (pixelPlane1 << 1) | pixelPlane0;         // Combine to form pixel index
 
-        const pal0 = (this.bgShifterAttributeLow[0] & bitMux[0]) > 0 ? 1 : 0;
-        const pal1 = (this.bgShifterAttributeHigh[0] & bitMux[0]) > 0 ? 1 : 0;
+        const pal0 = (this.background.getShifterAttributeLow() & bitMux[0]) > 0 ? 1 : 0;
+        const pal1 = (this.background.getShifterAttributeHigh() & bitMux[0]) > 0 ? 1 : 0;
         bgPalette = (pal1 << 1) | pal0;
       }
     }
@@ -735,14 +714,8 @@ class PPU {
     this.dataBuffer = 0x00;
     this.scanline = 0;
     this.cycle = 0;
-    this.bgShifterAttributeHigh[0] = 0x0000;
-    this.bgShifterAttributeLow[0] = 0x0000;
-    this.bgShifterPatternLow[0] = 0x0000;
-    this.bgShifterPatternHigh[0] = 0x0000;
-    this.bgNextTileID[0] = 0x00;
-    this.bgNextTileAttribute[0] = 0x00;
-    this.bgNextTileLSB[0] = 0x00;
-    this.bgNextTileMSB[0] = 0x00;
+
+    this.background.reset();
     this.statusRegister.reset();
     this.maskRegister.reset();
     this.controlRegister.reset();
