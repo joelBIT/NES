@@ -90,7 +90,7 @@ export class Bus {
   }
 
   /**
-   *  The RAM is addressed within an 8-kilobyte range. Every 2 kilobyte is mirrored.
+   *  The RAM is addressed within an 8-kilobyte range. Every 2 kilobyte is mirrored. The CPU invokes this read(..) method.
    */
   read(address) {
     const read = this.cartridge.readByCPU(address);
@@ -111,7 +111,7 @@ export class Bus {
 
   /**
    *  The RAM is addressed within an 8-kilobyte range even though there are only 2 kilobytes available. Every 2 kilobyte
-   *  is mirrored.
+   *  is mirrored. The CPU invokes this write(..) method.
    */
   write(address, data) {
     if (this.cartridge.writeByCPU(address, data)) {
@@ -123,12 +123,19 @@ export class Bus {
     } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015) {
       this.writes.push({address: address, data: data});     // Postpone write to the APU
     } else if (address === 0x4014) {
-      this.dma.setPage(data);
-      this.dma.setAddress(0x00);
-      this.dma.setTransfer(true);
+      this.setupDMA(data);
     } else if (address === 0x4016 || address === 0x4017) {
       this.controllerState[0] = this.controllers[0].getActiveButton();
       this.controllerState[1] = this.controllers[1].getActiveButton();
     }
+  }
+
+  /**
+   * The page number (the high byte of the address) is written to OAMDMA ($4014).
+   */
+  setupDMA(data) {
+    this.dma.setPage(data);
+    this.dma.setAddress(0x00);
+    this.dma.setTransfer(true);
   }
 }
