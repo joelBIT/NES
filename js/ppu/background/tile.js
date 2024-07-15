@@ -1,6 +1,9 @@
 /**
  * Background tiles are always 8x8 pixels. Each nametable has two rows of cells that are not tile information, instead
  * they represent the attribute information that indicates which palettes are applied to which area on the screen.
+ *
+ * The information that a buffered tile consists of is stored in the variables of this class. This buffered tile is
+ * supposed to be rendered for the next 8 cycles.
  */
 export class Tile {
   id = new Uint8Array(1);

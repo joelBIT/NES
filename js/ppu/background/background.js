@@ -10,7 +10,7 @@ import { Shifter } from "./shifter.js";
 export class Background {
   nextTile = new Tile();
   shifter = new Shifter();
-  fineX = 0x00;     // offset (0 - 7) into a single tile (which is 8x8) to make the scrolling smooth
+  fineX = 0x00;     // offset (0 - 7) into a single tile (which is 8x8 pixels) to make the scrolling smooth
 
   getTileID() {
     return this.nextTile.getID();

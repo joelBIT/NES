@@ -1,5 +1,11 @@
 /**
  * A shifter is preloaded by the end of the current scanline with the data for the start of the next scanline.
+ * This shifter takes the buffered tile's information and composites it to the correct pixel color in the correct
+ * location. If we have a row of 16 pixels on a single scanline, that makes a row of 2 tiles of 8 pixels each. While
+ * the scanline is rendering the first 8 pixels (row of current tile), it is loading up the information for the next 8
+ * pixels (the row of the next tile). This information is loaded into the low byte of this 16-bit shifter. When the
+ * current tile's boundary is reached, the bit information for the next 8 pixels (next tile) is in the high byte of
+ * this 16-bit shifter.
  */
 export class Shifter {
   patternLow = new Uint16Array(1);

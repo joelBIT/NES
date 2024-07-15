@@ -257,11 +257,11 @@ class PPU {
         }
       }
 
-      if (this.cycle === 256) {   // End of a visible scanline, increment downwards
+      if (this.cycle === 256) {   // End of a visible scanline, increment downwards to the next scanline
         this.incrementScrollY();
       }
 
-      if (this.cycle === 257) {   //  Reset the X position
+      if (this.cycle === 257) {   //  Reset the X position to the beginning of the new scanline
         this.background.loadShifter();
         this.transferAddressX();
       }
