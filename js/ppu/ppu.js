@@ -6,6 +6,7 @@ import { StatusRegister } from './registers/status.js';
 import { NameTableContainer } from "./nametable.js";
 import { Color } from './color.js';
 import { Background } from "./background/background.js";
+import { Foreground } from "./foreground/foreground.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -54,8 +55,8 @@ class PPU {
   // Background rendering
   background = new Background();
 
-  spriteShifterPatternLow = new Uint8Array(8);      // Low-bit plane of the sprite
-  spriteShifterPatternHigh = new Uint8Array(8);      // High-bit plane of the sprite
+  // Foreground rendering
+  foreground = new Foreground();
 
   cartridge;
   ctx;
@@ -165,9 +166,6 @@ class PPU {
     }
   }
 
-  /**
-   * Shifting background tile pattern row and palette attributes by 1
-   */
   updateShifters() {
     if (this.maskRegister.getRenderBackground()) {
       this.background.shift();
@@ -178,17 +176,9 @@ class PPU {
         if (this.secondaryOAM[j + 3] > 0) {     // OAE X
           this.secondaryOAM[j + 3]--;
         } else {
-          this.spriteShifterPatternLow[i] <<= 1;
-          this.spriteShifterPatternHigh[i] <<= 1;
+          this.foreground.shift(i);
         }
       }
-    }
-  }
-
-  clearShifters() {
-    for (let i = 0; i < 8; i++) {
-      this.spriteShifterPatternHigh[i] = 0;
-      this.spriteShifterPatternLow[i] = 0;
     }
   }
 
@@ -224,7 +214,7 @@ class PPU {
         this.statusRegister.clearVerticalBlank();        // Effectively start of new frame, so clear vertical blank flag
         this.statusRegister.clearSpriteOverflow();
         this.statusRegister.clearSpriteZeroHit();
-        this.clearShifters();
+        this.foreground.reset();
       }
 
       if (this.scanline === 0 && this.cycle === 0 && this.oddFrame && (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites())) {
@@ -240,7 +230,7 @@ class PPU {
             this.background.setTileID(this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF)));
             break;
           case 2:
-            this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
+            this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11) // All attribute memory begins at 0x03C0 within a nametable
               | (this.scrollVRAM.getNameTableX() << 10)
               | ((this.scrollVRAM.getCoarseY() >> 2) << 3)
               | (this.scrollVRAM.getCoarseX() >> 2)));
@@ -294,7 +284,7 @@ class PPU {
         this.secondaryOAM.fill(0xFF);
         this.spriteCount = 0;
 
-        this.clearShifters();
+        this.foreground.reset();
         this.spriteEvaluation();
 
         if (this.spriteCount >= 8) {
@@ -369,8 +359,8 @@ class PPU {
           }
 
           // Load the pattern into sprite shift registers ready for rendering on the next scanline
-          this.spriteShifterPatternLow[i] = spritePatternBitsLow[0];
-          this.spriteShifterPatternHigh[i] = spritePatternBitsHigh[0];
+          this.foreground.setPatternLow(i, spritePatternBitsLow[0]);
+          this.foreground.setPatternHigh(i, spritePatternBitsHigh[0]);
         }
       }
     }
@@ -454,9 +444,7 @@ class PPU {
         for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
           // Scanline cycle has "collided" with sprite, shifters taking over
           if (this.secondaryOAM[j + 3] === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
-            let fgPixelLow = (this.spriteShifterPatternLow[i] & 0x80) > 0 ? 1 : 0;
-            let fgPixelHigh = (this.spriteShifterPatternHigh[i] & 0x80) > 0 ? 1 : 0;
-            fgPixel = (fgPixelHigh << 1) | fgPixelLow;
+            fgPixel = this.foreground.getPixel(i);
 
             fgPalette = (this.secondaryOAM[j + 2] & 0x03) + 0x04;     // OAE attributes
             fgPriority = (this.secondaryOAM[j + 2] & 0x20) === 0 ? 1 : 0;    // OAE attributes
@@ -714,8 +702,8 @@ class PPU {
     this.dataBuffer = 0x00;
     this.scanline = 0;
     this.cycle = 0;
-
     this.background.reset();
+    this.foreground.reset();
     this.statusRegister.reset();
     this.maskRegister.reset();
     this.controlRegister.reset();

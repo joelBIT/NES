@@ -1,4 +1,6 @@
-
+/**
+ * A shifter is preloaded by the end of the current scanline with the data for the start of the next scanline.
+ */
 export class Shifter {
   patternLow = new Uint16Array(1);
   patternHigh = new Uint16Array(1);
@@ -37,6 +39,9 @@ export class Shifter {
     this.attributeHigh[0] = value;
   }
 
+  /**
+   * Shifting background tile pattern row and palette attributes by 1.
+   */
   shift() {
     this.patternLow[0] <<= 1;
     this.patternHigh[0] <<= 1;

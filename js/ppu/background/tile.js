@@ -1,4 +1,7 @@
-
+/**
+ * Background tiles are always 8x8 pixels. Each nametable has two rows of cells that are not tile information, instead
+ * they represent the attribute information that indicates which palettes are applied to which area on the screen.
+ */
 export class Tile {
   id = new Uint8Array(1);
   attribute = new Uint8Array(1);
