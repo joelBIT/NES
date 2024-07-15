@@ -19,16 +19,8 @@ export class DMA {
     return this.page[0];
   }
 
-  setPage(page) {
-    this.page[0] = page;
-  }
-
   getAddress() {
     return this.address[0];
-  }
-
-  setAddress(address) {
-    this.address[0] = address;
   }
 
   incrementAddress() {
