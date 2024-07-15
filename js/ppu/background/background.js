@@ -10,6 +10,7 @@ import { Shifter } from "./shifter.js";
 export class Background {
   nextTile = new Tile();
   shifter = new Shifter();
+  fineX = 0x00;     // offset (0 - 7) into a single tile (which is 8x8) to make the scrolling smooth
 
   getTileID() {
     return this.nextTile.getID();
@@ -35,6 +36,10 @@ export class Background {
     this.nextTile.setAttribute(attribute);
   }
 
+  setFineX(fineX) {
+    this.fineX = fineX;
+  }
+
   /**
    * 8 pixels in scanline. Load the current background tile pattern and attributes.
    */
@@ -50,16 +55,17 @@ export class Background {
     this.shifter.shift();
   }
 
-  getPixel(location) {
-    return this.shifter.getPixel(location);
+  getPixel() {
+    return this.shifter.getPixel(0x8000 >> this.fineX);
   }
 
-  getPalette(location) {
-    return this.shifter.getPalette(location);
+  getPalette() {
+    return this.shifter.getPalette(0x8000 >> this.fineX);
   }
 
   reset() {
     this.nextTile.reset();
     this.shifter.reset();
+    this.fineX = 0x00;
   }
 }

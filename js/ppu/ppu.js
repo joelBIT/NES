@@ -37,7 +37,6 @@ class PPU {
 
   scrollVRAM = new ScrollRegister();      // Active "pointer" address into nametable to extract background tile info
   scrollTRAM = new ScrollRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
-  fineX;
 
   statusRegister = new StatusRegister();
   maskRegister = new MaskRegister();
@@ -470,8 +469,8 @@ class PPU {
     let bgPalette = 0x00;                                   // The 3-bit index of the palette the pixel indexes
     if (this.maskRegister.getRenderBackground()) {
       if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
-        bgPixel = this.background.getPixel(0x8000 >> this.fineX);
-        bgPalette = this.background.getPalette(0x8000 >> this.fineX);
+        bgPixel = this.background.getPixel();
+        bgPalette = this.background.getPalette();
       }
     }
 
@@ -592,7 +591,7 @@ class PPU {
         break;
       case 0x0005: // Scroll
         if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
-          this.fineX = data & 0x07;     // offset (0 - 7) into a single cell
+          this.background.setFineX(data & 0x07);
           this.scrollTRAM.setCoarseX(data >> 3);
           this.addressLatch = 1;
         } else {
@@ -690,7 +689,6 @@ class PPU {
   }
 
   reset() {
-    this.fineX = 0x00;
     this.addressLatch = 0x00;
     this.dataBuffer = 0x00;
     this.scanline = 0;
