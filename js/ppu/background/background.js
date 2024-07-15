@@ -50,12 +50,12 @@ export class Background {
     this.shifter.shift();
   }
 
-  getPixel(bitMux) {
-    return this.shifter.getPixel(bitMux);
+  getPixel(location) {
+    return this.shifter.getPixel(location);
   }
 
-  getPalette(bitMux) {
-    return this.shifter.getPalette(bitMux);
+  getPalette(location) {
+    return this.shifter.getPalette(location);
   }
 
   reset() {

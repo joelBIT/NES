@@ -470,10 +470,8 @@ class PPU {
     let bgPalette = 0x00;                                   // The 3-bit index of the palette the pixel indexes
     if (this.maskRegister.getRenderBackground()) {
       if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
-        const bitMux = new Uint16Array(1);
-        bitMux[0] = 0x8000 >> this.fineX;
-        bgPixel = this.background.getPixel(bitMux[0]);
-        bgPalette = this.background.getPalette(bitMux[0]);
+        bgPixel = this.background.getPixel(0x8000 >> this.fineX);
+        bgPalette = this.background.getPalette(0x8000 >> this.fineX);
       }
     }
 

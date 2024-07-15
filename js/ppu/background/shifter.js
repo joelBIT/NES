@@ -39,15 +39,15 @@ export class Shifter {
     this.attributeHigh[0] = value;
   }
 
-  getPixel(bitMux) {
-    const pixelPlane0 = (this.patternLow[0] & bitMux) > 0 ? 1 : 0;
-    const pixelPlane1 = (this.patternHigh[0] & bitMux) > 0 ? 1 : 0;
+  getPixel(location) {
+    const pixelPlane0 = (this.patternLow[0] & location) > 0 ? 1 : 0;
+    const pixelPlane1 = (this.patternHigh[0] & location) > 0 ? 1 : 0;
     return (pixelPlane1 << 1) | pixelPlane0;         // Combine to form pixel index
   }
 
-  getPalette(bitMux) {
-    const pal0 = (this.attributeLow[0] & bitMux) > 0 ? 1 : 0;
-    const pal1 = (this.attributeHigh[0] & bitMux) > 0 ? 1 : 0;
+  getPalette(location) {
+    const pal0 = (this.attributeLow[0] & location) > 0 ? 1 : 0;
+    const pal1 = (this.attributeHigh[0] & location) > 0 ? 1 : 0;
     return (pal1 << 1) | pal0;
   }
 
