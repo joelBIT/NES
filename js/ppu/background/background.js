@@ -35,22 +35,6 @@ export class Background {
     this.nextTile.setAttribute(attribute);
   }
 
-  getShifterPatternLow() {
-    return this.shifter.getPatternLow();
-  }
-
-  getShifterPatternHigh() {
-    return this.shifter.getPatternHigh();
-  }
-
-  getShifterAttributeLow() {
-    return this.shifter.getAttributeLow();
-  }
-
-  getShifterAttributeHigh() {
-    return this.shifter.getAttributeHigh();
-  }
-
   /**
    * 8 pixels in scanline. Load the current background tile pattern and attributes.
    */
@@ -64,6 +48,14 @@ export class Background {
 
   shift() {
     this.shifter.shift();
+  }
+
+  getPixel(bitMux) {
+    return this.shifter.getPixel(bitMux);
+  }
+
+  getPalette(bitMux) {
+    return this.shifter.getPalette(bitMux);
   }
 
   reset() {

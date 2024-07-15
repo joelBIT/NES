@@ -472,13 +472,8 @@ class PPU {
       if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
         const bitMux = new Uint16Array(1);
         bitMux[0] = 0x8000 >> this.fineX;
-        const pixelPlane0 = (this.background.getShifterPatternLow() & bitMux[0]) > 0 ? 1 : 0;
-        const pixelPlane1 = (this.background.getShifterPatternHigh() & bitMux[0]) > 0 ? 1 : 0;
-        bgPixel = (pixelPlane1 << 1) | pixelPlane0;         // Combine to form pixel index
-
-        const pal0 = (this.background.getShifterAttributeLow() & bitMux[0]) > 0 ? 1 : 0;
-        const pal1 = (this.background.getShifterAttributeHigh() & bitMux[0]) > 0 ? 1 : 0;
-        bgPalette = (pal1 << 1) | pal0;
+        bgPixel = this.background.getPixel(bitMux[0]);
+        bgPalette = this.background.getPalette(bitMux[0]);
       }
     }
 
