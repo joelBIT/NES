@@ -68,6 +68,18 @@ export class DMA {
     return this.address[0] === 0;
   }
 
+  /**
+   * The page number (the high byte of the address) is written to OAMDMA ($4014). Writing $XX will upload 256 bytes of
+   * data from CPU page $XX00–$XXFF to the internal PPU OAM.
+   *
+   * @param data  the page number
+   */
+  enableTransfer(data) {
+    this.page[0] = data;
+    this.address[0] = 0x00;
+    this.transfer = true;
+  }
+
   reset() {
     this.page = new Uint8Array(1);
     this.address = new Uint8Array(1);
