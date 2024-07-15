@@ -2,8 +2,12 @@
  * The foreground consists of sprites. The NES supports 64 8x8 pixel sprites or 64 8x16 pixel sprites.
  */
 export class Foreground {
-  patternLow = new Uint8Array(8);      // Low-bit plane of the sprite
-  patternHigh = new Uint8Array(8);      // High-bit plane of the sprite
+  patternLow = new Uint8Array(8);           // Low-bit plane of the sprite
+  patternHigh = new Uint8Array(8);          // High-bit plane of the sprite
+  spriteDataLow = new Uint8Array(1);        // Stores data for a sprite
+  spriteDataHigh = new Uint8Array(1);       // Stores data for a sprite
+  spriteAddressLow = new Uint16Array(1);    // Location in character memory where to read sprite patterns from
+  spriteAddressHigh = new Uint16Array(1);   // Location in character memory where to read sprite patterns from
 
   setPatternLow(index, data) {
     this.patternLow[index] = data;
@@ -11,6 +15,38 @@ export class Foreground {
 
   setPatternHigh(index, data) {
     this.patternHigh[index] = data;
+  }
+
+  getSpriteAddressLow() {
+    return this.spriteAddressLow[0];
+  }
+
+  setSpriteAddressLow(address) {
+    this.spriteAddressLow[0] = address;
+  }
+
+  getSpriteAddressHigh() {
+    return this.spriteAddressHigh[0];
+  }
+
+  setSpriteAddressHigh(address) {
+    this.spriteAddressHigh[0] = address;
+  }
+
+  getSpriteDataLow() {
+    return this.spriteDataLow[0];
+  }
+
+  setSpriteDataLow(data) {
+    this.spriteDataLow[0] = data;
+  }
+
+  getSpriteDataHigh() {
+    return this.spriteDataHigh[0];
+  }
+
+  setSpriteDataHigh(data) {
+    this.spriteDataHigh[0] = data;
   }
 
   shift(i) {
@@ -35,5 +71,14 @@ export class Foreground {
       this.patternHigh[i] = 0;
       this.patternLow[i] = 0;
     }
+
+    this.clearSpriteData();
+  }
+
+  clearSpriteData() {
+    this.spriteDataLow[0] = 0x00;
+    this.spriteDataHigh[0] = 0x00;
+    this.spriteAddressLow[0] = 0x0000;
+    this.spriteAddressHigh[0] = 0x0000;
   }
 }

@@ -295,22 +295,19 @@ class PPU {
 
       if (this.cycle === 340) {   // The end of the scanline, Prepare the sprite shifters with the 8 or less selected sprites.
         for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
-          const spritePatternBitsLow = new Uint8Array(1);
-          const spritePatternBitsHigh = new Uint8Array(1);
-          const spritePatternAddressLow = new Uint16Array(1);
-          const spritePatternAddressHigh = new Uint16Array(1);
+          this.foreground.clearSpriteData();
           if (!this.controlRegister.getSpriteSize()) {
             // 8x8 Sprite Mode - The control register determines the pattern table
             if (!(this.secondaryOAM[j + 2] & 0x80)) {   // OAE attributes
               // Sprite is NOT flipped vertically, i.e. normal
-              spritePatternAddressLow[0] = (this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
+              this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
                 | (this.secondaryOAM[j + 1] << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (this.scanline - this.secondaryOAM[j]); // Which Row in cell? (0->7)    (OAE X)
+                | (this.scanline - this.secondaryOAM[j])); // Which Row in cell? (0->7)    (OAE X)
             } else {
               // Sprite is flipped vertically, i.e. upside down
-              spritePatternAddressLow[0] = (this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
+              this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
                 | (this.secondaryOAM[j + 1] << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (7 - (this.scanline - this.secondaryOAM[j])); // Which Row in cell? (7->0)
+                | (7 - (this.scanline - this.secondaryOAM[j]))); // Which Row in cell? (7->0)
             }
           } else {
             // 8x16 Sprite Mode - The sprite attribute determines the pattern table
@@ -318,48 +315,48 @@ class PPU {
               // Sprite is NOT flipped vertically, i.e. normal
               if ((this.scanline - this.secondaryOAM[j]) < 8) {    // OAE Y
                 // Reading Top half Tile
-                spritePatternAddressLow[0] = ((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
+                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
                   | ((this.secondaryOAM[j + 1] & 0xFE) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.secondaryOAM[j]) & 0x07); // Which Row in cell? (0->7)
+                  | ((this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
               } else {
                 // Reading Bottom Half Tile
-                spritePatternAddressLow[0] = ((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
+                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
                   | (((this.secondaryOAM[j + 1] & 0xFE) + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.secondaryOAM[j]) & 0x07); // Which Row in cell? (0->7)
+                  | ((this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
               }
             } else {
               // Sprite is flipped vertically, i.e. upside down
               if ((this.scanline - this.secondaryOAM[j]) < 8) {
                 // Reading Top half Tile
-                spritePatternAddressLow[0] = ((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
+                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
                   | (((this.secondaryOAM[j + 1] & 0xFE) + 1) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07); // Which Row in cell? (0->7)
+                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
               } else {
                 // Reading Bottom Half Tile
-                spritePatternAddressLow[0] = ((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
+                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
                   | ((this.secondaryOAM[j + 1] & 0xFE) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07); // Which Row in cell? (0->7)
+                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
               }
             }
           }
 
           // High bit plane equivalent is always offset by 8 bytes from lo bit plane
-          spritePatternAddressHigh[0] = spritePatternAddressLow[0] + 8;
+          this.foreground.setSpriteAddressHigh(this.foreground.getSpriteAddressLow() + 8);
 
           // Now we have the address of the sprite patterns, we can read them
-          spritePatternBitsLow[0] = this.readMemory(spritePatternAddressLow[0]);
-          spritePatternBitsHigh[0] = this.readMemory(spritePatternAddressHigh[0]);
+          this.foreground.setSpriteDataLow(this.readMemory(this.foreground.getSpriteAddressLow()));
+          this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
           if (this.secondaryOAM[j + 2] & 0x40) {
             // Flip Patterns Horizontally
-            spritePatternBitsHigh[0] = this.reverseBits(spritePatternBitsHigh[0]);
-            spritePatternBitsLow[0] = this.reverseBits(spritePatternBitsLow[0]);
+            this.foreground.setSpriteDataHigh(this.reverseBits(this.foreground.getSpriteDataHigh()));
+            this.foreground.setSpriteDataLow(this.reverseBits(this.foreground.getSpriteDataLow()));
           }
 
           // Load the pattern into sprite shift registers ready for rendering on the next scanline
-          this.foreground.setPatternLow(i, spritePatternBitsLow[0]);
-          this.foreground.setPatternHigh(i, spritePatternBitsHigh[0]);
+          this.foreground.setPatternLow(i, this.foreground.getSpriteDataLow());
+          this.foreground.setPatternHigh(i, this.foreground.getSpriteDataHigh());
         }
       }
     }
