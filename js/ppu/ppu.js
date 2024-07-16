@@ -169,9 +169,9 @@ class PPU {
     }
 
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
-      for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
-        if (this.OAM.getCoordinateX(j) > 0) {
-          this.OAM.decrementCoordinateX(j);
+      for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+        if (this.OAM.getCoordinateX(sprite) > 0) {
+          this.OAM.decrementCoordinateX(sprite);
         } else {
           this.foreground.shift(i);
         }
@@ -307,48 +307,48 @@ class PPU {
       }
 
       if (this.cycle === 340) {   // The end of the scanline, Prepare the sprite shifters with the 8 or less selected sprites.
-        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
+        for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
           this.foreground.clearSpriteData();
           if (!this.controlRegister.getSpriteSize()) {
             // 8x8 Sprite Mode - The control register determines the pattern table
-            if (!(this.OAM.getAttributes(j) & 0x80)) {
+            if (!(this.OAM.getAttributes(sprite) & 0x80)) {
               // Sprite is NOT flipped vertically, i.e. normal
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.OAM.getTileID(j) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (this.scanline - this.OAM.getCoordinateY(j))); // Which Row in cell? (0->7)
+                | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (this.scanline - this.OAM.getCoordinateY(sprite))); // Which Row in cell? (0->7)
             } else {
               // Sprite is flipped vertically, i.e. upside down
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.OAM.getTileID(j) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (7 - (this.scanline - this.OAM.getCoordinateY(j)))); // Which Row in cell? (7->0)
+                | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)))); // Which Row in cell? (7->0)
             }
           } else {
             // 8x16 Sprite Mode - The sprite attribute determines the pattern table
-            if (!(this.OAM.getAttributes(j) & 0x80)) {
+            if (!(this.OAM.getAttributes(sprite) & 0x80)) {
               // Sprite is NOT flipped vertically, i.e. normal
-              if ((this.scanline - this.OAM.getCoordinateY(j)) < 8) {
+              if ((this.scanline - this.OAM.getCoordinateY(sprite)) < 8) {
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
-                  | ((this.OAM.getTileID(j) & 0xFE) << 4)
-                  | ((this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
+                  | ((this.OAM.getTileID(sprite) & 0xFE) << 4)
+                  | ((this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
-                  | (((this.OAM.getTileID(j) & 0xFE) + 1) << 4)
-                  | ((this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
+                  | (((this.OAM.getTileID(sprite) & 0xFE) + 1) << 4)
+                  | ((this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
               }
             } else {
               // Sprite is flipped vertically, i.e. upside down
-              if ((this.scanline - this.OAM.getCoordinateY(j)) < 8) {
+              if ((this.scanline - this.OAM.getCoordinateY(sprite)) < 8) {
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
-                  | (((this.OAM.getTileID(j) & 0xFE) + 1) << 4)
-                  | (7 - (this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
+                  | (((this.OAM.getTileID(sprite) & 0xFE) + 1) << 4)
+                  | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
-                  | ((this.OAM.getTileID(j) & 0xFE) << 4)
-                  | (7 - (this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
+                  | ((this.OAM.getTileID(sprite) & 0xFE) << 4)
+                  | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
               }
             }
           }
@@ -361,7 +361,7 @@ class PPU {
           this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
-          if (this.OAM.getAttributes(j) & 0x40) {
+          if (this.OAM.getAttributes(sprite) & 0x40) {
             // Flip Patterns Horizontally
             this.foreground.setSpriteDataHigh(this.reverseBits(this.foreground.getSpriteDataHigh()));
             this.foreground.setSpriteDataLow(this.reverseBits(this.foreground.getSpriteDataLow()));
@@ -419,12 +419,12 @@ class PPU {
     if (this.maskRegister.getRenderSprites()) {
       if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
         this.spriteZeroBeingRendered = false;
-        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {    // j represents each sprite
+        for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
           // Scanline cycle has "collided" with sprite, shifters taking over
-          if (this.OAM.getCoordinateX(j) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
+          if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
             fgPixel = this.foreground.getPixel(i);
-            fgPalette = this.OAM.getSpritePalette(j);
-            fgPriority = this.OAM.getSpritePriority(j);
+            fgPalette = this.OAM.getSpritePalette(sprite);
+            fgPriority = this.OAM.getSpritePriority(sprite);
 
             if (fgPixel !== 0) {
               if (i === 0) {
