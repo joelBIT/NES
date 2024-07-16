@@ -7,6 +7,7 @@ import { NameTableContainer } from "./nametable.js";
 import { Color } from './color.js';
 import { Background } from "./background/background.js";
 import { Foreground } from "./foreground/foreground.js";
+import { OAM } from "./foreground/oam.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -22,15 +23,12 @@ import { Foreground } from "./foreground/foreground.js";
  * 0x2007 DATA    allows the CPU to directly read and write to the PPU's memory
  */
 class PPU {
-  palettes = new MemoryArea();      // contains the colors
+  palettes = new MemoryArea();                 // contains the colors
   nameTables = new NameTableContainer();       // describes the layout of the background
   patternTable1 = new MemoryArea(4096);
   patternTable2 = new MemoryArea(4096);
 
-  addressOAM = new Uint8Array(1);    // Some ports may access the OAM directly on this address
-  OAM = new Uint8Array(0x100);     // contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
-  secondaryOAM = new Uint8Array(0x20);   // Stores information about up to 8 sprites
-  spriteCount = 0;    // How many sprites we find from the OAM that are going to be rendered on the next scanline, fill secondaryOAM with those
+  OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
 
   spriteZeroHitPossible = false;
   spriteZeroBeingRendered = false;
@@ -92,7 +90,7 @@ class PPU {
   }
 
   writeOAM(address, data) {
-    this.OAM[address] = data;
+    this.OAM.writeOAM(address, data);
   }
 
   isNMI() {
@@ -171,9 +169,9 @@ class PPU {
     }
 
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
-      for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
-        if (this.secondaryOAM[j + 3] > 0) {     // OAE X
-          this.secondaryOAM[j + 3]--;
+      for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
+        if (this.OAM.getSecondaryOAM(j + 3) > 0) {     // OAE X
+          this.OAM.decrementSecondaryOAM(j + 3);
         } else {
           this.foreground.shift(i);
         }
@@ -280,13 +278,13 @@ class PPU {
             ************************
      */
       if (this.cycle === 257 && this.scanline >= 0) {
-        this.secondaryOAM.fill(0xFF);
-        this.spriteCount = 0;
+        this.OAM.fillSecondaryOAM(0xFF);
+        this.OAM.clearSpriteCount();
 
         this.foreground.reset();
-        this.spriteEvaluation();
+        this.spriteZeroHitPossible = this.OAM.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8));
 
-        if (this.spriteCount >= 8) {
+        if (this.OAM.getSpriteCount() >= 8) {
           this.statusRegister.setSpriteOverflow();
         } else {
           this.statusRegister.clearSpriteOverflow();
@@ -294,48 +292,48 @@ class PPU {
       }
 
       if (this.cycle === 340) {   // The end of the scanline, Prepare the sprite shifters with the 8 or less selected sprites.
-        for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
+        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
           this.foreground.clearSpriteData();
           if (!this.controlRegister.getSpriteSize()) {
             // 8x8 Sprite Mode - The control register determines the pattern table
-            if (!(this.secondaryOAM[j + 2] & 0x80)) {   // OAE attributes
+            if (!(this.OAM.getSecondaryOAM(j + 2) & 0x80)) {   // OAE attributes
               // Sprite is NOT flipped vertically, i.e. normal
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.secondaryOAM[j + 1] << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (this.scanline - this.secondaryOAM[j])); // Which Row in cell? (0->7)    (OAE X)
+                | (this.OAM.getSecondaryOAM(j + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (this.scanline - this.OAM.getSecondaryOAM(j))); // Which Row in cell? (0->7)    (OAE X)
             } else {
               // Sprite is flipped vertically, i.e. upside down
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.secondaryOAM[j + 1] << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (7 - (this.scanline - this.secondaryOAM[j]))); // Which Row in cell? (7->0)
+                | (this.OAM.getSecondaryOAM(j + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)))); // Which Row in cell? (7->0)
             }
           } else {
             // 8x16 Sprite Mode - The sprite attribute determines the pattern table
-            if (!(this.secondaryOAM[j + 2] & 0x80)) {       // OAE attributes
+            if (!(this.OAM.getSecondaryOAM(j + 2) & 0x80)) {       // OAE attributes
               // Sprite is NOT flipped vertically, i.e. normal
-              if ((this.scanline - this.secondaryOAM[j]) < 8) {    // OAE Y
+              if ((this.scanline - this.OAM.getSecondaryOAM(j)) < 8) {    // OAE Y
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
-                  | ((this.secondaryOAM[j + 1] & 0xFE) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
+                  | ((this.OAM.getSecondaryOAM(j + 1) & 0xFE) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                  | ((this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
-                  | (((this.secondaryOAM[j + 1] & 0xFE) + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
+                  | (((this.OAM.getSecondaryOAM(j + 1) & 0xFE) + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                  | ((this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
               }
             } else {
               // Sprite is flipped vertically, i.e. upside down
-              if ((this.scanline - this.secondaryOAM[j]) < 8) {
+              if ((this.scanline - this.OAM.getSecondaryOAM(j)) < 8) {
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
-                  | (((this.secondaryOAM[j + 1] & 0xFE) + 1) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
+                  | (((this.OAM.getSecondaryOAM(j + 1) & 0xFE) + 1) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
+                  | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.secondaryOAM[j + 1] & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
-                  | ((this.secondaryOAM[j + 1] & 0xFE) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.secondaryOAM[j]) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
+                  | ((this.OAM.getSecondaryOAM(j + 1) & 0xFE) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
+                  | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
               }
             }
           }
@@ -348,7 +346,7 @@ class PPU {
           this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
-          if (this.secondaryOAM[j + 2] & 0x40) {
+          if (this.OAM.getSecondaryOAM(j + 2) & 0x40) {
             // Flip Patterns Horizontally
             this.foreground.setSpriteDataHigh(this.reverseBits(this.foreground.getSpriteDataHigh()));
             this.foreground.setSpriteDataLow(this.reverseBits(this.foreground.getSpriteDataLow()));
@@ -397,37 +395,6 @@ class PPU {
   }
 
   /**
-   * PPU sprite evaluation is an operation done by the PPU once each scanline. It prepares the set of sprites and
-   * fetches their data to be rendered on the next scanline.
-   *
-   * Evaluate which sprites are visible in the next scanline. Iterates through the OAM until 8 sprites are found that
-   * have Y-positions and heights that are within vertical range of the next scanline. When 8 sprites are found, or the OAM
-   * is exhausted, the method terminates. Now, notice I count to 9 sprites. The sprite overflow flag is set in the event
-   * of there being more than 8 sprites.
-   */
-  spriteEvaluation() {
-    this.spriteZeroHitPossible = false;
-    let OAMEntry = 0;
-    while (OAMEntry < 256 && this.spriteCount < 9) {
-      let diff = new Int16Array(1);
-      diff[0] = this.scanline - this.OAM[OAMEntry];
-      if (diff[0] >= 0 && diff[0] < (this.controlRegister.getSpriteSize() ? 16 : 8) && this.spriteCount < 8) {
-        if (this.spriteCount < 8) {
-          if (OAMEntry === 0) {     // Is sprite zero?
-            this.spriteZeroHitPossible = true;
-          }
-          this.secondaryOAM[this.spriteCount * 4] = this.OAM[OAMEntry];           // Copy OAE Y
-          this.secondaryOAM[this.spriteCount * 4 + 1] = this.OAM[OAMEntry + 1];   // Copy OAE Tile ID
-          this.secondaryOAM[this.spriteCount * 4 + 2] = this.OAM[OAMEntry + 2];   // Copy OAE Attributes
-          this.secondaryOAM[this.spriteCount * 4 + 3] = this.OAM[OAMEntry + 3];   // Copy OAE X
-        }
-        this.spriteCount++;
-      }
-      OAMEntry += 4;
-    }
-  }
-
-  /**
    *  The (sprite) pixel to be rendered in the foreground at a specific x and y location.
    */
   getForegroundPixel() {
@@ -437,13 +404,13 @@ class PPU {
     if (this.maskRegister.getRenderSprites()) {
       if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
         this.spriteZeroBeingRendered = false;
-        for (let i = 0, j = 0; i < this.spriteCount; i++, j += 4) {
+        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
           // Scanline cycle has "collided" with sprite, shifters taking over
-          if (this.secondaryOAM[j + 3] === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
+          if (this.OAM.getSecondaryOAM(j + 3) === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
             fgPixel = this.foreground.getPixel(i);
 
-            fgPalette = (this.secondaryOAM[j + 2] & 0x03) + 0x04;     // OAE attributes
-            fgPriority = (this.secondaryOAM[j + 2] & 0x20) === 0 ? 1 : 0;    // OAE attributes
+            fgPalette = (this.OAM.getSecondaryOAM(j + 2) & 0x03) + 0x04;     // OAE attributes
+            fgPriority = (this.OAM.getSecondaryOAM(j + 2) & 0x20) === 0 ? 1 : 0;    // OAE attributes
 
             if (fgPixel !== 0) {
               if (i === 0) {
@@ -544,7 +511,7 @@ class PPU {
       case 0x0003: // OAM Address
         break;
       case 0x0004: // OAM Data
-        return this.OAM[this.addressOAM[0]];
+        return this.OAM.getOAM(this.OAM.getAddress());
       case 0x0005: // Scroll
         break;
       case 0x0006: // PPU Address
@@ -581,10 +548,10 @@ class PPU {
       case 0x0002: // Status
         break;
       case 0x0003: // OAM Address
-        this.addressOAM[0] = data;
+        this.OAM.setAddress(data);
         break;
       case 0x0004: // OAM Data
-        this.OAM[this.addressOAM[0]] = data;
+        this.OAM.writeOAM(this.OAM.getAddress(), data);
         break;
       case 0x0005: // Scroll
         if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
@@ -697,6 +664,7 @@ class PPU {
     this.controlRegister.reset();
     this.scrollVRAM.reset();
     this.scrollTRAM.reset();
+    this.OAM.reset();
     this.scanlineTrigger = false;
     this.oddFrame = false;
     this.palettes = new MemoryArea();
