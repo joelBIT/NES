@@ -5,13 +5,32 @@ let nesWorkletNode;
 let audioContext;
 
 /**
+ * |******************|
+ * | Initialize Audio |
+ * |******************|
+ */
+
+worker.onmessage = function(message) {
+  nesWorkletNode.port.postMessage(message.data);   // Send address and data to APU
+};
+
+/**
  * The control of the canvas is transferred to the NES worker thread when the page has been loaded. As a result, the
  * worker thread takes care of the graphical processing and the player can interact with the interface without noticing
- * too much lag.
+ * too much lag. The Audio Context and Audio Source are also initialized when the page has loaded.
  */
 window.onload = () => {
   const canvas = document.getElementById("canvas").transferControlToOffscreen();
   worker.postMessage({ canvas: canvas }, [canvas]);
+
+  audioContext = new AudioContext();
+  nesWorkletNode = audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
+    nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
+    nesWorkletNode.connect(audioContext.destination);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
+    source.start();
+  }).catch(error => console.log(error));
 };
 
 /**
@@ -32,42 +51,18 @@ window.addEventListener("keyup", keyUpEventLogger);
 window.addEventListener("keydown", keyDownEventLogger);
 
 /**
- * |******************|
- * | Initialize Audio |
- * |******************|
+ * |**************|
+ * | Read NES ROM |
+ * |**************|
  */
 
 function readFile(event) {
-  if (!audioContext) {
-    audioContext = new AudioContext();
-  }
-
-  if (!nesWorkletNode) {
-    nesWorkletNode = audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
-      nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
-      nesWorkletNode.connect(audioContext.destination);
-      const source = audioContext.createBufferSource();
-      source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
-      source.start();
-    }).catch(error => console.log(error));
-  }
-
   try {
     worker.postMessage({event: 'readFile', data: event.target.result});
   } catch (e) {
     console.log(e);
   }
 }
-
-worker.onmessage = function(message) {
-  nesWorkletNode.port.postMessage(message.data);   // Send address and data to APU
-};
-
-/**
- * |**************|
- * | Read NES ROM |
- * |**************|
- */
 
 /**
  * Performs check if file is NES ROM. If controller configuration is stored in local storage it is sent to the emulator.
