@@ -170,13 +170,42 @@ class PPU {
 
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
       for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
-        if (this.OAM.getSecondaryOAM(j + 3) > 0) {     // OAE X
+        if (this.OAM.getCoordinateX(j) > 0) {
           this.OAM.decrementSecondaryOAM(j + 3);
         } else {
           this.foreground.shift(i);
         }
       }
     }
+  }
+
+  /**
+   * All attribute memory begins at 0x03C0 within a nametable.
+   */
+  setTileAttribute() {
+    this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
+      | (this.scrollVRAM.getNameTableX() << 10)
+      | ((this.scrollVRAM.getCoarseY() >> 2) << 3)
+      | (this.scrollVRAM.getCoarseX() >> 2)));
+    if (this.scrollVRAM.getCoarseY() & 0x02) {
+      this.background.setTileAttribute(this.background.getTileAttribute() >> 4);
+    }
+    if (this.scrollVRAM.getCoarseX() & 0x02) {
+      this.background.setTileAttribute(this.background.getTileAttribute() >> 2);
+    }
+    this.background.setTileAttribute(this.background.getTileAttribute() & 0x03);
+  }
+
+  setTileLSB() {
+    this.background.setTileLSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+      + (this.background.getTileID() << 4)
+      + this.scrollVRAM.getFineY()));
+  }
+
+  setTileMSB() {
+    this.background.setTileMSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+      + (this.background.getTileID() << 4)
+      + this.scrollVRAM.getFineY() + 8));
   }
 
   /**
@@ -227,27 +256,13 @@ class PPU {
             this.background.setTileID(this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF)));
             break;
           case 2:
-            this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11) // All attribute memory begins at 0x03C0 within a nametable
-              | (this.scrollVRAM.getNameTableX() << 10)
-              | ((this.scrollVRAM.getCoarseY() >> 2) << 3)
-              | (this.scrollVRAM.getCoarseX() >> 2)));
-            if (this.scrollVRAM.getCoarseY() & 0x02) {
-              this.background.setTileAttribute(this.background.getTileAttribute() >> 4);
-            }
-            if (this.scrollVRAM.getCoarseX() & 0x02) {
-              this.background.setTileAttribute(this.background.getTileAttribute() >> 2);
-            }
-            this.background.setTileAttribute(this.background.getTileAttribute() & 0x03);
+            this.setTileAttribute();
             break;
           case 4:
-            this.background.setTileLSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
-              + (this.background.getTileID() << 4)
-              + this.scrollVRAM.getFineY()));
+            this.setTileLSB();
             break;
           case 6:
-            this.background.setTileMSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
-              + (this.background.getTileID() << 4)
-              + this.scrollVRAM.getFineY() + 8));
+            this.setTileMSB();
             break;
           case 7:
             this.incrementScrollX();

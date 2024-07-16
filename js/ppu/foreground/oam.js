@@ -43,7 +43,7 @@ export class OAM {
   OAM_BYTES = 256;
   TILE_ID_BYTE = 1;
   X_BYTE = 3;
-  MAX_SPRITES_COUNT = 8;
+  MAX_SPRITE_COUNT = 8;
 
   getOAM(index) {
     return this.OAM[index];
@@ -105,8 +105,8 @@ export class OAM {
     while (OAMEntry < this.OAM_BYTES && this.spriteCount < 9) {
       let diff = new Int16Array(1);
       diff[0] = scanline - this.OAM[OAMEntry];
-      if (diff[0] >= 0 && diff[0] < spriteSize && this.spriteCount < this.MAX_SPRITES_COUNT) {
-        if (this.spriteCount < this.MAX_SPRITES_COUNT) {
+      if (diff[0] >= 0 && diff[0] < spriteSize && this.spriteCount < this.MAX_SPRITE_COUNT) {
+        if (this.spriteCount < this.MAX_SPRITE_COUNT) {
           if (OAMEntry === 0) {     // Is sprite zero?
             spriteZeroHitPossible = true;
           }
