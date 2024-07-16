@@ -171,7 +171,7 @@ class PPU {
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
       for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
         if (this.OAM.getCoordinateX(j) > 0) {
-          this.OAM.decrementSecondaryOAM(j + 3);
+          this.OAM.decrementCoordinateX(j);
         } else {
           this.foreground.shift(i);
         }

@@ -53,8 +53,8 @@ export class OAM {
     this.OAM[index] = data;
   }
 
-  decrementSecondaryOAM(index) {
-    this.secondaryOAM[index]--;
+  decrementCoordinateX(index) {
+    this.secondaryOAM[index + this.X_BYTE]--;
   }
 
   fillSecondaryOAM(value) {
