@@ -2,6 +2,7 @@
 
 const worker = new Worker('js/emulator.js',{ type: "module" });
 let nesWorkletNode;
+let audioContext;
 
 /**
  * The control of the canvas is transferred to the NES worker thread when the page has been loaded. As a result, the
@@ -37,15 +38,25 @@ window.addEventListener("keydown", keyDownEventLogger);
  */
 
 function readFile(event) {
-  const audioContext = new AudioContext();
-  nesWorkletNode = audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
-    nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
-    nesWorkletNode.connect(audioContext.destination);
-    const source = audioContext.createBufferSource();
-    source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
-    source.start();
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+
+  if (!nesWorkletNode) {
+    nesWorkletNode = audioContext.audioWorklet.addModule('js/apu-worklet.js', { credentials: "omit" }).then(() => {
+      nesWorkletNode = new AudioWorkletNode(audioContext, "apu-worklet");
+      nesWorkletNode.connect(audioContext.destination);
+      const source = audioContext.createBufferSource();
+      source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
+      source.start();
+    }).catch(error => console.log(error));
+  }
+
+  try {
     worker.postMessage({event: 'readFile', data: event.target.result});
-  }).catch(error => console.log(error));
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 worker.onmessage = function(message) {
