@@ -404,13 +404,12 @@ class PPU {
     if (this.maskRegister.getRenderSprites()) {
       if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
         this.spriteZeroBeingRendered = false;
-        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {
+        for (let i = 0, j = 0; i < this.OAM.getSpriteCount(); i++, j += 4) {    // j represents each sprite
           // Scanline cycle has "collided" with sprite, shifters taking over
-          if (this.OAM.getSecondaryOAM(j + 3) === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
+          if (this.OAM.getCoordinateX(j) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
             fgPixel = this.foreground.getPixel(i);
-
-            fgPalette = this.OAM.getSpritePalette(j + 2);
-            fgPriority = this.OAM.getSpritePriority(j + 2);
+            fgPalette = this.OAM.getSpritePalette(j);
+            fgPriority = this.OAM.getSpritePriority(j);
 
             if (fgPixel !== 0) {
               if (i === 0) {

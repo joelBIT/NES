@@ -38,6 +38,12 @@ export class OAM {
   secondaryOAM = new Uint8Array(0x20);   // Stores information about up to 8 sprites
   address = new Uint8Array(1);    // Some ports may access the OAM directly on this address
   spriteCount = 0;    // How many sprites we find from the OAM that are going to be rendered on the next scanline, fill secondaryOAM with those
+  ATTRIBUTES_BYTE = 2;
+  SPRITE_BYTES = 4;
+  OAM_BYTES = 256;
+  TILE_ID_BYTE = 1;
+  X_BYTE = 3;
+  MAX_SPRITES_COUNT = 8;
 
   getOAM(index) {
     return this.OAM[index];
@@ -75,6 +81,10 @@ export class OAM {
     this.spriteCount = 0;
   }
 
+  getCoordinateX(index) {
+    return this.secondaryOAM[index + this.X_BYTE];
+  }
+
   /**
    *
    * PPU sprite evaluation is an operation done by the PPU once each scanline. It prepares the set of sprites and
@@ -92,22 +102,22 @@ export class OAM {
   spriteEvaluation(scanline, spriteSize) {
     let spriteZeroHitPossible = false;
     let OAMEntry = 0;
-    while (OAMEntry < 256 && this.spriteCount < 9) {
+    while (OAMEntry < this.OAM_BYTES && this.spriteCount < 9) {
       let diff = new Int16Array(1);
       diff[0] = scanline - this.OAM[OAMEntry];
-      if (diff[0] >= 0 && diff[0] < spriteSize && this.spriteCount < 8) {
-        if (this.spriteCount < 8) {
+      if (diff[0] >= 0 && diff[0] < spriteSize && this.spriteCount < this.MAX_SPRITES_COUNT) {
+        if (this.spriteCount < this.MAX_SPRITES_COUNT) {
           if (OAMEntry === 0) {     // Is sprite zero?
             spriteZeroHitPossible = true;
           }
-          this.secondaryOAM[this.spriteCount * 4] = this.OAM[OAMEntry];           // Copy OAE Y
-          this.secondaryOAM[this.spriteCount * 4 + 1] = this.OAM[OAMEntry + 1];   // Copy OAE Tile ID
-          this.secondaryOAM[this.spriteCount * 4 + 2] = this.OAM[OAMEntry + 2];   // Copy OAE Attributes
-          this.secondaryOAM[this.spriteCount * 4 + 3] = this.OAM[OAMEntry + 3];   // Copy OAE X
+          this.secondaryOAM[this.spriteCount * this.SPRITE_BYTES] = this.OAM[OAMEntry];           // Copy OAE Y
+          this.secondaryOAM[this.spriteCount * this.SPRITE_BYTES + this.TILE_ID_BYTE] = this.OAM[OAMEntry + this.TILE_ID_BYTE];   // Copy OAE Tile ID
+          this.secondaryOAM[this.spriteCount * this.SPRITE_BYTES + this.ATTRIBUTES_BYTE] = this.OAM[OAMEntry + this.ATTRIBUTES_BYTE];   // Copy OAE Attributes
+          this.secondaryOAM[this.spriteCount * this.SPRITE_BYTES + this.X_BYTE] = this.OAM[OAMEntry + this.X_BYTE];   // Copy OAE X
         }
         this.spriteCount++;
       }
-      OAMEntry += 4;
+      OAMEntry += this.SPRITE_BYTES;
     }
 
     return spriteZeroHitPossible;
@@ -116,21 +126,21 @@ export class OAM {
   /**
    * Retrieve palette information (bit 0 and bit 1 of the attributes byte represent the sprite's palette).
    *
-   * @param index   the index of the desired sprite's attribute byte
+   * @param index   the index of the desired sprite
    * @returns {number}  the palette (4 to 7) of the sprite
    */
   getSpritePalette(index) {
-    return (this.secondaryOAM[index] & 0x03) + 0x04;     // OAE attributes
+    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x03) + 0x04;     // OAE attributes (byte 2)
   }
 
   /**
    * Retrieve the Sprite's priority (bit 5 of the attributes byte).
    *
-   * @param index   the index of the desired sprite's attribute byte
+   * @param index   the index of the desired sprite
    * @returns {number}  0 if sprite is in front of the background; 1 if sprite is behind the background
    */
   getSpritePriority(index) {
-    return (this.secondaryOAM[index] & 0x20) === 0 ? 1 : 0;    // OAE attributes
+    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x20) === 0 ? 1 : 0;    // OAE attributes (byte 2)
   }
 
   reset() {
