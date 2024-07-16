@@ -113,6 +113,16 @@ export class OAM {
     return spriteZeroHitPossible;
   }
 
+  /**
+   * Retrieve palette information (bit 0 and bit 1 of the attributes byte represent the sprite's palette).
+   *
+   * @param index   the index of the desired sprite's attribute byte
+   * @returns {number}  the palette (4 to 7) of the sprite
+   */
+  getPalette(index) {
+    return (this.secondaryOAM[index] & 0x03) + 0x04;     // OAE attributes
+  }
+
   reset() {
     this.spriteCount = 0;
     this.address[0] = 0x00;

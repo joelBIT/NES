@@ -409,7 +409,7 @@ class PPU {
           if (this.OAM.getSecondaryOAM(j + 3) === 0) {   // OAE X, If X coordinate = 0, start to draw sprites
             fgPixel = this.foreground.getPixel(i);
 
-            fgPalette = (this.OAM.getSecondaryOAM(j + 2) & 0x03) + 0x04;     // OAE attributes
+            fgPalette = this.OAM.getPalette(j + 2);
             fgPriority = (this.OAM.getSecondaryOAM(j + 2) & 0x20) === 0 ? 1 : 0;    // OAE attributes
 
             if (fgPixel !== 0) {
