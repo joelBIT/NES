@@ -8,6 +8,7 @@ const bus = new Bus(cpu, ppu);
 const controller1 = new Controller();
 const controller2 = new Controller();
 const controllerConfiguration = [];
+let animationFrameID;
 
 /**
  * This class is a worker thread handling the communication between the user interface and the NES. Conceptually, this
@@ -25,6 +26,7 @@ self.onmessage = function(message) {
       break;
     case 'readFile':
       const rom = new Uint8Array(message.data.data);
+      cancelAnimationFrame(animationFrameID);
       try {
         bus.insertCartridge(new Cartridge(rom));
       } catch (e) {
@@ -48,7 +50,7 @@ self.onmessage = function(message) {
           }
         } while (!ppu.isFrameCompleted());
         ppu.frameComplete = false;
-        requestAnimationFrame(tick);
+        animationFrameID = requestAnimationFrame(tick);
       }
         requestAnimationFrame(tick);
       break;
