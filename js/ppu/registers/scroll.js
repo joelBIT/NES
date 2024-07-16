@@ -91,6 +91,38 @@ export class ScrollRegister {
     this.scroll[0] = data;
   }
 
+  /**
+   * To facilitate scrolling the NES stores two Nametables that lies next to each other. As the viewable area of the screen scrolls across
+   * it crosses this boundary and we render from two different nametables simultaneously. The CPU is tasked with updating the invisible
+   * parts of the nametable with the bits of level that are going to be seen next. When the viewable window scrolls past the end of
+   * the second nametable, it is wrapped back around into the first one, and this allows you to have a continuous scrolling motion
+   * in two directions.
+   */
+  incrementScrollX() {
+    if (this.getCoarseX() === 31) {
+      this.setCoarseX(0);
+      this.setNameTableX(this.getNameTableX() > 0 ? 0 : 1);     // Flip a bit
+    } else {
+      this.setCoarseX(this.getCoarseX() + 1);
+    }
+  }
+
+  incrementScrollY() {
+    if (this.getFineY() < 7) {
+      this.setFineY(this.getFineY() + 1);
+    } else {
+      this.setFineY(0);
+      if (this.getCoarseY() === 29) {
+        this.setCoarseY(0);
+        this.setNameTableY(this.getNameTableY() > 0 ? 0 : 1);   // Flip a bit
+      } else if (this.getCoarseY() === 31) {
+        this.setCoarseY(0);
+      } else {
+        this.setCoarseY(this.getCoarseY() + 1);
+      }
+    }
+  }
+
   reset() {
     this.scroll[0] = 0x0000;
   }

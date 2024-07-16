@@ -112,39 +112,15 @@ class PPU {
     return value;
   }
 
-  /**
-   * To facilitate scrolling the NES stores two Nametables that lies next to each other. As the viewable area of the screen scrolls across
-   * it crosses this boundary and we render from two different nametables simultaneously. The CPU is tasked with updating the invisible
-   * parts of the nametable with the bits of level that are going to be seen next. When the viewable window scrolls past the end of
-   * the second nametable, it is wrapped back around into the first one, and this allows you to have a continuous scrolling motion
-   * in two directions.
-   */
   incrementScrollX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.scrollVRAM.getCoarseX() === 31) {
-        this.scrollVRAM.setCoarseX(0);
-        this.scrollVRAM.setNameTableX(this.scrollVRAM.getNameTableX() > 0 ? 0 : 1);     // Flip a bit
-      } else {
-        this.scrollVRAM.setCoarseX(this.scrollVRAM.getCoarseX() + 1);
-      }
+      this.scrollVRAM.incrementScrollX();
     }
   }
 
   incrementScrollY() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.scrollVRAM.getFineY() < 7) {
-        this.scrollVRAM.setFineY(this.scrollVRAM.getFineY() + 1);
-      } else {
-        this.scrollVRAM.setFineY(0);
-        if (this.scrollVRAM.getCoarseY() === 29) {
-          this.scrollVRAM.setCoarseY(0);
-          this.scrollVRAM.setNameTableY(this.scrollVRAM.getNameTableY() > 0 ? 0 : 1);   // Flip a bit
-        } else if (this.scrollVRAM.getCoarseY() === 31) {
-          this.scrollVRAM.setCoarseY(0);
-        } else {
-          this.scrollVRAM.setCoarseY(this.scrollVRAM.getCoarseY() + 1);
-        }
-      }
+      this.scrollVRAM.incrementScrollY();
     }
   }
 
@@ -180,7 +156,7 @@ class PPU {
   }
 
   /**
-   * All attribute memory begins at 0x03C0 within a nametable.
+   * Attribute memory begins at 0x03C0 within a nametable.
    */
   setTileAttribute() {
     this.background.setTileAttribute(this.readMemory(0x23C0 | (this.scrollVRAM.getNameTableY() << 11)
