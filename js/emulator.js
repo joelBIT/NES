@@ -34,8 +34,10 @@ self.onmessage = function(message) {
         return;
       }
 
-      bus.addController(controller1);
-      bus.addController(controller2);
+      if (!bus.hasController()) {
+        bus.addController(controller1);
+        bus.addController(controller2);
+      }
       bus.reset();
 
       function tick() {

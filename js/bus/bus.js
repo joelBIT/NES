@@ -48,6 +48,10 @@ export class Bus {
     this.controllers.push(controller);
   }
 
+  hasController() {
+    return this.controllers.length > 0;
+  }
+
   clock() {
     this.writes = [];
     ppu.clock();
