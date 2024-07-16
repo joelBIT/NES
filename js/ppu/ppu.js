@@ -90,7 +90,7 @@ class PPU {
   }
 
   writeOAM(address, data) {
-    this.OAM.writeOAM(address, data);
+    this.OAM.writeData(address, data);
   }
 
   isNMI() {
@@ -311,44 +311,44 @@ class PPU {
           this.foreground.clearSpriteData();
           if (!this.controlRegister.getSpriteSize()) {
             // 8x8 Sprite Mode - The control register determines the pattern table
-            if (!(this.OAM.getSecondaryOAM(j + 2) & 0x80)) {   // OAE attributes
+            if (!(this.OAM.getAttributes(j) & 0x80)) {
               // Sprite is NOT flipped vertically, i.e. normal
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.OAM.getSecondaryOAM(j + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (this.scanline - this.OAM.getSecondaryOAM(j))); // Which Row in cell? (0->7)    (OAE X)
+                | (this.OAM.getTileID(j) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (this.scanline - this.OAM.getCoordinateY(j))); // Which Row in cell? (0->7)
             } else {
               // Sprite is flipped vertically, i.e. upside down
               this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
-                | (this.OAM.getSecondaryOAM(j + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)))); // Which Row in cell? (7->0)
+                | (this.OAM.getTileID(j) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
+                | (7 - (this.scanline - this.OAM.getCoordinateY(j)))); // Which Row in cell? (7->0)
             }
           } else {
             // 8x16 Sprite Mode - The sprite attribute determines the pattern table
-            if (!(this.OAM.getSecondaryOAM(j + 2) & 0x80)) {       // OAE attributes
+            if (!(this.OAM.getAttributes(j) & 0x80)) {
               // Sprite is NOT flipped vertically, i.e. normal
-              if ((this.scanline - this.OAM.getSecondaryOAM(j)) < 8) {    // OAE Y
+              if ((this.scanline - this.OAM.getCoordinateY(j)) < 8) {
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
-                  | ((this.OAM.getSecondaryOAM(j + 1) & 0xFE) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
+                  | ((this.OAM.getTileID(j) & 0xFE) << 4)
+                  | ((this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)  // Which Pattern Table? 0KB or 4KB offset
-                  | (((this.OAM.getSecondaryOAM(j + 1) & 0xFE) + 1) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | ((this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
+                  | (((this.OAM.getTileID(j) & 0xFE) + 1) << 4)
+                  | ((this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
               }
             } else {
               // Sprite is flipped vertically, i.e. upside down
-              if ((this.scanline - this.OAM.getSecondaryOAM(j)) < 8) {
+              if ((this.scanline - this.OAM.getCoordinateY(j)) < 8) {
                 // Reading Top half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
-                  | (((this.OAM.getSecondaryOAM(j + 1) & 0xFE) + 1) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
+                  | (((this.OAM.getTileID(j) & 0xFE) + 1) << 4)
+                  | (7 - (this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
               } else {
                 // Reading Bottom Half Tile
-                this.foreground.setSpriteAddressLow(((this.OAM.getSecondaryOAM(j + 1) & 0x01) << 12)    // Which Pattern Table? 0KB or 4KB offset
-                  | ((this.OAM.getSecondaryOAM(j + 1) & 0xFE) << 4)    // Which Cell? Tile ID * 16 (16 bytes per tile)
-                  | (7 - (this.scanline - this.OAM.getSecondaryOAM(j)) & 0x07)); // Which Row in cell? (0->7)
+                this.foreground.setSpriteAddressLow(((this.OAM.getTileID(j) & 0x01) << 12)
+                  | ((this.OAM.getTileID(j) & 0xFE) << 4)
+                  | (7 - (this.scanline - this.OAM.getCoordinateY(j)) & 0x07));
               }
             }
           }
@@ -361,7 +361,7 @@ class PPU {
           this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
-          if (this.OAM.getSecondaryOAM(j + 2) & 0x40) {
+          if (this.OAM.getAttributes(j) & 0x40) {
             // Flip Patterns Horizontally
             this.foreground.setSpriteDataHigh(this.reverseBits(this.foreground.getSpriteDataHigh()));
             this.foreground.setSpriteDataLow(this.reverseBits(this.foreground.getSpriteDataLow()));
@@ -525,7 +525,7 @@ class PPU {
       case 0x0003: // OAM Address
         break;
       case 0x0004: // OAM Data
-        return this.OAM.getOAM(this.OAM.getAddress());
+        return this.OAM.getData(this.OAM.getAddress());
       case 0x0005: // Scroll
         break;
       case 0x0006: // PPU Address
@@ -565,7 +565,7 @@ class PPU {
         this.OAM.setAddress(data);
         break;
       case 0x0004: // OAM Data
-        this.OAM.writeOAM(this.OAM.getAddress(), data);
+        this.OAM.writeData(this.OAM.getAddress(), data);
         break;
       case 0x0005: // Scroll
         if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
@@ -583,7 +583,7 @@ class PPU {
           this.scrollTRAM.setRegister(((data & 0x3F) << 8) | (this.scrollTRAM.getRegister() & 0x00FF));   // Store the lower 8 bits of the PPU address
           this.addressLatch = 1;
         } else {
-          this.scrollTRAM.setRegister((this.scrollTRAM.getRegister() & 0xFF00) | data);     // LoopyTram holds the desired scroll address which the PPU uses to refresh loopyV
+          this.scrollTRAM.setRegister((this.scrollTRAM.getRegister() & 0xFF00) | data);     // Tram holds the desired scroll address which the PPU uses to refresh VRAM
           this.scrollVRAM.setRegister(this.scrollTRAM.getRegister());
           this.addressLatch = 0;
         }

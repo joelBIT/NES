@@ -45,16 +45,12 @@ export class OAM {
   X_BYTE = 3;
   MAX_SPRITE_COUNT = 8;
 
-  getOAM(index) {
+  getData(index) {
     return this.OAM[index];
   }
 
-  writeOAM(index, data) {
+  writeData(index, data) {
     this.OAM[index] = data;
-  }
-
-  getSecondaryOAM(index) {
-    return this.secondaryOAM[index];
   }
 
   decrementSecondaryOAM(index) {
@@ -83,6 +79,18 @@ export class OAM {
 
   getCoordinateX(index) {
     return this.secondaryOAM[index + this.X_BYTE];
+  }
+
+  getTileID(index) {
+    return this.secondaryOAM[index + this.TILE_ID_BYTE];
+  }
+
+  getAttributes(index) {
+    return this.secondaryOAM[index + this.ATTRIBUTES_BYTE];
+  }
+
+  getCoordinateY(index) {
+    return this.secondaryOAM[index];
   }
 
   /**
