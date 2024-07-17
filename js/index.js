@@ -59,6 +59,7 @@ window.addEventListener("keydown", keyDownEventLogger);
 function readFile(event) {
   try {
     worker.postMessage({event: 'readFile', data: event.target.result});
+    audioContext.resume();
   } catch (e) {
     console.log(e);
   }

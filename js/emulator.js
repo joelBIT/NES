@@ -55,108 +55,10 @@ self.onmessage = function(message) {
         requestAnimationFrame(tick);
       break;
     case 'keyup':
-      switch (message.data.value) {
-        case controller1.getA():
-          controller1.releaseA();
-          break;
-        case controller1.getB():
-          controller1.releaseB();
-          break;
-        case controller1.getSelect():
-          controller1.releaseSelect();
-          break;
-        case controller1.getStart():
-          controller1.releaseStart();
-          break;
-        case controller1.getUp():
-          controller1.releaseUp();
-          break;
-        case controller1.getDown():
-          controller1.releaseDown();
-          break;
-        case controller1.getLeft():
-          controller1.releaseLeft();
-          break;
-        case controller1.getRight():
-          controller1.releaseRight();
-          break;
-        case controller2.getA():
-          controller2.releaseA();
-          break;
-        case controller2.getB():
-          controller2.releaseB();
-          break;
-        case controller2.getSelect():
-          controller2.releaseSelect();
-          break;
-        case controller2.getStart():
-          controller2.releaseStart();
-          break;
-        case controller2.getUp():
-          controller2.releaseUp();
-          break;
-        case controller2.getDown():
-          controller2.releaseDown();
-          break;
-        case controller2.getLeft():
-          controller2.releaseLeft();
-          break;
-        case controller2.getRight():
-          controller2.releaseRight();
-          break;
-      }
+      keyUp(message.data.value);
       break;
     case 'keydown':
-      switch (message.data.value) {
-        case controller1.getA():
-          controller1.pressA();
-          break;
-        case controller1.getB():
-          controller1.pressB();
-          break;
-        case controller1.getSelect():
-          controller1.pressSelect();
-          break;
-        case controller1.getStart():
-          controller1.pressStart();
-          break;
-        case controller1.getUp():
-          controller1.pressUp();
-          break;
-        case controller1.getDown():
-          controller1.pressDown();
-          break;
-        case controller1.getLeft():
-          controller1.pressLeft();
-          break;
-        case controller1.getRight():
-          controller1.pressRight();
-          break;
-        case controller2.getA():
-          controller2.pressA();
-          break;
-        case controller2.getB():
-          controller2.pressB();
-          break;
-        case controller2.getSelect():
-          controller2.pressSelect();
-          break;
-        case controller2.getStart():
-          controller2.pressStart();
-          break;
-        case controller2.getUp():
-          controller2.pressUp();
-          break;
-        case controller2.getDown():
-          controller2.pressDown();
-          break;
-        case controller2.getLeft():
-          controller2.pressLeft();
-          break;
-        case controller2.getRight():
-          controller2.pressRight();
-          break;
-      }
+      keyDown(message.data.value);
       break;
     default:
       break;
@@ -220,6 +122,112 @@ function setButton(button) {
       break;
     case 'ArrowRight2':
       controller2.setRight(button.value);
+      break;
+  }
+}
+
+function keyUp(key) {
+  switch (key) {
+    case controller1.getA():
+      controller1.releaseA();
+      break;
+    case controller1.getB():
+      controller1.releaseB();
+      break;
+    case controller1.getSelect():
+      controller1.releaseSelect();
+      break;
+    case controller1.getStart():
+      controller1.releaseStart();
+      break;
+    case controller1.getUp():
+      controller1.releaseUp();
+      break;
+    case controller1.getDown():
+      controller1.releaseDown();
+      break;
+    case controller1.getLeft():
+      controller1.releaseLeft();
+      break;
+    case controller1.getRight():
+      controller1.releaseRight();
+      break;
+    case controller2.getA():
+      controller2.releaseA();
+      break;
+    case controller2.getB():
+      controller2.releaseB();
+      break;
+    case controller2.getSelect():
+      controller2.releaseSelect();
+      break;
+    case controller2.getStart():
+      controller2.releaseStart();
+      break;
+    case controller2.getUp():
+      controller2.releaseUp();
+      break;
+    case controller2.getDown():
+      controller2.releaseDown();
+      break;
+    case controller2.getLeft():
+      controller2.releaseLeft();
+      break;
+    case controller2.getRight():
+      controller2.releaseRight();
+      break;
+  }
+}
+
+function keyDown(key) {
+  switch (key) {
+    case controller1.getA():
+      controller1.pressA();
+      break;
+    case controller1.getB():
+      controller1.pressB();
+      break;
+    case controller1.getSelect():
+      controller1.pressSelect();
+      break;
+    case controller1.getStart():
+      controller1.pressStart();
+      break;
+    case controller1.getUp():
+      controller1.pressUp();
+      break;
+    case controller1.getDown():
+      controller1.pressDown();
+      break;
+    case controller1.getLeft():
+      controller1.pressLeft();
+      break;
+    case controller1.getRight():
+      controller1.pressRight();
+      break;
+    case controller2.getA():
+      controller2.pressA();
+      break;
+    case controller2.getB():
+      controller2.pressB();
+      break;
+    case controller2.getSelect():
+      controller2.pressSelect();
+      break;
+    case controller2.getStart():
+      controller2.pressStart();
+      break;
+    case controller2.getUp():
+      controller2.pressUp();
+      break;
+    case controller2.getDown():
+      controller2.pressDown();
+      break;
+    case controller2.getLeft():
+      controller2.pressLeft();
+      break;
+    case controller2.getRight():
+      controller2.pressRight();
       break;
   }
 }
