@@ -1,7 +1,7 @@
 
 export const Type = Object.freeze({
   FOREGROUND: "foreground",
-  UNKNOWN: "unknown",
+  EMPTY: "empty",
   BACKGROUND: "background"
 });
 
@@ -12,7 +12,7 @@ export const Type = Object.freeze({
 export class Pixel {
   pixel = 0x00;               // A 2-bit word that represents the pixel
   palette = 0x00;
-  type;
+  type = Type.EMPTY;
   priority = 0;               // Priority is either 0 or 1 (highest)
 
   constructor(pixel, type, palette) {
@@ -49,7 +49,7 @@ export class Pixel {
    */
   comparePriority(fgPixel) {
     if (this.pixel === 0 && fgPixel.getWord() === 0) {
-      return new Pixel(0x00, Type.UNKNOWN, 0x00);
+      return new Pixel(0x00, Type.EMPTY, 0x00);
     } else if (this.pixel === 0 && fgPixel.getWord() > 0) {
       return fgPixel;
     } else if (this.pixel > 0 && fgPixel.getWord() === 0) {
