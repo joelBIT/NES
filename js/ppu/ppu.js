@@ -101,17 +101,6 @@ class PPU {
     this.nmi = value;
   }
 
-  /**
-   *  Reverses the bits of an 8-bit value.
-   */
-  reverseBits(value) {
-    value = (value & 0xF0) >> 4 | (value & 0x0F) << 4;
-    value = (value & 0xCC) >> 2 | (value & 0x33) << 2;
-    value = (value & 0xAA) >> 1 | (value & 0x55) << 1;
-
-    return value;
-  }
-
   incrementScrollX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
       this.scrollVRAM.incrementScrollX();
@@ -338,9 +327,7 @@ class PPU {
 
           // If the sprite is flipped horizontally, we need to flip the pattern bytes.
           if (this.OAM.getAttributes(sprite) & 0x40) {
-            // Flip Patterns Horizontally
-            this.foreground.setSpriteDataHigh(this.reverseBits(this.foreground.getSpriteDataHigh()));
-            this.foreground.setSpriteDataLow(this.reverseBits(this.foreground.getSpriteDataLow()));
+            this.foreground.flipSpriteDataBits();
           }
 
           // Load the pattern into sprite shift registers ready for rendering on the next scanline
@@ -348,11 +335,6 @@ class PPU {
           this.foreground.setPatternHigh(i, this.foreground.getSpriteDataHigh());
         }
       }
-    }
-
-    if (this.scanline === 240) {
-      // The PPU just idles during this scanline. Even though accessing PPU memory from the program would be safe here,
-      // the VBlank flag isn't set until after this scanline.
     }
 
     if (this.scanline === 241 && this.cycle === 1) {

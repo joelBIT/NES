@@ -66,6 +66,25 @@ export class Foreground {
     return (pixelHigh << 1) | pixelLow;
   }
 
+  /**
+   *  Reverses the bits of an 8-bit value.
+   */
+  reverseBits(value) {
+    value = (value & 0xF0) >> 4 | (value & 0x0F) << 4;
+    value = (value & 0xCC) >> 2 | (value & 0x33) << 2;
+    value = (value & 0xAA) >> 1 | (value & 0x55) << 1;
+
+    return value;
+  }
+
+  /**
+   * Flip Patterns Horizontally.
+   */
+  flipSpriteDataBits() {
+    this.spriteDataHigh[0] = this.reverseBits(this.spriteDataHigh[0]);
+    this.spriteDataLow[0] = this.reverseBits(this.spriteDataLow[0]);
+  }
+
   reset() {
     for (let i = 0; i < 8; i++) {
       this.patternHigh[i] = 0;
