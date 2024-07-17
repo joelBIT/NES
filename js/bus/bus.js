@@ -68,8 +68,7 @@ export class Bus {
             this.ppu.writeOAM(this.dma.getAddress(), this.dma.getData());
             this.dma.incrementAddress();
             if (this.dma.isWrapping()) {
-              this.dma.setDummy(true);
-              this.dma.setTransfer(false);
+              this.dma.endTransfer();
             }
           }
         }
