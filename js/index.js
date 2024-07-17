@@ -29,7 +29,6 @@ window.onload = () => {
     nesWorkletNode.connect(audioContext.destination);
     const source = audioContext.createBufferSource();
     source.buffer = audioContext.createBuffer(2, audioContext.sampleRate, audioContext.sampleRate);
-    source.start();
   }).catch(error => console.log(error));
 };
 

@@ -378,12 +378,21 @@ class PPU {
       this.cycle = 0;
       this.scanline++;
       if (this.scanline >= 261) {
-        this.drawImageData();
-        this.scanline = -1;
-        this.frameComplete = true;
-        this.oddFrame = !this.oddFrame;
+        this.endOfFrame();
       }
     }
+  }
+
+  /**
+   * When the end of a frame is reached, draw that frame on the canvas, and set scanline to -1 in order to begin on
+   * the next frame. The frameComplete boolean is set to true so that the emulator knows when a complete frame has been
+   * rendered.
+   */
+  endOfFrame() {
+    this.drawImageData();
+    this.scanline = -1;
+    this.frameComplete = true;
+    this.oddFrame = !this.oddFrame;
   }
 
   /**
