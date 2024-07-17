@@ -43,7 +43,6 @@ class PPU {
   controlRegister = new ControlRegister();
 
   oddFrame = false;
-  scanlineTrigger = false;
   nmi = false;
   scanline = 0;     // Represent which row of the screen, a scanline is 1 pixel high
   cycle = 0;        // Represent current column of the screen
@@ -645,7 +644,6 @@ class PPU {
     this.scrollVRAM.reset();
     this.scrollTRAM.reset();
     this.OAM.reset();
-    this.scanlineTrigger = false;
     this.oddFrame = false;
     this.palettes = new MemoryArea();
     this.nameTables.reset();

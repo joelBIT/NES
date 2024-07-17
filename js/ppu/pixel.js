@@ -1,6 +1,7 @@
 
 export const Type = Object.freeze({
   FOREGROUND: "foreground",
+  UNKNOWN: "unknown",
   BACKGROUND: "background"
 });
 
@@ -48,7 +49,7 @@ export class Pixel {
    */
   comparePriority(fgPixel) {
     if (this.pixel === 0 && fgPixel.getWord() === 0) {
-      return this.palette === 0 ? this : fgPixel;
+      return new Pixel(0x00, Type.UNKNOWN, 0x00);
     } else if (this.pixel === 0 && fgPixel.getWord() > 0) {
       return fgPixel;
     } else if (this.pixel > 0 && fgPixel.getWord() === 0) {
