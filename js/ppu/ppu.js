@@ -375,12 +375,21 @@ class PPU {
     }
 
     if (this.cycle >= 341) {
-      this.cycle = 0;
-      this.scanline++;
+      this.endOfScanline();
       if (this.scanline >= 261) {
         this.endOfFrame();
       }
     }
+  }
+
+  /**
+   * When the last cycle (dot) of a scanline is reached the scanline variable is incremented so that the next scanline
+   * becomes the current one. To start in the beginning of this new scanline the cycle variable is set to 0.
+   *
+   */
+  endOfScanline() {
+    this.cycle = 0;
+    this.scanline++;
   }
 
   /**
