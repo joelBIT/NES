@@ -6,11 +6,11 @@ export class SystemClock {
   systemClockCounter = new Uint32Array(1);
 
   /**
-   * The CPU runs 3 times slower than the PPU, so we only call the PPU clock() every 3rd time the CPU clock() is invoked.
+   * The CPU runs 3 times slower than the PPU, so we only call the CPU clock() every 3rd time the PPU clock() is invoked.
    *
-   * @returns {boolean} true if the PPU should be clocked, false otherwise
+   * @returns {boolean} true if the CPU should be clocked, false otherwise
    */
-  isTimeToClockPPU() {
+  isTimeToClockCPU() {
     return this.systemClockCounter[0] % 3 === 0;
   }
 

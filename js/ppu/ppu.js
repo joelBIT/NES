@@ -363,6 +363,7 @@ class PPU {
     }
 
     let { pixel, palette } = this.getPrioritizedPixel();
+    this.checkIfSpriteZeroHit();
     this.setCanvasImageData(this.cycle - 1, this.scanline, this.getColor(palette, pixel));
 
     this.cycle++;
@@ -455,25 +456,27 @@ class PPU {
         pixel = bgPixel;
         palette = bgPalette;
       }
+    }
+    return { pixel, palette };
+  }
 
-      if (this.spriteZeroHitPossible && this.spriteZeroBeingRendered) {   // Sprite Zero Hit detection
-        // Sprite zero is a collision between foreground and background so they must both be enabled
-        if (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites()) {
-          // The left edge of the screen has specific switches to control its appearance.
-          // This is used to smooth inconsistencies when scrolling (since sprites X coordinate must be >= 0)
-          if (!(this.maskRegister.getRenderBackgroundLeft() | this.maskRegister.getRenderSpritesLeft())) {
-            if (this.cycle >= 9 && this.cycle < 258) {
-              this.statusRegister.setSpriteZeroHit();
-            }
-          } else {
-            if (this.cycle >= 1 && this.cycle < 258) {
-              this.statusRegister.setSpriteZeroHit();
-            }
+  checkIfSpriteZeroHit() {
+    if (this.spriteZeroHitPossible && this.spriteZeroBeingRendered) {   // Sprite Zero Hit detection
+      // Sprite zero is a collision between foreground and background so they must both be enabled
+      if (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites()) {
+        // The left edge of the screen has specific switches to control its appearance.
+        // This is used to smooth inconsistencies when scrolling (since sprites X coordinate must be >= 0)
+        if (!(this.maskRegister.getRenderBackgroundLeft() | this.maskRegister.getRenderSpritesLeft())) {
+          if (this.cycle >= 9 && this.cycle < 258) {
+            this.statusRegister.setSpriteZeroHit();
+          }
+        } else {
+          if (this.cycle >= 1 && this.cycle < 258) {
+            this.statusRegister.setSpriteZeroHit();
           }
         }
       }
     }
-    return { pixel, palette };
   }
 
   isFrameCompleted() {
