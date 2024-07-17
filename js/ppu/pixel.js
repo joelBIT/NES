@@ -42,10 +42,10 @@ export class Pixel {
   }
 
   /**
-   * Compare which pixel has priority. A background pixel is compared with the foreground pixel argument.
+   * Compare which pixel has highest priority. A background pixel is compared with the foreground pixel argument.
    *
    * @param fgPixel           the foreground pixel
-   * @returns {Pixel|*}       the pixel with priority
+   * @returns {Pixel|*}       the pixel with highest priority, or an empty pixel if none has highest
    */
   comparePriority(fgPixel) {
     if (this.pixel === 0 && fgPixel.getWord() === 0) {

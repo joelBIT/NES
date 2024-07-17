@@ -399,22 +399,20 @@ class PPU {
    */
   getForegroundPixel() {
     let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
-    if (this.maskRegister.getRenderSprites()) {
-      if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
-        this.spriteZeroBeingRendered = false;
-        for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
-          // Scanline cycle has "collided" with sprite, shifters taking over
-          if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
-            pixel.setWord(this.foreground.getPixel(i));
-            pixel.setPalette(this.OAM.getSpritePalette(sprite));
-            pixel.setPriority(this.OAM.getSpritePriority(sprite));
+    if (this.maskRegister.getRenderSprites() && (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9))) {
+      this.spriteZeroBeingRendered = false;
+      for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+        // Scanline cycle has "collided" with sprite, shifters taking over
+        if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
+          pixel.setWord(this.foreground.getPixel(i));
+          pixel.setPalette(this.OAM.getSpritePalette(sprite));
+          pixel.setPriority(this.OAM.getSpritePriority(sprite));
 
-            if (pixel.getWord() !== 0) {
-              if (i === 0) {
-                this.spriteZeroBeingRendered = true;
-              }
-              break;
+          if (pixel.getWord() !== 0) {
+            if (i === 0) {
+              this.spriteZeroBeingRendered = true;
             }
+            break;
           }
         }
       }
