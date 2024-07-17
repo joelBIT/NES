@@ -58,7 +58,7 @@ export class Foreground {
    * Retrieve a 2-bit pixel.
    *
    * @param index - the index of the high bit and low bit of the pixel.
-   * @returns {number}  a 2-bit pixel
+   * @returns {number}  a 2-bit word representing a pixel
    */
   getPixel(index) {
     let pixelLow = (this.patternLow[index] & 0x80) > 0 ? 1 : 0;

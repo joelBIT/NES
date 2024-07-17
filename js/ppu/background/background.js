@@ -1,5 +1,6 @@
 import { Tile } from "./tile.js";
 import { Shifter } from "./shifter.js";
+import { Pixel, Type } from "../pixel.js";
 
 /**
  * Represents the background to be rendered. It consists of shifters and tiles. The PPU outputs a picture region of
@@ -57,11 +58,7 @@ export class Background {
   }
 
   getPixel() {
-    return this.shifter.getPixel(this.MSB >> this.fineX);
-  }
-
-  getPalette() {
-    return this.shifter.getPalette(this.MSB >> this.fineX);
+    return new Pixel(this.shifter.getPixel(this.MSB >> this.fineX), Type.BACKGROUND, this.shifter.getPalette(this.MSB >> this.fineX));
   }
 
   reset() {

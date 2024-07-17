@@ -8,6 +8,7 @@ import { Color } from './color.js';
 import { Background } from "./background/background.js";
 import { Foreground } from "./foreground/foreground.js";
 import { OAM } from "./foreground/oam.js";
+import { Pixel, Type } from "./pixel.js";
 
 /**
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
@@ -395,23 +396,21 @@ class PPU {
   }
 
   /**
-   *  The (sprite) pixel to be rendered in the foreground at a specific x and y location.
+   *  The (sprite) pixel to be rendered in the foreground.
    */
   getForegroundPixel() {
-    let fgPixel = 0x00;     // The 2-bit pixel to be rendered
-    let fgPalette = 0x00;   // The 3-bit index of the palette the pixel indexes
-    let fgPriority = 0x00;
+    let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
     if (this.maskRegister.getRenderSprites()) {
       if (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9)) {
         this.spriteZeroBeingRendered = false;
         for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
           // Scanline cycle has "collided" with sprite, shifters taking over
           if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
-            fgPixel = this.foreground.getPixel(i);
-            fgPalette = this.OAM.getSpritePalette(sprite);
-            fgPriority = this.OAM.getSpritePriority(sprite);
+            pixel.setWord(this.foreground.getPixel(i));
+            pixel.setPalette(this.OAM.getSpritePalette(sprite));
+            pixel.setPriority(this.OAM.getSpritePriority(sprite));
 
-            if (fgPixel !== 0) {
+            if (pixel.getWord() !== 0) {
               if (i === 0) {
                 this.spriteZeroBeingRendered = true;
               }
@@ -421,23 +420,20 @@ class PPU {
         }
       }
     }
-    return { fgPixel, fgPalette, fgPriority };
+    return pixel;
   }
 
   /**
-   *  The pixel to be rendered in the background at a specific x and y location.
+   *  A pixel to be rendered in the background. Returns an empty pixel if background is not supposed to be rendered.
    */
   getBackgroundPixel() {
-    let bgPixel = 0x00;                                     // The 2-bit pixel to be rendered
-    let bgPalette = 0x00;                                   // The 3-bit index of the palette the pixel indexes
+    let emptyPixel = new Pixel(0x00, Type.BACKGROUND, 0x00);
     if (this.maskRegister.getRenderBackground()) {
       if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
-        bgPixel = this.background.getPixel();
-        bgPalette = this.background.getPalette();
+        return this.background.getPixel();
       }
     }
-
-    return { bgPixel, bgPalette };
+    return emptyPixel;
   }
 
   /**
@@ -446,26 +442,9 @@ class PPU {
    *
    */
   getPrioritizedPixel() {
-    let { bgPixel, bgPalette } = this.getBackgroundPixel();
-    let { fgPixel, fgPalette, fgPriority } = this.getForegroundPixel();
-    let pixel = 0x00;
-    let palette = 0x00;
-    if (bgPixel === 0 && fgPixel > 0) {
-      pixel = fgPixel;
-      palette = fgPalette;
-    } else if (bgPixel > 0 && fgPixel === 0) {
-      pixel = bgPixel;
-      palette = bgPalette;
-    } else if (bgPixel > 0 && fgPixel > 0) {
-      if (fgPriority) {
-        pixel = fgPixel;
-        palette = fgPalette;
-      } else {
-        pixel = bgPixel;
-        palette = bgPalette;
-      }
-    }
-    return { pixel, palette };
+    let bgPixel = this.getBackgroundPixel();
+    let fgPixel = this.getForegroundPixel();
+    return bgPixel.comparePriority(fgPixel);
   }
 
   checkIfSpriteZeroHit() {

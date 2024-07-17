@@ -145,7 +145,7 @@ export class OAM {
    * Retrieve the Sprite's priority (bit 5 of the attributes byte).
    *
    * @param index   the index of the desired sprite
-   * @returns {number}  0 if sprite is in front of the background; 1 if sprite is behind the background
+   * @returns {number}  1 if sprite is in front of the background; 0 if sprite is behind the background
    */
   getSpritePriority(index) {
     return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x20) === 0 ? 1 : 0;    // OAE attributes (byte 2)
