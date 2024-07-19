@@ -20,7 +20,7 @@ export class Foreground {
     this.shifter.setPatternHigh(index, data);
   }
 
-  getPixel(index) {
+  getSpritePixel(index) {
     return this.shifter.getPixel(index);
   }
 

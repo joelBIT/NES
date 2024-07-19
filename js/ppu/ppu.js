@@ -133,13 +133,13 @@ class PPU {
   }
 
   setTileLSB() {
-    this.background.setTileLSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+    this.background.setTileLSB(this.readMemory((this.controlRegister.getBackgroundPatternTableAddress())
       + (this.background.getTileID() << 4)
       + this.scrollVRAM.getFineY()));
   }
 
   setTileMSB() {
-    this.background.setTileMSB(this.readMemory((this.controlRegister.getPatternBackground() << 12)
+    this.background.setTileMSB(this.readMemory((this.controlRegister.getBackgroundPatternTableAddress())
       + (this.background.getTileID() << 4)
       + this.scrollVRAM.getFineY() + 8));
   }
@@ -284,12 +284,12 @@ class PPU {
         // 8x8 Sprite Mode - The control register determines the pattern table
         if (!(this.OAM.getAttributes(sprite) & 0x80)) {
           // Sprite is NOT flipped vertically, i.e. normal
-          this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
+          this.foreground.setSpriteAddressLow((this.controlRegister.getSpritePatternTableAddress())
             | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
             | (this.scanline - this.OAM.getCoordinateY(sprite))); // Which Row in cell? (0->7)
         } else {
           // Sprite is flipped vertically, i.e. upside down
-          this.foreground.setSpriteAddressLow((this.controlRegister.getPatternSprite() << 12)  // Which Pattern Table? 0KB or 4KB offset
+          this.foreground.setSpriteAddressLow((this.controlRegister.getSpritePatternTableAddress())
             | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
             | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)))); // Which Row in cell? (7->0)
         }
@@ -374,7 +374,7 @@ class PPU {
       for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
         // Scanline cycle has "collided" with sprite, shifters taking over
         if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
-          pixel.setWord(this.foreground.getPixel(i));
+          pixel.setWord(this.foreground.getSpritePixel(i));
           pixel.setPalette(this.OAM.getSpritePalette(sprite));
           pixel.setPriority(this.OAM.getSpritePriority(sprite));
 

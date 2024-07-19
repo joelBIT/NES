@@ -30,10 +30,6 @@ export class Background {
     this.nextTile.setMSB(msb);
   }
 
-  getTileAttribute() {
-    return this.nextTile.getAttribute();
-  }
-
   setTileAttribute(attribute) {
     this.nextTile.setAttribute(attribute);
   }

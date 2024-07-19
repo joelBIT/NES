@@ -59,12 +59,20 @@ export class ControlRegister {
     return (this.control[0] & 0x04) >> 2;
   }
 
-  getPatternSprite() {
+  getSpritePatternTableNumber() {
     return (this.control[0] & 0x08) >> 3;
   }
 
-  getPatternBackground() {
+  getSpritePatternTableAddress() {
+    return this.getSpritePatternTableNumber() << 12;    // Which Pattern Table? 0KB or 4KB offset depending on number
+  }
+
+  getBackgroundPatternTableNumber() {
     return (this.control[0] & 0x10) >> 4;
+  }
+
+  getBackgroundPatternTableAddress() {
+    return this.getBackgroundPatternTableNumber() << 12;  // Which Pattern Table? 0KB or 4KB offset depending on number
   }
 
   getSpriteSize() {
