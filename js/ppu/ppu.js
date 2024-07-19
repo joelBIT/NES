@@ -125,18 +125,11 @@ class PPU {
 
   /**
    * Selects the target nametable, and attribute byte offset. Attribute memory begins at 0x03C0 within a nametable. This
-   * address is offset with 0x2000 so we get 0x23C0. What this method does is reconstructing the 12 bit address into an
-   * offset into the attribute memory.
+   * address is offset with 0x2000 so we get 0x23C0.
    */
   setTileAttribute() {
-    this.background.setTileAttribute(this.readMemory(0x23C0 | this.scrollVRAM.getAttributeMemoryOffset()));
-    if (this.scrollVRAM.getCoarseY() & 0x02) {
-      this.background.setTileAttribute(this.background.getTileAttribute() >> 4);
-    }
-    if (this.scrollVRAM.getCoarseX() & 0x02) {
-      this.background.setTileAttribute(this.background.getTileAttribute() >> 2);
-    }
-    this.background.setTileAttribute(this.background.getTileAttribute() & 0x03);
+    const attributeByte = this.readMemory(0x23C0 | this.scrollVRAM.getAttributeMemoryOffset());
+    this.background.setTileAttribute(this.scrollVRAM.getPaletteBits(attributeByte));
   }
 
   setTileLSB() {

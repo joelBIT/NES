@@ -137,6 +137,23 @@ export class ScrollRegister {
       | (this.getCoarseX() >> 2);
   }
 
+  /**
+   * Extracts the palette bits from the attribute byte.
+   *
+   * @param attributeByte         the attribute byte from the attribute memory
+   * @returns {*}                 the palette bits from the attribute byte
+   */
+  getPaletteBits(attributeByte) {
+    if (this.getCoarseY() & 0x02) {
+      attributeByte >>= 4;
+    }
+    if (this.getCoarseX() & 0x02) {
+      attributeByte >>= 2;
+    }
+    attributeByte &= 0x03;
+    return attributeByte;
+  }
+
   reset() {
     this.scroll[0] = 0x0000;
   }
