@@ -85,8 +85,20 @@ export class OAM {
     return this.secondaryOAM[index + this.TILE_ID_BYTE];
   }
 
+  getTileCell(sprite) {
+    return this.getTileID(sprite) << 4;   // Tile ID * 16 (16 bytes per tile)
+  }
+
   getAttributes(index) {
     return this.secondaryOAM[index + this.ATTRIBUTES_BYTE];
+  }
+
+  isFlippedVertically(sprite) {
+    return this.getAttributes(sprite) & 0x80; // A Sprite that is flipped vertically is upside down
+  }
+
+  isFlippedHorizontally(sprite) {
+    return this.getAttributes(sprite) & 0x40;
   }
 
   getCoordinateY(index) {

@@ -34,6 +34,10 @@ export class Background {
     this.nextTile.setAttribute(attribute);
   }
 
+  getTileCell() {
+    return this.getTileID() << 4; // Tile ID * 16 (16 bytes per tile)
+  }
+
   setFineX(fineX) {
     this.fineX = fineX;
   }

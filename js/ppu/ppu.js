@@ -30,6 +30,8 @@ class PPU {
   patternTable1 = new MemoryArea(4096);
   patternTable2 = new MemoryArea(4096);
   END_OF_SCANLINE = 340;
+  END_OF_VISIBLE_SCANLINE = 256;
+  RESET_X_POSITION = 257;
 
   OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
 
@@ -83,12 +85,18 @@ class PPU {
     }
   }
 
+  /**
+   *  Increment downwards to the next scanline when reaching the end of a visible scanline,
+   */
   incrementScrollY() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
       this.scrollVRAM.incrementScrollY();
     }
   }
 
+  /**
+   * Reset the X position to the beginning of the new scanline.
+   */
   transferAddressX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
       this.scrollVRAM.setNameTableX(this.scrollTRAM.getNameTableX());
@@ -134,14 +142,12 @@ class PPU {
 
   setTileLSB() {
     this.background.setTileLSB(this.readMemory((this.controlRegister.getBackgroundPatternTableAddress())
-      + (this.background.getTileID() << 4)
-      + this.scrollVRAM.getFineY()));
+      + this.background.getTileCell() + this.scrollVRAM.getFineY()));
   }
 
   setTileMSB() {
     this.background.setTileMSB(this.readMemory((this.controlRegister.getBackgroundPatternTableAddress())
-      + (this.background.getTileID() << 4)
-      + this.scrollVRAM.getFineY() + 8));
+      + this.background.getTileCell() + this.scrollVRAM.getFineY() + 8));
   }
 
   /**
@@ -206,11 +212,11 @@ class PPU {
         }
       }
 
-      if (this.cycle === 256) {   // End of a visible scanline, increment downwards to the next scanline
+      if (this.cycle === this.END_OF_VISIBLE_SCANLINE) {
         this.incrementScrollY();
       }
 
-      if (this.cycle === 257) {   //  Reset the X position to the beginning of the new scanline
+      if (this.cycle === this.RESET_X_POSITION) {
         this.background.loadShifter();
         this.transferAddressX();
       }
@@ -282,21 +288,16 @@ class PPU {
       this.foreground.clearSpriteData();
       if (!this.controlRegister.getSpriteSize()) {
         // 8x8 Sprite Mode - The control register determines the pattern table
-        if (!(this.OAM.getAttributes(sprite) & 0x80)) {
-          // Sprite is NOT flipped vertically, i.e. normal
-          this.foreground.setSpriteAddressLow((this.controlRegister.getSpritePatternTableAddress())
-            | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-            | (this.scanline - this.OAM.getCoordinateY(sprite))); // Which Row in cell? (0->7)
+        if (!this.OAM.isFlippedVertically(sprite)) {
+          this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
+            | this.OAM.getTileCell(sprite) | (this.scanline - this.OAM.getCoordinateY(sprite))); // Which Row in cell? (0->7)
         } else {
-          // Sprite is flipped vertically, i.e. upside down
-          this.foreground.setSpriteAddressLow((this.controlRegister.getSpritePatternTableAddress())
-            | (this.OAM.getTileID(sprite) << 4)  // Which Cell? Tile ID * 16 (16 bytes per tile)
-            | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)))); // Which Row in cell? (7->0)
+          this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
+            | this.OAM.getTileCell(sprite) | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)))); // Which Row in cell? (7->0)
         }
       } else {
         // 8x16 Sprite Mode - The sprite attribute determines the pattern table
-        if (!(this.OAM.getAttributes(sprite) & 0x80)) {
-          // Sprite is NOT flipped vertically, i.e. normal
+        if (!this.OAM.isFlippedVertically(sprite)) {
           if ((this.scanline - this.OAM.getCoordinateY(sprite)) < 8) {
             // Reading Top half Tile
             this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
@@ -332,7 +333,7 @@ class PPU {
       this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
       // If the sprite is flipped horizontally, we need to flip the pattern bytes.
-      if (this.OAM.getAttributes(sprite) & 0x40) {
+      if (this.OAM.isFlippedHorizontally(sprite)) {
         this.foreground.flipSpriteDataBits();
       }
 
