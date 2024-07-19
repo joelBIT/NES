@@ -7,7 +7,6 @@ import { NameTableContainer } from "./nametable.js";
 import { Color } from './color.js';
 import { Background } from "./background/background.js";
 import { Foreground } from "./foreground/foreground.js";
-import { OAM } from "./foreground/oam.js";
 import { Pixel, Type } from "./pixel.js";
 import { Canvas } from "./canvas.js";
 
@@ -32,8 +31,6 @@ class PPU {
   END_OF_SCANLINE = 340;
   END_OF_VISIBLE_SCANLINE = 256;
   RESET_X_POSITION = 257;
-
-  OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
 
   scrollVRAM = new ScrollRegister();      // Active "pointer" address into nametable to extract background tile info
   scrollTRAM = new ScrollRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
@@ -68,7 +65,7 @@ class PPU {
   }
 
   writeOAM(address, data) {
-    this.OAM.writeData(address, data);
+    this.foreground.writeOAM(address, data);
   }
 
   isNMI() {
@@ -121,13 +118,7 @@ class PPU {
     }
 
     if (this.maskRegister.getRenderSprites() && this.cycle >= 1 && this.cycle < 258) {
-      for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
-        if (this.OAM.getCoordinateX(sprite) > 0) {
-          this.OAM.decrementCoordinateX(sprite);
-        } else {
-          this.foreground.shift(i);
-        }
-      }
+      this.foreground.spriteShift();
     }
   }
 
@@ -235,13 +226,12 @@ class PPU {
             ************************
      */
       if (this.cycle === 257 && this.scanline >= 0) {
-        this.OAM.fillSecondaryOAM(0xFF);
-        this.OAM.clearSpriteCount();
+        this.foreground.initializeForegroundRendering();
 
         this.foreground.clearShifters();
-        this.foreground.setSpriteZeroHitPossible(this.OAM.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8)));
+        this.foreground.setSpriteZeroHitPossible(this.foreground.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8)));
 
-        if (this.OAM.getSpriteCount() >= 8) {
+        if (this.foreground.getSpriteCount() >= 8) {
           this.statusRegister.setSpriteOverflow();
         } else {
           this.statusRegister.clearSpriteOverflow();
@@ -284,13 +274,13 @@ class PPU {
    * At the end of a scanline, prepare the sprite shifters with the 8 or less selected sprites.
    */
   loadSpritePatternsForNextScanline() {
-    for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+    for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += 4) {
       this.foreground.clearSpriteData();
       if (this.controlRegister.isSpriteSize8by8()) {
         this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
-          | this.OAM.getTileCellAndRow8by8(sprite, this.scanline));
+          | this.foreground.getTileCellAndRow8by8(sprite, this.scanline));
       } else {
-        this.foreground.setSpriteAddressLow(this.OAM.getHalfTileCellAndRow8by16(sprite, this.scanline));
+        this.foreground.setSpriteAddressLow(this.foreground.getHalfTileCellAndRow8by16(sprite, this.scanline));
       }
 
       // High bit plane equivalent is always offset by 8 bytes from low bit plane
@@ -301,7 +291,7 @@ class PPU {
       this.foreground.setSpriteDataHigh(this.readMemory(this.foreground.getSpriteAddressHigh()));
 
       // If the sprite is flipped horizontally, we need to flip the pattern bytes.
-      if (this.OAM.isFlippedHorizontally(sprite)) {
+      if (this.foreground.isFlippedHorizontally(sprite)) {
         this.foreground.flipSpriteDataBits();
       }
 
@@ -340,14 +330,14 @@ class PPU {
     let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
     if (this.maskRegister.getRenderSprites() && (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9))) {
       this.foreground.setSpriteZeroBeingRendered(false);
-      for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+      for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += 4) {
         // Scanline cycle has "collided" with sprite, shifters taking over
-        if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
+        if (this.foreground.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
           pixel.setWord(this.foreground.getSpritePixel(i));
-          pixel.setPalette(this.OAM.getSpritePalette(sprite));
-          pixel.setPriority(this.OAM.getSpritePriority(sprite));
+          pixel.setPalette(this.foreground.getSpritePalette(sprite));
+          pixel.setPriority(this.foreground.getSpritePriority(sprite));
 
-          if (pixel.getWord() !== 0) {
+          if (pixel.getWord() !== 0) {    // If pixel is not transparent, it is rendered and rest is skipped because highest priority pixel comes before others
             if (i === 0) {
               this.foreground.setSpriteZeroBeingRendered(true);
             }
@@ -427,7 +417,7 @@ class PPU {
       case 0x0003: // OAM Address
         break;
       case 0x0004: // OAM Data
-        return this.OAM.getData(this.OAM.getAddress());
+        return this.foreground.getOAM;
       case 0x0005: // Scroll
         break;
       case 0x0006: // PPU Address
@@ -464,10 +454,10 @@ class PPU {
       case 0x0002: // Status
         break;
       case 0x0003: // OAM Address
-        this.OAM.setAddress(data);
+        this.foreground.writeAddressOAM(data);
         break;
       case 0x0004: // OAM Data
-        this.OAM.writeData(this.OAM.getAddress(), data);
+        this.foreground.writeOAM(data);
         break;
       case 0x0005: // Scroll
         if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
@@ -580,7 +570,6 @@ class PPU {
     this.controlRegister.reset();
     this.scrollVRAM.reset();
     this.scrollTRAM.reset();
-    this.OAM.reset();
     this.oddFrame = false;
     this.palettes = new MemoryArea();
     this.nameTables.reset();

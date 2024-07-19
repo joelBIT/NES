@@ -1,4 +1,5 @@
 import { Shifter } from "./shifter.js";
+import { OAM } from "./oam.js";
 
 /**
  * The foreground consists of sprites. The NES supports 64 8x8 pixel sprites or 64 8x16 pixel sprites.
@@ -11,6 +12,7 @@ export class Foreground {
   spriteAddressHigh = new Uint16Array(1);   // Location in character memory where to read sprite patterns from
   spriteZeroHitPossible = false;
   spriteZeroBeingRendered = false;
+  OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
 
   setPatternLow(index, data) {
     this.shifter.setPatternLow(index, data);
@@ -95,9 +97,72 @@ export class Foreground {
     this.spriteDataLow[0] = this.reverseBits(this.spriteDataLow[0]);
   }
 
+  spriteEvaluation(scanline, spriteSize) {
+    return this.OAM.spriteEvaluation(scanline, spriteSize);
+  }
+
+  writeOAM(address, data) {
+    if (address === undefined) {
+      console.log("hey");
+    }
+    address === undefined ? this.OAM.writeData(this.OAM.getAddress(), data) : this.OAM.writeData(address, data);
+  }
+
+  writeAddressOAM(address) {
+    this.OAM.setAddress(address);
+  }
+
+  getOAM() {
+    return this.OAM.getData(this.OAM.getAddress());
+  }
+
+  spriteShift() {
+    for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+      if (this.OAM.getCoordinateX(sprite) > 0) {
+        this.OAM.decrementCoordinateX(sprite);
+      } else {
+        this.shift(i);
+      }
+    }
+  }
+
+  initializeForegroundRendering() {
+    this.OAM.fillSecondaryOAM(0xFF);
+    this.OAM.clearSpriteCount();
+  }
+
+  getSpriteCount() {
+    return this.OAM.getSpriteCount();
+  }
+
+  getTileCellAndRow8by8(sprite, scanline) {
+    return this.OAM.getTileCellAndRow8by8(sprite, scanline);
+  }
+
+  getHalfTileCellAndRow8by16(sprite, scanline) {
+    return this.OAM.getHalfTileCellAndRow8by16(sprite, scanline);
+  }
+
+  isFlippedHorizontally(sprite) {
+    return this.OAM.isFlippedHorizontally(sprite);
+  }
+
+  getCoordinateX(sprite) {
+    return this.OAM.getCoordinateX(sprite);
+  }
+
+  getSpritePalette(sprite) {
+    return this.OAM.getSpritePalette(sprite);
+  }
+
+  getSpritePriority(sprite) {
+    return this.OAM.getSpritePriority(sprite);
+  }
+
   reset() {
     this.shifter.reset();
     this.clearSpriteData();
+    this.OAM.reset();
   }
 
   clearShifters() {
