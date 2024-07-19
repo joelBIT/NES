@@ -176,7 +176,7 @@ class PPU {
         this.statusRegister.clearVerticalBlank();        // Effectively start of new frame, so clear vertical blank flag
         this.statusRegister.clearSpriteOverflow();
         this.statusRegister.clearSpriteZeroHit();
-        this.foreground.reset();
+        this.foreground.clearShifters();
       }
 
       if (this.scanline === 0 && this.cycle === 0 && this.oddFrame && (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites())) {
@@ -232,7 +232,7 @@ class PPU {
         this.OAM.fillSecondaryOAM(0xFF);
         this.OAM.clearSpriteCount();
 
-        this.foreground.reset();
+        this.foreground.clearShifters();
         this.spriteZeroHitPossible = this.OAM.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8));
 
         if (this.OAM.getSpriteCount() >= 8) {

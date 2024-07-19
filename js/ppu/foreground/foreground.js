@@ -86,12 +86,15 @@ export class Foreground {
   }
 
   reset() {
+    this.clearShifters();
+    this.clearSpriteData();
+  }
+
+  clearShifters() {
     for (let i = 0; i < 8; i++) {
       this.patternHigh[i] = 0;
       this.patternLow[i] = 0;
     }
-
-    this.clearSpriteData();
   }
 
   clearSpriteData() {
