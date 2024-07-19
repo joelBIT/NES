@@ -252,7 +252,11 @@ class PPU {
     }
 
     let { pixel, palette } = this.getPrioritizedPixel();
-    this.checkIfSpriteZeroHit();
+
+    if (this.cycle >= 1 && this.cycle < 258) {
+      this.checkIfSpriteZeroHit();
+    }
+
     this.canvas.setCanvasImageData(this.cycle - 1, this.scanline, this.getColor(palette, pixel));
 
     this.cycle++;
@@ -374,20 +378,19 @@ class PPU {
     return bgPixel.comparePriority(fgPixel);
   }
 
+  /**
+   * Sprite zero is a collision between foreground and background so they must both be enabled. The left edge of the
+   * screen has specific switches to control its appearance. This is used to smooth inconsistencies when scrolling
+   * (since sprites X coordinate must be >= 0).
+   */
   checkIfSpriteZeroHit() {
-    if (this.foreground.isSpriteZeroHitPossible() && this.foreground.isSpriteZeroBeingRendered()) {
-      // Sprite zero is a collision between foreground and background so they must both be enabled
-      if (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites()) {
-        // The left edge of the screen has specific switches to control its appearance.
-        // This is used to smooth inconsistencies when scrolling (since sprites X coordinate must be >= 0)
-        if (!(this.maskRegister.getRenderBackgroundLeft() | this.maskRegister.getRenderSpritesLeft())) {
-          if (this.cycle >= 9 && this.cycle < 258) {
-            this.statusRegister.setSpriteZeroHit();
-          }
-        } else {
-          if (this.cycle >= 1 && this.cycle < 258) {
-            this.statusRegister.setSpriteZeroHit();
-          }
+    if (this.foreground.isSpriteZeroHitPossible() && this.foreground.isSpriteZeroBeingRendered()
+          && (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites())) {
+      if (this.maskRegister.getRenderBackgroundLeft() | this.maskRegister.getRenderSpritesLeft()) {
+        this.statusRegister.setSpriteZeroHit();
+      } else {
+        if (this.cycle >= 9 && this.cycle < 258) {
+          this.statusRegister.setSpriteZeroHit();
         }
       }
     }
@@ -401,7 +404,6 @@ class PPU {
    * The PPU exposes eight memory-mapped registers to the CPU. These nominally sit at $2000 through $2007 in the
    * CPU's address space, but because their addresses are incompletely decoded, they're mirrored in every 8 bytes
    * from $2008 through $3FFF. For example, a write to $3456 is the same as a write to $2006.
-   *
    */
   readRegister(address) {
     switch (address) {
@@ -440,7 +442,6 @@ class PPU {
    * The PPU exposes eight memory-mapped registers to the CPU. These nominally sit at $2000 through $2007 in the
    * CPU's address space, but because their addresses are incompletely decoded, they're mirrored in every 8 bytes
    * from $2008 through $3FFF. For example, a write to $3456 is the same as a write to $2006.
-   *
    */
   writeRegister(address, data) {
     switch (address) {
