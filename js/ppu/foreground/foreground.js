@@ -102,9 +102,6 @@ export class Foreground {
   }
 
   writeOAM(address, data) {
-    if (address === undefined) {
-      console.log("hey");
-    }
     address === undefined ? this.OAM.writeData(this.OAM.getAddress(), data) : this.OAM.writeData(address, data);
   }
 

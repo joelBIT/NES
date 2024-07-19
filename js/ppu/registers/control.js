@@ -79,6 +79,16 @@ export class ControlRegister {
     return (this.control[0] & 0x20) >> 5;
   }
 
+  /**
+   * Checks bit 5 (Sprite size) if it is 1 (8x16 pixels) or 0 (8x8 pixels) and returns 16 if 8x16 (due to the sprites having
+   * 16 rows of 8 pixels), or 8 if 8x8 (due to the sprites having 8 rows of 8 pixels).
+   *
+   * @returns {number}    the number of rows of sprites
+   */
+  getSpriteSizeInRows() {
+    return this.getSpriteSize() ? 16 : 8;
+  }
+
   isSpriteSize8by8() {
     return this.getSpriteSize() === 0 ? 1 : 0;
   }

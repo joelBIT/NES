@@ -31,6 +31,7 @@ class PPU {
   END_OF_SCANLINE = 340;
   END_OF_VISIBLE_SCANLINE = 256;
   RESET_X_POSITION = 257;
+  SPRITE_BYTES = 4;
 
   scrollVRAM = new ScrollRegister();      // Active "pointer" address into nametable to extract background tile info
   scrollTRAM = new ScrollRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
@@ -229,7 +230,7 @@ class PPU {
         this.foreground.initializeForegroundRendering();
 
         this.foreground.clearShifters();
-        this.foreground.setSpriteZeroHitPossible(this.foreground.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8)));
+        this.foreground.setSpriteZeroHitPossible(this.foreground.spriteEvaluation(this.scanline, this.controlRegister.getSpriteSizeInRows()));
 
         if (this.foreground.getSpriteCount() >= 8) {
           this.statusRegister.setSpriteOverflow();
@@ -274,7 +275,7 @@ class PPU {
    * At the end of a scanline, prepare the sprite shifters with the 8 or less selected sprites.
    */
   loadSpritePatternsForNextScanline() {
-    for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += 4) {
+    for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += this.SPRITE_BYTES) {
       this.foreground.clearSpriteData();
       if (this.controlRegister.isSpriteSize8by8()) {
         this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
@@ -330,7 +331,7 @@ class PPU {
     let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
     if (this.maskRegister.getRenderSprites() && (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9))) {
       this.foreground.setSpriteZeroBeingRendered(false);
-      for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += 4) {
+      for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += this.SPRITE_BYTES) {
         // Scanline cycle has "collided" with sprite, shifters taking over
         if (this.foreground.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
           pixel.setWord(this.foreground.getSpritePixel(i));
