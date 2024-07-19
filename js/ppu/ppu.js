@@ -429,7 +429,7 @@ class PPU {
         if (this.scrollVRAM.getRegister() >= 0x3F00) {   // Handle palette addresses
           data = this.dataBuffer;
         }
-        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
+        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + this.controlRegister.getIncrementMovement());
         return data;
     }
 
@@ -483,8 +483,7 @@ class PPU {
         break;
       case 0x0007: // PPU Data
         this.writeMemory(this.scrollVRAM.getRegister(), data);
-        // Skip 32 tiles at a time along the X-axis (which is the same as going down 1 row in the Y-axis), or increment 1 along the X-axis
-        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + (this.controlRegister.getIncrementMode() ? 32 : 1));
+        this.scrollVRAM.setRegister(this.scrollVRAM.getRegister() + this.controlRegister.getIncrementMovement());
         break;
     }
   }

@@ -59,6 +59,16 @@ export class ControlRegister {
     return (this.control[0] & 0x04) >> 2;
   }
 
+  /**
+   * Skip 32 tiles at a time along the X-axis (which is the same as going down 1 row in the Y-axis), or increment 1 along
+   * the X-axis.
+   *
+   * @returns {number}    return 1 if going 1 step along the X-axis; return 32 if going down 1 row on the Y-axis
+   */
+  getIncrementMovement() {
+    return this.getIncrementMode() ? 32 : 1;
+  }
+
   getSpritePatternTableNumber() {
     return (this.control[0] & 0x08) >> 3;
   }
