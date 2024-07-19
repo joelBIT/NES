@@ -79,6 +79,10 @@ export class ControlRegister {
     return (this.control[0] & 0x20) >> 5;
   }
 
+  isSpriteSize8by8() {
+    return this.getSpriteSize() === 0 ? 1 : 0;
+  }
+
   getEnableNMI() {
     return (this.control[0] & 0x80) >> 7;
   }

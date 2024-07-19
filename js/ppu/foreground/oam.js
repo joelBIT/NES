@@ -85,8 +85,16 @@ export class OAM {
     return this.secondaryOAM[index + this.TILE_ID_BYTE];
   }
 
-  getTileCell(sprite) {
-    return this.getTileID(sprite) << 4;   // Tile ID * 16 (16 bytes per tile)
+  getTileCellAndRow(sprite, scanline) {
+    const tileCell = this.getTileID(sprite) << 4;   // Tile ID * 16 (16 bytes per tile)
+    let cellRow;
+    if (this.isFlippedVertically(sprite)) {
+      cellRow = 7 - (scanline - this.getCoordinateY(sprite)); // Which Row in cell? (7 to 0)
+    } else {
+      cellRow = scanline - this.getCoordinateY(sprite); // Which Row in cell? (0 to 7)
+    }
+
+    return tileCell | cellRow;
   }
 
   getAttributes(index) {

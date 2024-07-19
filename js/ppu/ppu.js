@@ -286,15 +286,9 @@ class PPU {
   loadSpritePatternsForNextScanline() {
     for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
       this.foreground.clearSpriteData();
-      if (!this.controlRegister.getSpriteSize()) {
-        // 8x8 Sprite Mode - The control register determines the pattern table
-        if (!this.OAM.isFlippedVertically(sprite)) {
-          this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
-            | this.OAM.getTileCell(sprite) | (this.scanline - this.OAM.getCoordinateY(sprite))); // Which Row in cell? (0->7)
-        } else {
-          this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
-            | this.OAM.getTileCell(sprite) | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)))); // Which Row in cell? (7->0)
-        }
+      if (this.controlRegister.isSpriteSize8by8()) {
+        this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
+          | this.OAM.getTileCellAndRow(sprite, this.scanline));
       } else {
         // 8x16 Sprite Mode - The sprite attribute determines the pattern table
         if (!this.OAM.isFlippedVertically(sprite)) {
