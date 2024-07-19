@@ -288,35 +288,9 @@ class PPU {
       this.foreground.clearSpriteData();
       if (this.controlRegister.isSpriteSize8by8()) {
         this.foreground.setSpriteAddressLow(this.controlRegister.getSpritePatternTableAddress()
-          | this.OAM.getTileCellAndRow(sprite, this.scanline));
+          | this.OAM.getTileCellAndRow8by8(sprite, this.scanline));
       } else {
-        // 8x16 Sprite Mode - The sprite attribute determines the pattern table
-        if (!this.OAM.isFlippedVertically(sprite)) {
-          if ((this.scanline - this.OAM.getCoordinateY(sprite)) < 8) {
-            // Reading Top half Tile
-            this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
-              | ((this.OAM.getTileID(sprite) & 0xFE) << 4)
-              | ((this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
-          } else {
-            // Reading Bottom Half Tile
-            this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
-              | (((this.OAM.getTileID(sprite) & 0xFE) + 1) << 4)
-              | ((this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
-          }
-        } else {
-          // Sprite is flipped vertically, i.e. upside down
-          if ((this.scanline - this.OAM.getCoordinateY(sprite)) < 8) {
-            // Reading Top half Tile
-            this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
-              | (((this.OAM.getTileID(sprite) & 0xFE) + 1) << 4)
-              | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
-          } else {
-            // Reading Bottom Half Tile
-            this.foreground.setSpriteAddressLow(((this.OAM.getTileID(sprite) & 0x01) << 12)
-              | ((this.OAM.getTileID(sprite) & 0xFE) << 4)
-              | (7 - (this.scanline - this.OAM.getCoordinateY(sprite)) & 0x07));
-          }
-        }
+        this.foreground.setSpriteAddressLow(this.OAM.getHalfTileCellAndRow8by16(sprite, this.scanline));
       }
 
       // High bit plane equivalent is always offset by 8 bytes from low bit plane

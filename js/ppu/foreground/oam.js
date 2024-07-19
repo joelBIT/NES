@@ -85,7 +85,15 @@ export class OAM {
     return this.secondaryOAM[index + this.TILE_ID_BYTE];
   }
 
-  getTileCellAndRow(sprite, scanline) {
+  /**
+   * 8x8 Sprite Mode. The control register determines the pattern table. A tile is 8x8 pixels, i.e., 8 pixels on 8 rows.
+   * The difference between the current scanline and the sprite's Y coordinate is used to determine the corresponding cell row.
+   *
+   * @param sprite        the sprite whose tile cell is of interest
+   * @param scanline      the current scanline
+   * @returns {number}    tile cell ORed with the cell row
+   */
+  getTileCellAndRow8by8(sprite, scanline) {
     const tileCell = this.getTileID(sprite) << 4;   // Tile ID * 16 (16 bytes per tile)
     let cellRow;
     if (this.isFlippedVertically(sprite)) {
@@ -95,6 +103,31 @@ export class OAM {
     }
 
     return tileCell | cellRow;
+  }
+
+  /**
+   * 8x16 Sprite Mode - The sprite attribute determines the pattern table. A tile is 8x16 pixels, i.e., 8 pixels on 16 rows.
+   * Reading Top half, or Bottom Half, Tile of 8x16 Sprite.
+   *
+   * @param sprite          the 8x16 sprite
+   * @param scanline        the current scanline
+   * @returns {number}      tile cell ORed with the cell row
+   */
+  getHalfTileCellAndRow8by16(sprite, scanline) {
+    const patternTable = ((this.getTileID(sprite) & 0x01) << 12);
+    let tileCell;
+    let tileRow;
+    const tileTopHalf = (scanline - this.getCoordinateY(sprite)) < 8;   // Truthy if top half of tile, bottom half otherwise
+
+    if (this.isFlippedVertically(sprite)) {
+      tileRow = (7 - (scanline - this.getCoordinateY(sprite)) & 0x07);
+      tileCell = tileTopHalf ? (((this.getTileID(sprite) & 0xFE) + 1) << 4) : ((this.getTileID(sprite) & 0xFE) << 4);
+    } else {
+      tileRow = ((scanline - this.getCoordinateY(sprite)) & 0x07);
+      tileCell = tileTopHalf ? ((this.getTileID(sprite) & 0xFE) << 4) : (((this.getTileID(sprite) & 0xFE) + 1) << 4);
+    }
+
+    return patternTable | tileCell | tileRow;
   }
 
   getAttributes(index) {
