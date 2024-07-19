@@ -33,9 +33,6 @@ class PPU {
 
   OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
 
-  spriteZeroHitPossible = false;
-  spriteZeroBeingRendered = false;
-
   scrollVRAM = new ScrollRegister();      // Active "pointer" address into nametable to extract background tile info
   scrollTRAM = new ScrollRegister();      // Temporary store of information to be "transferred" into "pointer" at various times
 
@@ -107,6 +104,9 @@ class PPU {
     }
   }
 
+  /**
+   * Every cycle the shifters storing pattern and attribute information shift their contents by 1 bit.
+   */
   updateShifters() {
     if (this.maskRegister.getRenderBackground()) {
       this.background.shift();
@@ -233,7 +233,7 @@ class PPU {
         this.OAM.clearSpriteCount();
 
         this.foreground.clearShifters();
-        this.spriteZeroHitPossible = this.OAM.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8));
+        this.foreground.setSpriteZeroHitPossible(this.OAM.spriteEvaluation(this.scanline, (this.controlRegister.getSpriteSize() ? 16 : 8)));
 
         if (this.OAM.getSpriteCount() >= 8) {
           this.statusRegister.setSpriteOverflow();
@@ -370,7 +370,7 @@ class PPU {
   getForegroundPixel() {
     let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
     if (this.maskRegister.getRenderSprites() && (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9))) {
-      this.spriteZeroBeingRendered = false;
+      this.foreground.setSpriteZeroBeingRendered(false);
       for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
         // Scanline cycle has "collided" with sprite, shifters taking over
         if (this.OAM.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
@@ -380,7 +380,7 @@ class PPU {
 
           if (pixel.getWord() !== 0) {
             if (i === 0) {
-              this.spriteZeroBeingRendered = true;
+              this.foreground.setSpriteZeroBeingRendered(true);
             }
             break;
           }
@@ -415,7 +415,7 @@ class PPU {
   }
 
   checkIfSpriteZeroHit() {
-    if (this.spriteZeroHitPossible && this.spriteZeroBeingRendered) {   // Sprite Zero Hit detection
+    if (this.foreground.isSpriteZeroHitPossible() && this.foreground.isSpriteZeroBeingRendered()) {
       // Sprite zero is a collision between foreground and background so they must both be enabled
       if (this.maskRegister.getRenderBackground() & this.maskRegister.getRenderSprites()) {
         // The left edge of the screen has specific switches to control its appearance.

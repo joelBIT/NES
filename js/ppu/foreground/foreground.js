@@ -8,6 +8,8 @@ export class Foreground {
   spriteDataHigh = new Uint8Array(1);       // Stores data for a sprite
   spriteAddressLow = new Uint16Array(1);    // Location in character memory where to read sprite patterns from
   spriteAddressHigh = new Uint16Array(1);   // Location in character memory where to read sprite patterns from
+  spriteZeroHitPossible = false;
+  spriteZeroBeingRendered = false;
 
   setPatternLow(index, data) {
     this.patternLow[index] = data;
@@ -49,9 +51,25 @@ export class Foreground {
     this.spriteDataHigh[0] = data;
   }
 
-  shift(i) {
-    this.patternLow[i] <<= 1;
-    this.patternHigh[i] <<= 1;
+  setSpriteZeroHitPossible(value) {
+    this.spriteZeroHitPossible = value;
+  }
+
+  isSpriteZeroHitPossible() {
+    return this.spriteZeroHitPossible;
+  }
+
+  setSpriteZeroBeingRendered(value) {
+    this.spriteZeroBeingRendered = value;
+  }
+
+  isSpriteZeroBeingRendered () {
+    return this.spriteZeroBeingRendered;
+  }
+
+  shift(index) {
+    this.patternLow[index] <<= 1;
+    this.patternHigh[index] <<= 1;
   }
 
   /**
