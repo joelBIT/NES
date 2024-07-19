@@ -123,6 +123,20 @@ export class ScrollRegister {
     }
   }
 
+  /**
+   * Each nametable has two rows of cells that are not tile information, instead they represent the attribute information
+   * that indicates which palettes are applied to which area on the screen. This method reconstructs the 12-bit address
+   * that is used to offset into the attribute memory to retrieve the desired attribute information.
+   *
+   * @returns {number}    the offset into the attribute memory
+   */
+  getAttributeMemoryOffset() {
+    return (this.getNameTableY() << 11)
+      | (this.getNameTableX() << 10)
+      | ((this.getCoarseY() >> 2) << 3)
+      | (this.getCoarseX() >> 2);
+  }
+
   reset() {
     this.scroll[0] = 0x0000;
   }
