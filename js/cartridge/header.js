@@ -12,6 +12,27 @@ import { Mirror } from "../mirror.js";
  *  Byte 10 (9) corresponds to TV system of choice (0: NTSC; 1: PAL).
  *  Byte 11 (10) corresponds to TV system, PRG-RAM presence.
  *  Bytes 12-16 (11-15) is unused padding.
+ *
+ *
+ *  Byte 7:
+ * 76543210
+ * ||||||||
+ * |||||||+- Nametable arrangement: 0: vertical arrangement ("horizontal mirrored") (CIRAM A10 = PPU A11)
+ * |||||||                          1: horizontal arrangement ("vertically mirrored") (CIRAM A10 = PPU A10)
+ * ||||||+-- 1: Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory
+ * |||||+--- 1: 512-byte trainer at $7000-$71FF (stored before PRG data)
+ * ||||+---- 1: Alternative nametable layout
+ * ++++----- Lower nybble of mapper number
+ *
+ *
+ * Byte 8:
+ * 76543210
+ * ||||||||
+ * |||||||+- VS Unisystem
+ * ||||||+-- PlayChoice-10 (8 KB of Hint Screen data stored after CHR data)
+ * ||||++--- If equal to 2, flags 8-15 are in NES 2.0 format
+ * ++++----- Upper nybble of mapper number
+ *
  */
 export class FormatHeader {
   header = new DataView(new ArrayBuffer(16));
@@ -35,42 +56,12 @@ export class FormatHeader {
     return this.header.getUint8(5);
   }
 
-  /**
-   *
-   * 76543210
-   * ||||||||
-   * |||||||+- Nametable arrangement: 0: vertical arrangement ("horizontal mirrored") (CIRAM A10 = PPU A11)
-   * |||||||                          1: horizontal arrangement ("vertically mirrored") (CIRAM A10 = PPU A10)
-   * ||||||+-- 1: Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory
-   * |||||+--- 1: 512-byte trainer at $7000-$71FF (stored before PRG data)
-   * ||||+---- 1: Alternative nametable layout
-   * ++++----- Lower nybble of mapper number
-   *
-   */
-  getFlags6() {
-    return this.header.getUint8(6);
-  }
-
   getMirrorMode() {
     return (this.header.getUint8(6) & 0x01) ? Mirror.VERTICAL : Mirror.HORIZONTAL;
   }
 
   hasTrainer() {
     return this.header.getUint8(6) & 0x04;
-  }
-
-  /**
-   *
-   * 76543210
-   * ||||||||
-   * |||||||+- VS Unisystem
-   * ||||||+-- PlayChoice-10 (8 KB of Hint Screen data stored after CHR data)
-   * ||||++--- If equal to 2, flags 8-15 are in NES 2.0 format
-   * ++++----- Upper nybble of mapper number
-   *
-   */
-  getFlags7() {
-    return this.header.getUint8(7);
   }
 
   isINES2() {

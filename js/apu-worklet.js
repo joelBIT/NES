@@ -9,7 +9,7 @@ import { APU } from './apu/apu.js';
 export class NesApuProcessor extends AudioWorkletProcessor {
   audioSamples = [];
   apu = new APU();
-  SOUND_VOLUME = 15;
+  SOUND_VOLUME = 15;      // increase sound volume by a factor of 15
 
   /**
    * The sound system will be running at approximately 44kHz and the NES clock is running in MHz, therefore a number of
@@ -43,7 +43,7 @@ export class NesApuProcessor extends AudioWorkletProcessor {
       this.audioTime += this.audioTimePerNesClock;
       if (this.audioTime >= this.audioTimePerSystemSample) {
         this.audioTime -= this.audioTimePerSystemSample;
-        this.audioSamples.push(this.SOUND_VOLUME * this.apu.mixedOutputSample());    // increase sound volume by a factor of 15
+        this.audioSamples.push(this.SOUND_VOLUME * this.apu.mixedOutputSample());
       }
     }
 
