@@ -326,29 +326,13 @@ class PPU {
   }
 
   /**
-   *  The (sprite) pixel to be rendered in the foreground.
+   *  The (sprite) pixel to be rendered in the foreground. An empty sprite is returned if no sprite pixel is to be rendered.
    */
   getForegroundPixel() {
-    let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
     if (this.maskRegister.getRenderSprites() && (this.maskRegister.getRenderSpritesLeft() || (this.cycle >= 9))) {
-      this.foreground.setSpriteZeroBeingRendered(false);
-      for (let i = 0, sprite = 0; i < this.foreground.getSpriteCount(); i++, sprite += this.SPRITE_BYTES) {
-        // Scanline cycle has "collided" with sprite, shifters taking over
-        if (this.foreground.getCoordinateX(sprite) === 0) {   // OAE X, If X coordinate is 0, start to draw sprites
-          pixel.setWord(this.foreground.getSpritePixel(i));
-          pixel.setPalette(this.foreground.getSpritePalette(sprite));
-          pixel.setPriority(this.foreground.getSpritePriority(sprite));
-
-          if (pixel.getWord() !== 0) {    // If pixel is not transparent, it is rendered and rest is skipped because highest priority pixel comes before others
-            if (i === 0) {
-              this.foreground.setSpriteZeroBeingRendered(true);
-            }
-            break;
-          }
-        }
-      }
+      return this.foreground.getPixel();
     }
-    return pixel;
+    return new Pixel(0x00, Type.FOREGROUND, 0x00);
   }
 
   /**

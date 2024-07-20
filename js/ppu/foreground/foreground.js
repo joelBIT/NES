@@ -1,5 +1,6 @@
 import { Shifter } from "./shifter.js";
 import { OAM } from "./oam.js";
+import { Pixel, Type } from "../pixel.js";
 
 /**
  * The foreground consists of sprites. The NES supports 64 8x8 pixel sprites or 64 8x16 pixel sprites.
@@ -13,6 +14,7 @@ export class Foreground {
   spriteZeroHitPossible = false;
   spriteZeroBeingRendered = false;
   OAM = new OAM();        // Contains approximately 64 sprites (256 bytes), where each sprite's information occupies 4 bytes
+  SPRITE_BYTES = 4;
 
   setPatternLow(index, data) {
     this.shifter.setPatternLow(index, data);
@@ -20,10 +22,6 @@ export class Foreground {
 
   setPatternHigh(index, data) {
     this.shifter.setPatternHigh(index, data);
-  }
-
-  getSpritePixel(index) {
-    return this.shifter.getPixel(index);
   }
 
   shift(index) {
@@ -70,11 +68,7 @@ export class Foreground {
     return this.spriteZeroHitPossible;
   }
 
-  setSpriteZeroBeingRendered(value) {
-    this.spriteZeroBeingRendered = value;
-  }
-
-  isSpriteZeroBeingRendered () {
+  isSpriteZeroBeingRendered() {
     return this.spriteZeroBeingRendered;
   }
 
@@ -114,7 +108,7 @@ export class Foreground {
   }
 
   spriteShift() {
-    for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += 4) {
+    for (let i = 0, sprite = 0; i < this.OAM.getSpriteCount(); i++, sprite += this.SPRITE_BYTES) {
       if (this.OAM.getCoordinateX(sprite) > 0) {
         this.OAM.decrementCoordinateX(sprite);
       } else {
@@ -148,12 +142,31 @@ export class Foreground {
     return this.OAM.getCoordinateX(sprite);
   }
 
-  getSpritePalette(sprite) {
-    return this.OAM.getSpritePalette(sprite);
-  }
+  /**
+   * Check if any pixel has 0 as an X coordinate (means it should be rendered). The pixels are in priority order so the
+   * first occurrence of a pixel with X coordinate 0 is the one that should be rendered (given that the pixel is not
+   * transparent). The rest of the pixels are skipped and this method returns.
+   *
+   * @returns {Pixel}     the pixel to be rendered. An empty pixel if none is to be rendered.
+   */
+  getPixel() {
+    let pixel = new Pixel(0x00, Type.FOREGROUND, 0x00);
+    this.spriteZeroBeingRendered = false;
+    for (let i = 0, sprite = 0; i < this.getSpriteCount(); i++, sprite += this.SPRITE_BYTES) {
+      if (this.getCoordinateX(sprite) === 0) {
+        pixel.setWord(this.shifter.getPixel(i));
+        pixel.setPalette(this.OAM.getSpritePalette(sprite));
+        pixel.setPriority(this.OAM.getSpritePriority(sprite));
 
-  getSpritePriority(sprite) {
-    return this.OAM.getSpritePriority(sprite);
+        if (pixel.getWord() !== 0) {    // If pixel is not transparent, it is rendered and rest is skipped because highest priority pixel comes before others
+          if (i === 0) {
+            this.spriteZeroBeingRendered = true;
+          }
+          break;
+        }
+      }
+    }
+    return pixel;
   }
 
   reset() {
