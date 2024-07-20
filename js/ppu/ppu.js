@@ -168,9 +168,7 @@ class PPU {
 
       // We leave the vertical blank period when we are at the top left of the screen, which is when scanline is -1 and cycle = 1
       if (this.scanline === -1 && this.cycle === 1) {
-        this.statusRegister.clearVerticalBlank();        // Effectively start of new frame, so clear vertical blank flag
-        this.statusRegister.clearSpriteOverflow();
-        this.statusRegister.clearSpriteZeroHit();
+        this.statusRegister.reset();
         this.foreground.clearShifters();
       }
 
@@ -440,7 +438,7 @@ class PPU {
         this.foreground.writeOAM(data);
         break;
       case 0x0005: // Scroll
-        if (this.addressLatch === 0) {      // Address latch is used to indicate if I am writing to the low byte or the high byte
+        if (this.addressLatch === 0) {      // Address latch is used to indicate if write is to the low byte or the high byte
           this.background.setFineX(data & 0x07);
           this.scrollTRAM.setCoarseX(data >> 3);
           this.addressLatch = 1;
