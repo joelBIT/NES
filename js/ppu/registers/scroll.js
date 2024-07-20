@@ -154,6 +154,27 @@ export class ScrollRegister {
     return attributeByte;
   }
 
+  /**
+   * Transfer the Y address from another Scroll Register to this Register.
+   *
+   * @param scrollRegister    the Scroll Register containing the Y address
+   */
+  transferAddressY(scrollRegister) {
+    this.setFineY(scrollRegister.getFineY());
+    this.setNameTableY(scrollRegister.getNameTableY());
+    this.setCoarseY(scrollRegister.getCoarseY());
+  }
+
+  /**
+   * Transfer the X address from another Scroll Register to this Register.
+   *
+   * @param scrollRegister    the Scroll Register containing the X address
+   */
+  transferAddressX(scrollRegister) {
+    this.setNameTableX(scrollRegister.getNameTableX());
+    this.setCoarseX(scrollRegister.getCoarseX());
+  }
+
   reset() {
     this.scroll[0] = 0x0000;
   }

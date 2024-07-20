@@ -97,16 +97,13 @@ class PPU {
    */
   transferAddressX() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      this.scrollVRAM.setNameTableX(this.scrollTRAM.getNameTableX());
-      this.scrollVRAM.setCoarseX(this.scrollTRAM.getCoarseX());
+      this.scrollVRAM.transferAddressX(this.scrollTRAM);
     }
   }
 
   transferAddressY() {
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      this.scrollVRAM.setFineY(this.scrollTRAM.getFineY());
-      this.scrollVRAM.setNameTableY(this.scrollTRAM.getNameTableY());
-      this.scrollVRAM.setCoarseY(this.scrollTRAM.getCoarseY());
+      this.scrollVRAM.transferAddressY(this.scrollTRAM);
     }
   }
 
