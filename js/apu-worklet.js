@@ -23,11 +23,7 @@ export class NesApuProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.port.onmessage = (e) => {
-      if (e.data.reset) {
-        this.reset();
-      } else {
-        this.apu.write(e.data.address, e.data.data);
-      }
+      this.apu.write(e.data.address, e.data.data);
     }
   }
 

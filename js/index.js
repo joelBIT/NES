@@ -59,7 +59,6 @@ function readFile(event) {
   try {
     worker.postMessage({event: 'readFile', data: event.target.result});
     audioContext.resume();
-    nesWorkletNode.port.postMessage({reset: 'true'});
   } catch (e) {
     console.log(e);
   }

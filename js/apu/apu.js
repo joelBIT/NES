@@ -302,7 +302,7 @@ export class APU {
     }
   }
 
-  readByCPU(address) {
+  read(address) {
     return 0x00;
   }
 
