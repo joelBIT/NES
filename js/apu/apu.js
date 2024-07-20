@@ -307,7 +307,19 @@ export class APU {
   }
 
   reset() {
-
+    this.triangleChannel.reset();
+    this.noiseChannel.reset();
+    this.squareChannel2.reset();
+    this.squareChannel1.reset();
+    this.globalTime = 0.0;
+    this.frameClockCounter[0] = 0x00000000;
+    this.clockCounter[0] = 0x00000000;
+    this.square1Output = 0.0;
+    this.square2Output = 0.0;
+    this.triangleOutput = 0.0;
+    this.triReloadLinear = false;
+    this.triLinearReload = 0;
+    this.noiseOutput = 0.0;
   }
 }
 

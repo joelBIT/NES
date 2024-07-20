@@ -95,4 +95,15 @@ export class NoiseChannel {
     }
     return this.output;
   }
+
+  reset() {
+    this.enabled = false;
+    this.halted = false;
+    this.lengthCounter.reset();
+    this.envelope.reset();
+    this.sequencer.reset();
+    this.output = 0.0;
+    this.shift = 1;
+    this.tonal = false;
+  }
 }

@@ -58,4 +58,12 @@ export class Sequencer {
   getSequence() {
     return this.sequence[0];
   }
+
+  reset() {
+    this.sequence[0] = 0x00000000;
+    this.outputWaveForm[0] = 0x00000000;
+    this.timer[0] = 0x0000;
+    this.reload[0] = 0x0000;
+    this.output[0] = 0x00;
+  }
 }

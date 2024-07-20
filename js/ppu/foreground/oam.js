@@ -191,7 +191,7 @@ export class OAM {
    * @returns {number}  the palette (4 to 7) of the sprite
    */
   getSpritePalette(index) {
-    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x03) + 0x04;     // OAE attributes (byte 2)
+    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x03) + 0x04;
   }
 
   /**
@@ -201,7 +201,7 @@ export class OAM {
    * @returns {number}  1 if sprite is in front of the background; 0 if sprite is behind the background
    */
   getSpritePriority(index) {
-    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x20) === 0 ? 1 : 0;    // OAE attributes (byte 2)
+    return (this.secondaryOAM[index + this.ATTRIBUTES_BYTE] & 0x20) === 0 ? 1 : 0;
   }
 
   reset() {

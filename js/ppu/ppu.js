@@ -45,7 +45,7 @@ class PPU {
   scanline = 0;     // Represent which row of the screen, a scanline is 1 pixel high
   cycle = 0;        // Represent current column of the screen
   frameComplete = false;
-  addressLatch = 0x00;      // This is used to govern writing to the low byte or high byte
+  addressLatch = 0x00;      // Address latch is used to indicate if write is to the low byte or the high byte
   dataBuffer;   // When we read data from the PPU it is delayed by 1 cycle so we need to buffer that byte
 
   // Background rendering
@@ -246,12 +246,11 @@ class PPU {
       }
     }
 
-    let { pixel, palette } = this.getPrioritizedPixel();
-
     if (this.cycle >= 1 && this.cycle < 258) {
       this.checkIfSpriteZeroHit();
     }
 
+    let { pixel, palette } = this.getPrioritizedPixel();
     this.canvas.setCanvasImageData(this.cycle - 1, this.scanline, this.getColor(palette, pixel));
 
     this.cycle++;
@@ -438,7 +437,7 @@ class PPU {
         this.foreground.writeOAM(data);
         break;
       case 0x0005: // Scroll
-        if (this.addressLatch === 0) {      // Address latch is used to indicate if write is to the low byte or the high byte
+        if (this.addressLatch === 0) {
           this.background.setFineX(data & 0x07);
           this.scrollTRAM.setCoarseX(data >> 3);
           this.addressLatch = 1;

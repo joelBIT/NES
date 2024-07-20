@@ -62,4 +62,15 @@ export class Sweeper {
     }
     this.muted = (target < 8) || (target > 0x7FF);
   }
+
+  reset() {
+    this.enabled = false;
+    this.down = false;
+    this.reload = false;
+    this.shift = 0x00;
+    this.timer = 0x00;
+    this.period = 0x00;
+    this.change[0] = 0x0000;
+    this.muted = false;
+  }
 }

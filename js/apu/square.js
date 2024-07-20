@@ -185,4 +185,20 @@ export class SquareChannel {
     }
     return this.output;
   }
+
+  reset() {
+    this.frequency = 0.0;
+    this.dutyCycle = 0.0;
+    this.amplitude = 1;
+    this.pi = 3.14159;
+    this.harmonics = 20;
+    this.enabled = false;
+    this.halted = false;
+    this.linearCounter.reset();
+    this.lengthCounter.reset();
+    this.output = 0.0;
+    this.sequencer.reset();
+    this.envelope.reset();
+    this.sweeper.reset();
+  }
 }

@@ -35,4 +35,9 @@ export class LengthCounter {
   clear() {
     this.counter[0] = 0;
   }
+
+  reset() {
+    this.counter[0] = 0;
+    this.halted = false;
+  }
 }

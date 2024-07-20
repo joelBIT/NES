@@ -53,4 +53,13 @@ export class Envelope {
       this.output[0] = this.decayCount[0];
     }
   }
+
+  reset() {
+    this.started = false;
+    this.disabled = false;
+    this.dividerCount[0] = 0x0000;
+    this.volume[0] = 0x0000;
+    this.output[0] = 0x0000;
+    this.decayCount[0] = 0x0000;
+  }
 }
