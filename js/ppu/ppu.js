@@ -339,11 +339,10 @@ class PPU {
    *  A pixel to be rendered in the background. Returns an empty pixel if background is not supposed to be rendered.
    */
   getBackgroundPixel() {
-    let emptyPixel = new Pixel(0x00, Type.EMPTY, 0x00);
     if (this.maskRegister.getRenderBackground() && (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9))) {
       return this.background.getPixel();
     }
-    return emptyPixel;
+    return new Pixel(0x00, Type.EMPTY, 0x00);
   }
 
   /**
