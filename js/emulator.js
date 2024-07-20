@@ -27,6 +27,7 @@ self.onmessage = function(message) {
     case 'readFile':
       const rom = new Uint8Array(message.data.data);
       cancelAnimationFrame(animationFrameID);
+      postMessage({address: 0x5000, data: 'reset'});      // Reset the APU
       try {
         bus.insertCartridge(new Cartridge(rom));
       } catch (e) {

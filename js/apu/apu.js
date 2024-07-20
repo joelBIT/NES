@@ -299,6 +299,13 @@ export class APU {
 
       case 0x4017:
         break;
+
+      case 0x5000:
+        if (data === 'reset') {
+          console.log('RESET');
+          this.reset();
+        }
+        break;
     }
   }
 

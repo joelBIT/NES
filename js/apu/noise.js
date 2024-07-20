@@ -102,6 +102,7 @@ export class NoiseChannel {
     this.lengthCounter.reset();
     this.envelope.reset();
     this.sequencer.reset();
+    this.sequencer.setSequence(0xDBDB);
     this.output = 0.0;
     this.shift = 1;
     this.tonal = false;
