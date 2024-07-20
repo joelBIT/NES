@@ -356,10 +356,8 @@ class PPU {
    */
   getBackgroundPixel() {
     let emptyPixel = new Pixel(0x00, Type.EMPTY, 0x00);
-    if (this.maskRegister.getRenderBackground()) {
-      if (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9)) {
-        return this.background.getPixel();
-      }
+    if (this.maskRegister.getRenderBackground() && (this.maskRegister.getRenderBackgroundLeft() || (this.cycle >= 9))) {
+      return this.background.getPixel();
     }
     return emptyPixel;
   }
