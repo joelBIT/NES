@@ -184,7 +184,9 @@ export class APU {
         this.squareChannel1.setReloadValue(((data & 0x07) << 8) | (this.squareChannel1.getSequencerReload() & 0x00FF));
         this.squareChannel1.reloadTimer();
         this.squareChannel1.setSequence();
-        this.squareChannel1.setCounter((data & 0xF8) >> 3);
+        if (this.squareChannel1.isEnabled()) {
+          this.squareChannel1.setCounter((data & 0xF8) >> 3);
+        }
         this.squareChannel1.startEnvelope(true);
         break;
 
@@ -302,7 +304,6 @@ export class APU {
 
       case 0x5000:
         if (data === 'reset') {
-          console.log('RESET');
           this.reset();
         }
         break;
