@@ -32,6 +32,9 @@ export class APU {
   noiseOutput = 0.0;
   noiseChannel = new NoiseChannel();
 
+  // DMC channel
+  dmcOutput = 0.0;
+
   /**
    * All output samples from the channels get mixed together.
    */
@@ -185,11 +188,11 @@ export class APU {
 
       case 0x4004:
         this.squareChannel2.setDuty((data & 0xC0) >> 6);
-        this.squareChannel2.setSequence();
         this.squareChannel2.setHalt(data & 0x20);
         this.squareChannel2.setVolume(data & 0x0F);
         this.squareChannel2.disableEnvelope(data & 0x10);
         this.squareChannel2.haltCounter(data & 0x20);
+        this.squareChannel2.setSequence();
         break;
 
       case 0x4005:
@@ -207,6 +210,7 @@ export class APU {
           this.squareChannel2.setCounter((data & 0xF8) >> 3);
         }
         this.squareChannel2.startEnvelope();
+        this.squareChannel2.setSequence();
         break;
 
         /*
@@ -253,7 +257,9 @@ export class APU {
 
       case 0x400F:
         this.noiseChannel.startEnvelope();
-        this.noiseChannel.setCounter((data & 0xF8) >> 3);
+        if (this.noiseChannel.isEnabled()) {
+          this.noiseChannel.setCounter((data & 0xF8) >> 3);
+        }
         break;
 
 
