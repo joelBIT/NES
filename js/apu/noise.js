@@ -34,8 +34,8 @@ export class NoiseChannel {
     this.envelope.setDisable(disable);
   }
 
-  startEnvelope(start) {
-    this.envelope.setStart(start);
+  startEnvelope() {
+    this.envelope.start();
   }
 
   clockCounter() {

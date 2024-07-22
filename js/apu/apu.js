@@ -183,7 +183,7 @@ export class APU {
         if (this.squareChannel1.isEnabled()) {
           this.squareChannel1.setCounter((data & 0xF8) >> 3);
         }
-        this.squareChannel1.startEnvelope(true);
+        this.squareChannel1.startEnvelope();
         break;
 
 
@@ -215,7 +215,7 @@ export class APU {
         this.squareChannel2.reloadTimer();
         this.squareChannel2.setSequence();
         this.squareChannel2.setCounter((data & 0xF8) >> 3);
-        this.squareChannel2.startEnvelope(true);
+        this.squareChannel2.startEnvelope();
         break;
 
         /*
@@ -267,7 +267,7 @@ export class APU {
         break;
 
       case 0x400F:
-        this.noiseChannel.startEnvelope(true);
+        this.noiseChannel.startEnvelope();
         this.noiseChannel.setCounter((data & 0xF8) >> 3);
         break;
 

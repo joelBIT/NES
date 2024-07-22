@@ -65,8 +65,8 @@ export class SquareChannel {
     this.lengthCounter.setHalt(halt);
   }
 
-  startEnvelope(start) {
-    this.envelope.setStart(start);
+  startEnvelope() {
+    this.envelope.start();
   }
 
   setSequence() {

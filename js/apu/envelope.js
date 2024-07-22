@@ -18,8 +18,8 @@ export class Envelope {
     return this.output[0];
   }
 
-  setStart(start) {
-    this.started = start;
+  start() {
+    this.started = true;
   }
 
   setDisable(disable) {
