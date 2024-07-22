@@ -22,7 +22,7 @@ export class APU {
 
   //  Square wave 2 channel
   square2Output = 0.0;
-  squareChannel2 = new SquareChannel(1);
+  squareChannel2 = new SquareChannel(2);
 
   // Triangle channel
   triangleOutput = 0.0;

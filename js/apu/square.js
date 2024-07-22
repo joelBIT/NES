@@ -45,7 +45,7 @@ export class SquareChannel {
   envelope = new Envelope();
   sweeper = new Sweeper();
 
-  constructor(id = 0) {
+  constructor(id = 1) {
     this.id = id;
   }
 

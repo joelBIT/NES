@@ -44,10 +44,11 @@ export class Sweeper {
    * @param channel       the channel invoking this method
    * @returns {*}         the target period for the sequencer
    */
-  clock(target, channel) {
+  clock(target, channel = 0) {
     if (this.timer === 0 && this.enabled && this.shift > 0 && !this.muted) {
       if (target >= 8 && this.change[0] < 0x07FF) {
         if (this.negate) {
+          channel = channel === 1 ? 1 : 0;      // Only channel 1 should subtract 1 from change[0]
           target -= this.change[0] - channel;
         } else {
           target += this.change[0];
