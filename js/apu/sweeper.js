@@ -16,6 +16,13 @@ export class Sweeper {
   /**
    * Initializes this Sweeper.
    *
+   *  76543210
+   *  ||||||||
+   *  |||||+++--  Shift count. If 0, then behaves like E=0 (enabled = false)
+   *  ||||+-----  Negate flag (false: add to period, sweeping toward lower frequencies; true: subtract from period, sweeping toward higher frequencies)
+   *  |+++------  The divider's period is P + 1 half-frames
+   *  +---------  Enabled flag
+   *
    * @param data    the byte containing the initialization bits.
    */
   setup(data) {

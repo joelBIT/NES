@@ -1,6 +1,19 @@
 
 /**
- * Envelope describes how the sound changes over time.
+ * Envelope describes how the sound changes over time. The NES APU has an envelope generator that controls the volume in
+ * one of two ways: it can generate a decreasing saw envelope with optional looping, or it can generate a constant volume.
+ *
+ *                                             Loop flag
+ *                                                  |
+ *                         Start flag  +--------.   |   Constant volume
+ *                                     |        |   |        flag
+ *                                     v        v   v          |
+ *          Quarter frame clock --> Divider --> Decay --> |    |
+ *                                     ^        level     |    v
+ *                                     |                  | Select --> Envelope output
+ *                                     |                  |
+ *                  Envelope parameter +----------------> |
+ *
  */
 export class Envelope {
   started = false;
