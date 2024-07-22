@@ -39,16 +39,15 @@ export class Envelope {
     this.disabled = disable;
   }
 
-  clock(loop) {
+  clock(channelHalted) {
     if (!this.started) {
       if (this.dividerCount[0] === 0) {
         this.dividerCount[0] = this.volume[0];
 
         if (this.decayCount[0] === 0) {
-          if (loop) {
+          if (channelHalted) {
             this.decayCount[0] = 15;
           }
-
         } else {
           this.decayCount[0]--;
         }

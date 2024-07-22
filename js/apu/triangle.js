@@ -18,6 +18,7 @@ import { Sequencer } from "./sequencer.js";
 export class TriangleChannel {
   enabled = false;
   halted = false;
+  reloadLinear = false;
 
   sequenceTable = [0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0,
     0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF];
@@ -25,8 +26,9 @@ export class TriangleChannel {
   linearCounter = new LengthCounter();    // gives the triangle shaped waveform.
   lengthCounter = new LengthCounter();
   output = 0.0;
-  index = 0;      // index for sequence array
+  index = 0;
   sequencer = new Sequencer();
+  linearCounterReloadValue = new Uint8Array(1);
 
   setSequence() {
     this.sequencer.setSequence();
@@ -56,6 +58,10 @@ export class TriangleChannel {
     this.lengthCounter.setCounter(index);
   }
 
+  setLinearCounter(value) {
+    this.linearCounterReloadValue[0] = value;
+  }
+
   setEnable(enable) {
     this.enabled = enable;
   }
@@ -68,16 +74,19 @@ export class TriangleChannel {
     this.halted = halt;
   }
 
-  isHalted() {
-    return this.halted;
+  setReloadLinear() {
+    this.reloadLinear = true;
   }
 
-  getLinearCounterValue() {
-    return this.linearCounter.getCounter();
-  }
-
-  decrementLinearCounter() {
-    this.linearCounter.decrementCounter();
+  clockLinearCounter() {
+    if (this.reloadLinear) {
+      this.linearCounter.setCustomCounter(this.linearCounterReloadValue[0]);
+    } else if (this.linearCounter.getCounter() !== 0) {
+        this.linearCounter.clock(this.enabled);
+    }
+    if (!this.halted) {
+      this.reloadLinear = false;
+    }
   }
 
   clock() {
@@ -109,9 +118,11 @@ export class TriangleChannel {
     this.linearCounter.reset();
     this.lengthCounter.reset();
     this.output = 0.0;
+    this.linearCounterReloadValue[0] = 0;
     this.index = 0;
     this.sequencer.reset();
     this.enabled = false;
+    this.reloadLinear = false;
     this.halted = false;
   }
 }

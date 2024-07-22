@@ -33,6 +33,11 @@ export class Sweeper {
     this.reload = true;
   }
 
+  /**
+   * Muting means that the pulse channel sends 0 to the mixer instead of the current volume.
+   *
+   * @returns {boolean}   true if pulse channel should send 0 to the mixer, false otherwise
+   */
   isMuted() {
     return this.muted;
   }

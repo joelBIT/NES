@@ -83,15 +83,7 @@ export class APU {
         this.squareChannel2.clockEnvelope();
         this.noiseChannel.clockEnvelope();
 
-        // handle triangle linear counter
-        if (this.triReloadLinear) {
-          //this.triangleChannel.linearCounter.counter[0] = this.triLinearReload;
-        } else if (this.triangleChannel.getLinearCounterValue() !== 0) {
-          this.triangleChannel.decrementLinearCounter();
-        }
-        if (!this.triangleChannel.isHalted()) {
-          this.triReloadLinear = false;
-        }
+        this.triangleChannel.clockLinearCounter();
       }
 
       // Half frame "beats" adjust the note length and frequency sweepers
@@ -112,7 +104,7 @@ export class APU {
       this.square2Output = this.squareChannel2.getOutput(this.globalTime);
 
       this.triangleChannel.clock();
-      this.triangleOutput = this.triangleChannel.getOutput(this.globalTime);
+      this.triangleOutput = this.triangleChannel.getOutput();
 
       this.noiseChannel.clock();
       this.noiseOutput = this.noiseChannel.getOutput();
@@ -214,7 +206,9 @@ export class APU {
         this.squareChannel2.setReloadValue(((data & 0x07) << 8) | (this.squareChannel2.getSequencerReload() & 0x00FF));
         this.squareChannel2.reloadTimer();
         this.squareChannel2.setSequence();
-        this.squareChannel2.setCounter((data & 0xF8) >> 3);
+        if (this.squareChannel2.isEnabled()) {
+          this.squareChannel2.setCounter((data & 0xF8) >> 3);
+        }
         this.squareChannel2.startEnvelope();
         break;
 
@@ -226,15 +220,9 @@ export class APU {
 
       case 0x4008:
         this.triangleChannel.setHalt(data & 0x80);
-        //this.triangleLinearCounter.counter[0] = (data & 0x7F);
-        this.triLinearReload = data & 0x7F;
+        //this.triangleChannel.setLinearCounter(data & 0x7F);
         break;
 
-      /**
-       * $400A and $400B control the period of the wave, or in other words what note you hear (A, C#, G, etc).
-       * Like the Squares, Triangle periods are 11-bits long. $400A holds the low 8-bits
-       * and $400B holds the high 3-bits of the period.
-       */
       case 0x400A:
         this.triangleChannel.setReloadValue((this.triangleChannel.getSequencerReload() & 0xFF00) | data);
         break;
@@ -246,7 +234,7 @@ export class APU {
         if (this.triangleChannel.isEnabled()) {
           this.triangleChannel.setCounter((data & 0xF8) >> 3);
         }
-        this.triReloadLinear = true;
+        this.triangleChannel.setReloadLinear();
         break;
 
         /*
