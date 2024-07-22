@@ -5,7 +5,7 @@
  */
 export class Sweeper {
   enabled = false;
-  down = false;
+  negate = false;
   reload = false;
   shift = 0x00;
   timer = 0x00;
@@ -21,7 +21,7 @@ export class Sweeper {
   setup(data) {
     this.enabled = data & 0x80;
     this.period = (data & 0x70) >> 4;
-    this.down = data & 0x08;
+    this.negate = data & 0x08;
     this.shift = data & 0x07;
     this.reload = true;
   }
@@ -37,10 +37,17 @@ export class Sweeper {
     }
   }
 
+  /**
+   * Calculates the target period for a given channel.
+   *
+   * @param target        the current reload value of the sequencer
+   * @param channel       the channel invoking this method
+   * @returns {*}         the target period for the sequencer
+   */
   clock(target, channel) {
     if (this.timer === 0 && this.enabled && this.shift > 0 && !this.muted) {
       if (target >= 8 && this.change[0] < 0x07FF) {
-        if (this.down) {
+        if (this.negate) {
           target -= this.change[0] - channel;
         } else {
           target += this.change[0];
@@ -55,11 +62,13 @@ export class Sweeper {
       this.timer--;
     }
     this.muted = (target < 8) || (target > 0x7FF);
+
+    return target;
   }
 
   reset() {
     this.enabled = false;
-    this.down = false;
+    this.negate = false;
     this.reload = false;
     this.shift = 0x00;
     this.timer = 0x00;

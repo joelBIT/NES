@@ -45,12 +45,12 @@ export class SquareChannel {
   envelope = new Envelope();
   sweeper = new Sweeper();
 
-  constructor(id = 1) {
+  constructor(id = 0) {
     this.id = id;
   }
 
   clockSweeper() {
-    this.sweeper.clock(this.sequencer.getReload(), this.id);
+    this.sequencer.setReloadValue(this.sweeper.clock(this.sequencer.getReload(), this.id));
   }
 
   setVolume(volume) {
