@@ -22,7 +22,7 @@ export class APU {
 
   //  Square wave 2 channel
   square2Output = 0.0;
-  squareChannel2 = new SquareChannel();
+  squareChannel2 = new SquareChannel(2);
 
   // Triangle channel
   triangleOutput = 0.0;
@@ -99,8 +99,8 @@ export class APU {
         this.squareChannel1.clockCounter();
         this.squareChannel2.clockCounter();
         this.noiseChannel.clockCounter();
-        this.squareChannel1.clockSweeper(0);
-        this.squareChannel2.clockSweeper(1);
+        this.squareChannel1.clockSweeper();
+        this.squareChannel2.clockSweeper();
 
         this.triangleChannel.clockCounter();
       }
@@ -169,11 +169,7 @@ export class APU {
         break;
 
       case 0x4001:
-        this.squareChannel1.setSweeperEnable(data & 0x80);
-        this.squareChannel1.setSweeperPeriod((data & 0x70) >> 4);
-        this.squareChannel1.setSweeperDown(data & 0x08);
-        this.squareChannel1.setSweeperShift(data & 0x07);
-        this.squareChannel1.setSweeperReload(true);
+        this.squareChannel1.setSweeper(data);
         break;
 
       case 0x4002:
@@ -207,11 +203,7 @@ export class APU {
         break;
 
       case 0x4005:
-        this.squareChannel2.setSweeperEnable(data & 0x80);
-        this.squareChannel2.setSweeperPeriod((data & 0x70) >> 4);
-        this.squareChannel2.setSweeperDown(data & 0x08);
-        this.squareChannel2.setSweeperShift(data & 0x07);
-        this.squareChannel2.setSweeperReload(true);
+        this.squareChannel2.setSweeper(data);
         break;
 
       case 0x4006:
@@ -278,6 +270,16 @@ export class APU {
         this.noiseChannel.startEnvelope(true);
         this.noiseChannel.setCounter((data & 0xF8) >> 3);
         break;
+
+
+
+      /*
+         ***************************
+         | Enable/Disable Channels |
+         ***************************
+     */
+
+
 
       case 0x4015:
         this.squareChannel1.setEnable(data & 0x01);

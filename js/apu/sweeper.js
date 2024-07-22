@@ -1,6 +1,7 @@
 
 /**
- * Sweeper produces a continuous bend from one pitch to another.
+ * Sweeper produces a continuous bend from one pitch to another. An NES APU sweep unit can be made to periodically
+ * adjust a pulse channel's period up or down.
  */
 export class Sweeper {
   enabled = false;
@@ -12,28 +13,21 @@ export class Sweeper {
   change = new Uint16Array(1);
   muted = false;
 
-  setReload(reload) {
-    this.reload = reload;
+  /**
+   * Initializes this Sweeper.
+   *
+   * @param data    the byte containing the initialization bits.
+   */
+  setup(data) {
+    this.enabled = data & 0x80;
+    this.period = (data & 0x70) >> 4;
+    this.down = data & 0x08;
+    this.shift = data & 0x07;
+    this.reload = true;
   }
 
   isMuted() {
     return this.muted;
-  }
-
-  setShift(shift) {
-    this.shift = shift;
-  }
-
-  setEnable(enable) {
-    this.enabled = enable;
-  }
-
-  setDown(down) {
-    this.down = down;
-  }
-
-  setPeriod(period) {
-    this.period = period;
   }
 
   track(target) {

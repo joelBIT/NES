@@ -26,6 +26,7 @@ import { Sweeper } from "./sweeper.js";
  *
  */
 export class SquareChannel {
+  id;
   frequency = 0.0;
   dutyCycle = 0.0;
   amplitude = 1;
@@ -44,8 +45,12 @@ export class SquareChannel {
   envelope = new Envelope();
   sweeper = new Sweeper();
 
-  clockSweeper(channel) {
-    this.sweeper.clock(this.sequencer.reload[0], channel);
+  constructor(id = 1) {
+    this.id = id;
+  }
+
+  clockSweeper() {
+    this.sweeper.clock(this.sequencer.getReload(), this.id);
   }
 
   setVolume(volume) {
@@ -64,28 +69,12 @@ export class SquareChannel {
     this.envelope.setStart(start);
   }
 
-  setSweeperPeriod(period) {
-    this.sweeper.setPeriod(period);
-  }
-
-  setSweeperShift(shift) {
-    this.sweeper.setShift(shift);
-  }
-
   setSequence() {
     this.sequencer.setSequence();
   }
 
-  setSweeperDown(down) {
-    this.sweeper.setDown(down);
-  }
-
-  setSweeperEnable(enable) {
-    this.sweeper.setEnable(enable);
-  }
-
-  setSweeperReload(reload) {
-    this.sweeper.setReload(reload);
+  setSweeper(data) {
+    this.sweeper.setup(data);
   }
 
   setDuty(index) {
@@ -148,13 +137,13 @@ export class SquareChannel {
     return 20.785 * j * (j - 0.5) * (j - 1.0);
   };
 
-  sample(t) {
+  sample(time) {
     let a = 0.0;
     let b = 0.0;
     let p = this.dutyCycle * 2.0 * this.pi;
 
     for (let n = 1; n < this.harmonics; n++) {
-      let c = n * this.frequency * 2.0 * this.pi * t;
+      let c = n * this.frequency * 2.0 * this.pi * time;
       a += -this.approxsin(c) / n;
       b += -this.approxsin(c - p * n) / n;
     }
@@ -190,7 +179,6 @@ export class SquareChannel {
     this.frequency = 0.0;
     this.dutyCycle = 0.0;
     this.amplitude = 1;
-    this.harmonics = 20;
     this.enabled = false;
     this.halted = false;
     this.linearCounter.reset();
