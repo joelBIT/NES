@@ -27,8 +27,6 @@ export class APU {
   // Triangle channel
   triangleOutput = 0.0;
   triangleChannel = new TriangleChannel();
-  triReloadLinear = false;
-  triLinearReload = 0;
 
   //  Noise channel
   noiseOutput = 0.0;
@@ -83,7 +81,7 @@ export class APU {
         this.squareChannel2.clockEnvelope();
         this.noiseChannel.clockEnvelope();
 
-        this.triangleChannel.clockLinearCounter();
+        this.triangleChannel.clockLinearCounter();    // The linear counter is clocked at 240 Hz (1/4 framerate)
       }
 
       // Half frame "beats" adjust the note length and frequency sweepers
@@ -205,7 +203,6 @@ export class APU {
       case 0x4007:
         this.squareChannel2.setReloadValue(((data & 0x07) << 8) | (this.squareChannel2.getSequencerReload() & 0x00FF));
         this.squareChannel2.reloadTimer();
-        this.squareChannel2.setSequence();
         if (this.squareChannel2.isEnabled()) {
           this.squareChannel2.setCounter((data & 0xF8) >> 3);
         }
@@ -219,8 +216,8 @@ export class APU {
         */
 
       case 0x4008:
-        this.triangleChannel.setHalt(data & 0x80);
-        //this.triangleChannel.setLinearCounter(data & 0x7F);
+        this.triangleChannel.setHalt(data & 0x80);    // Length counter halt / linear counter start
+        //this.triangleChannel.setLinearCounterReloadValue(data & 0x7F);
         break;
 
       case 0x400A:
@@ -315,8 +312,6 @@ export class APU {
     this.square1Output = 0.0;
     this.square2Output = 0.0;
     this.triangleOutput = 0.0;
-    this.triReloadLinear = false;
-    this.triLinearReload = 0;
     this.noiseOutput = 0.0;
   }
 }

@@ -17,7 +17,7 @@ import { Sequencer } from "./sequencer.js";
  */
 export class TriangleChannel {
   enabled = false;
-  halted = false;
+  halted = false;         // Length counter halt / linear counter start
   reloadLinear = false;
 
   sequenceTable = [0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0,
@@ -58,7 +58,7 @@ export class TriangleChannel {
     this.lengthCounter.setCounter(index);
   }
 
-  setLinearCounter(value) {
+  setLinearCounterReloadValue(value) {
     this.linearCounterReloadValue[0] = value;
   }
 
@@ -72,6 +72,7 @@ export class TriangleChannel {
 
   setHalt(halt) {
     this.halted = halt;
+    this.lengthCounter.setHalt(halt);
   }
 
   setReloadLinear() {
@@ -81,7 +82,7 @@ export class TriangleChannel {
   clockLinearCounter() {
     if (this.reloadLinear) {
       this.linearCounter.setCustomCounter(this.linearCounterReloadValue[0]);
-    } else if (this.linearCounter.getCounter() !== 0) {
+    } else if (this.linearCounter.getCounter() !== 0 && this.halted) {
         this.linearCounter.clock(this.enabled);
     }
     if (!this.halted) {

@@ -1,5 +1,8 @@
 /**
- * Length Counter
+ * Length Counter. When the length counter reaches zero, the channel is silenced.
+ * The triangle channel has an additional linear counter unit which is clocked four times per sequence (like the
+ * envelope of the other channels). It functions independently of the length counter, and will also silence the
+ * triangle channel when it reaches zero.
  */
 export class LengthCounter {
   counter = new Uint8Array(1);
@@ -22,6 +25,7 @@ export class LengthCounter {
 
   /**
    * Use this method to set any counter value. This way it is possible to use other lengths than those given in the lengthTable.
+   * Uses the 7-bit value written to $4008 directly instead of a lookup table.
    *
    * @param value       the desired counter value
    */
