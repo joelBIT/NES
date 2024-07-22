@@ -47,7 +47,7 @@ export class TriangleChannel {
   }
 
   getSequencerReload() {
-    return this.sequencer.getReload();
+    return this.sequencer.getReloadValue();
   }
 
   clearCounter() {
@@ -72,7 +72,6 @@ export class TriangleChannel {
 
   setHalt(halt) {
     this.halted = halt;
-    this.lengthCounter.setHalt(halt);
   }
 
   setReloadLinear() {
@@ -82,7 +81,7 @@ export class TriangleChannel {
   clockLinearCounter() {
     if (this.reloadLinear) {
       this.linearCounter.setCustomCounter(this.linearCounterReloadValue[0]);
-    } else if (this.linearCounter.getCounter() > 0 && this.halted) {
+    } else if (this.linearCounter.getCounter() > 0) {
         this.linearCounter.clock(this.enabled);
     }
     if (!this.halted) {
@@ -96,7 +95,7 @@ export class TriangleChannel {
       if (this.sequencer.getTimer() === 0xFFFF) {
         this.sequencer.reloadTimer();
         this.sequencer.setOutput(this.sequenceTable[this.index++]);
-        if (this.sequencer.getReload() < 2) {
+        if (this.sequencer.getReloadValue() < 2) {
           // ultrasonic
           this.sequencer.setOutput(7.5);
         }

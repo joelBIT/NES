@@ -15,7 +15,7 @@ export class Sequencer {
 
   reloadTable = [0, 4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 1016, 2034, 4068];
 
-  setReload(index) {
+  setReloadFromTable(index) {
     this.reload[0] = this.reloadTable[index];
   }
 
@@ -27,7 +27,7 @@ export class Sequencer {
     this.reload[0] = value;
   }
 
-  getReload() {
+  getReloadValue() {
     return this.reload[0];
   }
 

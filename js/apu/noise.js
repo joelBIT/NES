@@ -51,7 +51,7 @@ export class NoiseChannel {
   }
 
   setReload(index) {
-    this.sequencer.setReload(index);
+    this.sequencer.setReloadFromTable(index);
   }
 
   setCounter(index) {

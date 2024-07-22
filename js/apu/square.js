@@ -50,7 +50,7 @@ export class SquareChannel {
   }
 
   clockSweeper() {
-    this.sequencer.setReloadValue(this.sweeper.clock(this.sequencer.getReload(), this.id));
+    this.sequencer.setReloadValue(this.sweeper.clock(this.sequencer.getReloadValue(), this.id));
   }
 
   setVolume(volume) {
@@ -100,11 +100,11 @@ export class SquareChannel {
   }
 
   trackSweeper() {
-    this.sweeper.track(this.sequencer.getReload());
+    this.sweeper.track(this.sequencer.getReloadValue());
   }
 
   getSequencerReload() {
-    return this.sequencer.getReload();
+    return this.sequencer.getReloadValue();
   }
 
   clockEnvelope() {
@@ -163,7 +163,7 @@ export class SquareChannel {
   }
 
   getOutput(time) {
-    this.frequency = 1789773.0 / (16.0 * (this.sequencer.getReload() + 1));
+    this.frequency = 1789773.0 / (16.0 * (this.sequencer.getReloadValue() + 1));
     this.amplitude = (this.envelope.getOutput() - 1) / 16.0;
     const sample = this.sample(time);
 
