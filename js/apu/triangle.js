@@ -83,7 +83,7 @@ export class TriangleChannel {
     if (this.reloadLinear) {
       this.linearCounter.setCustomCounter(this.linearCounterReloadValue[0]);
     } else if (this.linearCounter.getCounter() > 0) {
-        this.linearCounter.decrementCounter();
+        this.linearCounter.clock(this.enabled);
     }
     if (!this.halted) {
       this.reloadLinear = false;
