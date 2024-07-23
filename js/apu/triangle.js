@@ -29,6 +29,7 @@ export class TriangleChannel {
   index = 0;
   sequencer = new Sequencer();
   linearCounterReloadValue = new Uint8Array(1);
+  REDUCE_VOLUME_BY_FACTOR = 12;     // Avoids that the Triangle Channel sounds much louder than the other channels.
 
   setSequence() {
     this.sequencer.setSequence();
@@ -82,22 +83,26 @@ export class TriangleChannel {
     if (this.reloadLinear) {
       this.linearCounter.setCustomCounter(this.linearCounterReloadValue[0]);
     } else if (this.linearCounter.getCounter() > 0) {
-        this.linearCounter.clock(this.enabled);
+        this.linearCounter.decrementCounter();
     }
     if (!this.halted) {
       this.reloadLinear = false;
     }
   }
 
+  /**
+   * The timer is decremented twice due to the Triangle Channel being clocked twice as often as the other channels.
+   */
   clock() {
     if (this.enabled) {
       this.sequencer.decrementTimer();
-      if (this.sequencer.getTimer() === 0xFFFF) {
+      this.sequencer.decrementTimer();
+      if (this.sequencer.getTimer() === 0xFFFF || this.sequencer.getTimer() === 0xFFFE) {
         this.sequencer.reloadTimer();
-        this.sequencer.setOutput(this.sequenceTable[this.index++]);
+        this.sequencer.setOutput(this.sequenceTable[this.index++]/this.REDUCE_VOLUME_BY_FACTOR);
         if (this.sequencer.getReloadValue() < 2) {
           // ultrasonic
-          this.sequencer.setOutput(7.5);
+          this.sequencer.setOutput(7.5/this.REDUCE_VOLUME_BY_FACTOR);
         }
         this.index &= 0x1F;
       }
@@ -118,7 +123,7 @@ export class TriangleChannel {
     this.linearCounter.reset();
     this.lengthCounter.reset();
     this.output = 0.0;
-    this.linearCounterReloadValue[0] = 0;
+    this.linearCounterReloadValue[0] = 0x00;
     this.index = 0;
     this.sequencer.reset();
     this.enabled = false;

@@ -221,7 +221,7 @@ export class APU {
 
       case 0x4008:
         this.triangleChannel.setHalt(data & 0x80);    // Length counter halt / linear counter start
-        //this.triangleChannel.setLinearCounterReloadValue(data & 0x7F);
+        this.triangleChannel.setLinearCounterReloadValue(data & 0x7F);
         break;
 
       case 0x400A:
