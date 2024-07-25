@@ -19,8 +19,8 @@ export class NoiseChannel {
   envelope = new Envelope();
   sequencer = new Sequencer();
   output = 0.0;
-  shift = 1;      // noiseShift = 1;
-  tonal = false;  // noiseTonal = false
+  shift = 1;
+  tonal = false;
 
   constructor() {
     this.sequencer.setSequence(0xDBDB);
@@ -68,10 +68,6 @@ export class NoiseChannel {
 
   setHalt(halt) {
     this.halted = halt;
-  }
-
-  isHalted() {
-    return this.halted;
   }
 
   setTonal(tonal) {

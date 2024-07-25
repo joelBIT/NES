@@ -127,10 +127,6 @@ export class SquareChannel {
     this.halted = halt;
   }
 
-  isHalted() {
-    return this.halted;
-  }
-
   approxsin(t) {
     let j = t * 0.15915;
     j = j - Math.floor(j);
