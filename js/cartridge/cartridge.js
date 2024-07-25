@@ -80,6 +80,7 @@ export class Cartridge {
         this.mapper = new MapperThree(this.programBanks, this.characterBanks);
         break;
       case 4:
+      case 68:    // This is to deal with that Shadowgate is mapper 4 while the Shadowgate ROMS indicate mapper 68
         this.mapper = new MapperFour(this.programBanks, this.characterBanks);
         break;
       case 7:
