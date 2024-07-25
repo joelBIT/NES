@@ -22,6 +22,12 @@ class BankRegister {
       this.register[register] = data;
     }
   }
+
+  reset() {
+    for (let i = 0; i < 8; i++) {
+      this.register[i] = 0x00000000;
+    }
+  }
 }
 
 
@@ -248,33 +254,6 @@ export class MapperFour extends Mapper {
     return false;
   }
 
-  reset() {
-    this.targetBankRegister[0] = 0x00;
-    this.programBankMode = false;
-    this.characterInversion = false;
-    this.mirrorMode = Mirror.HORIZONTAL;
-
-    this.bankRegister = new BankRegister();
-
-    this.irqActive = false;
-    this.irqEnabled = false;
-    this.irqCounter[0] = 0x0000;
-    this.irqLatch[0] = 0x0000;
-
-    for (let i = 0; i < this.programBank.length; i++) {
-      this.programBank[i] = 0;
-    }
-
-    for (let i = 0; i < this.characterBank.length; i++) {
-      this.characterBank[i] = 0;
-    }
-
-    this.programBank[0] = 0;
-    this.programBank[1] = this.EIGHT_KILOBYTE;
-    this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
-  }
-
   irqState() {
     return this.irqActive;
   }
@@ -364,5 +343,32 @@ export class MapperFour extends Mapper {
 
   mirror() {
     return this.mirrorMode;
+  }
+
+  reset() {
+    this.targetBankRegister[0] = 0x00;
+    this.programBankMode = false;
+    this.characterInversion = false;
+    this.mirrorMode = Mirror.HORIZONTAL;
+
+    this.bankRegister.reset();
+
+    this.irqActive = false;
+    this.irqEnabled = false;
+    this.irqCounter[0] = 0x0000;
+    this.irqLatch[0] = 0x0000;
+
+    for (let i = 0; i < this.programBank.length; i++) {
+      this.programBank[i] = 0;
+    }
+
+    for (let i = 0; i < this.characterBank.length; i++) {
+      this.characterBank[i] = 0;
+    }
+
+    this.programBank[0] = 0;
+    this.programBank[1] = this.EIGHT_KILOBYTE;
+    this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
+    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
   }
 }
