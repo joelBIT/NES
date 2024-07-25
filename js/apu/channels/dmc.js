@@ -32,6 +32,7 @@ export class DeltaModulationChannel {
   bytesRemaining = new Uint16Array(1);   // // bytes remaining in the sample
   sampleBuffer = new Uint8Array(1);
   nextSampleAddress = new Uint16Array(1);
+  LEVEL_CONVERSION = 10;      // Convert output level before it is used in the mixer
 
   allSamples;
 
@@ -97,7 +98,7 @@ export class DeltaModulationChannel {
   }
 
   getOutput() {
-    return this.output !== 0 ? this.output/10 : this.output;
+    return this.output !== 0 ? this.output/this.LEVEL_CONVERSION : this.output;
   }
 
   isEnabled() {
@@ -170,7 +171,7 @@ export class DeltaModulationChannel {
 
   /**
    * The following happens:
-   * - If the 'enabled' flag is set, the output level changes based on bit 0 of the shift register.
+   * - If the 'silent' flag is set, the output level changes based on bit 0 of the shift register.
    * - If the bit is 1, add 2; otherwise, subtract 2. But if adding or subtracting 2 would cause the output level to
    *   leave the 0-127 range, leave the output level unchanged. This means subtract 2 only if the current level is at
    *   least 2, or add 2 only if the current level is at most 125.
@@ -183,7 +184,7 @@ export class DeltaModulationChannel {
     }
     if (this.rate <= 0) {
       this.rate = this.rateTable[this.index];
-      if (this.enabled) {
+      if (!this.silent) {
         const bit0 = this.shiftRegister[0] & 0x01;
         if (bit0 === 0 && this.output >= 2) {
           this.output -= 2;
@@ -200,13 +201,13 @@ export class DeltaModulationChannel {
 
       // When an output cycle ends, a new cycle is started as follows:
       // The bits-remaining counter is loaded with 8.
-      // If the sample buffer is empty, then the 'enabled' flag is cleared; otherwise, the 'enabled' flag is set and the sampleBuffer is emptied into the shiftRegister.
+      // If the sample buffer is empty, then the 'silent' flag is cleared; otherwise, the 'silent' flag is set and the sampleBuffer is emptied into the shiftRegister.
       if (this.bitsRemaining === 0) {
         this.bitsRemaining = 8;
         if (this.sampleBuffer[0] === 0x00) {
-          this.enabled = false;
+          this.silent = true;
         } else {
-          this.enabled = true;
+          this.silent = false;
           this.shiftRegister[0] = this.sampleBuffer[0];
           this.sampleBuffer[0] = 0x00;
         }
