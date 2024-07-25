@@ -1,6 +1,6 @@
-import { LengthCounter } from "./counter.js";
-import { Envelope } from "./envelope.js";
-import { Sequencer } from "./sequencer.js";
+import { LengthCounter } from "../counter.js";
+import { Envelope } from "../envelope.js";
+import { Sequencer } from "../sequencer.js";
 
 /**
  * The NES APU noise channel generates pseudo-random 1-bit noise at 16 different frequencies.

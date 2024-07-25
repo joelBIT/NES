@@ -1,5 +1,5 @@
-import { LengthCounter } from './counter.js';
-import { Sequencer } from "./sequencer.js";
+import { LengthCounter } from '../counter.js';
+import { Sequencer } from "../sequencer.js";
 
 /**
  *  The NES APU triangle channel generates a pseudo-triangle wave. It has no volume control; the waveform is either

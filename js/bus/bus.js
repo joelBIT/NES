@@ -132,4 +132,19 @@ export class Bus {
       this.controllerState[1] = this.controllers[1].getActiveButton();
     }
   }
+
+  /**
+   *  Collect all DMC samples from memory locations $C000 - $FFFF
+   */
+  collectAllSamples() {
+    const samples = [];
+    const sampleAddress = new Uint16Array(1);
+    sampleAddress[0] = 0xC000;
+    while (sampleAddress[0] < 0xFFFF) {
+      samples.push(this.read(sampleAddress[0]));
+      sampleAddress[0]++;
+    }
+
+    return samples;
+  }
 }

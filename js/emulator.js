@@ -42,6 +42,7 @@ self.onmessage = function(message) {
         bus.addController(controller2);
       }
       bus.reset();
+      postMessage({address: 0x5001, data: bus.collectAllSamples()});      // Send all DMC samples to the DMC in the APU
 
       function tick() {
         do {

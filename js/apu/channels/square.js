@@ -1,7 +1,7 @@
-import { LengthCounter } from "./counter.js";
-import { Sequencer } from "./sequencer.js";
-import { Envelope } from "./envelope.js";
-import { Sweeper } from "./sweeper.js";
+import { LengthCounter } from "../counter.js";
+import { Sequencer } from "../sequencer.js";
+import { Envelope } from "../envelope.js";
+import { Sweeper } from "../sweeper.js";
 
 /**
  * A Square wave (channels 1 and 2). Each of the two NES APU pulse (square) wave channels generate a pulse wave with variable duty.

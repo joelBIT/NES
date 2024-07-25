@@ -1,17 +1,16 @@
-import { SquareChannel } from "./square.js";
-import { TriangleChannel } from "./triangle.js";
-import { NoiseChannel } from "./noise.js";
+import { SquareChannel } from "./channels/square.js";
+import { TriangleChannel } from "./channels/triangle.js";
+import { NoiseChannel } from "./channels/noise.js";
+import { DeltaModulationChannel } from "./channels/dmc.js";
 
 /**
  * The sample rate for the system is 44100 Hz.
  *
  * The CPU talks to the APU via ports $4000 - $4015 and $4017. The APU has 5 channels: Square1, Square2, Triangle, Noise,
- * and DMC. The DMC channel plays samples (often vocals). Before the channels can be used to produce sounds, they need
- * to be enabled. Channels are toggled on and off via port $4015.
+ * and DMC. The Delta modulation channel (DMC) plays samples (often vocals). Before the channels can be used to produce
+ * sounds, they need to be enabled. Channels are toggled on and off via port $4015.
  */
 export class APU {
-  enableDMC = false;
-
   globalTime = 0.0;
   frameClockCounter = new Uint32Array(1);   // Used to maintain the musical timing of the APU
   clockCounter = new Uint32Array(1);
@@ -32,14 +31,15 @@ export class APU {
   noiseOutput = 0.0;
   noiseChannel = new NoiseChannel();
 
-  // DMC channel
+  // Delta modulation channel
   dmcOutput = 0.0;
+  deltaModulationChannel = new DeltaModulationChannel();
 
   /**
    * All output samples from the channels get mixed together.
    */
   mixedOutputSample() {
-    return 0.00752 * (this.square1Output + this.square2Output) + 0.00494 * this.noiseOutput + 0.00851 * this.triangleOutput;   //  + 0.00335 * this.dmcOutput
+    return 0.00752 * (this.square1Output + this.square2Output) + 0.00494 * this.noiseOutput + 0.00851 * this.triangleOutput + 0.00335 * this.dmcOutput;
   }
 
   /**
@@ -110,6 +110,10 @@ export class APU {
       this.noiseChannel.clock();
       this.noiseOutput = this.noiseChannel.getOutput();
 
+      this.deltaModulationChannel.clock();
+      this.dmcOutput = this.deltaModulationChannel.getOutput();
+
+
       if (!this.squareChannel1.isEnabled()) {
         this.square1Output = 0.0;
       }
@@ -121,6 +125,9 @@ export class APU {
       }
       if (!this.noiseChannel.isEnabled()) {
         this.noiseOutput = 0.0;
+      }
+      if (!this.deltaModulationChannel.isEnabled()) {
+        this.dmcOutput = 0.0;
       }
     }
 
@@ -180,6 +187,7 @@ export class APU {
         break;
 
 
+
         /*
            **********************
            | Second Square Wave |
@@ -213,6 +221,9 @@ export class APU {
         this.squareChannel2.setSequence();
         break;
 
+
+
+
         /*
             *****************
             | Triangle Wave |
@@ -237,6 +248,8 @@ export class APU {
         }
         this.triangleChannel.setReloadLinear();
         break;
+
+
 
         /*
            *********
@@ -264,19 +277,50 @@ export class APU {
 
 
 
+                /*
+                   *********
+                   |  DMC  |
+                   *********
+                */
+
+      case 0x4010:
+        this.deltaModulationChannel.setIrqEnabled(data & 0x80);
+        this.deltaModulationChannel.setLoop(data & 0x40);
+        this.deltaModulationChannel.setRateIndex(data & 0x0F);
+        break;
+
+      case 0x4011:
+        this.deltaModulationChannel.setLoadCounter(data & 0x7F);
+        break;
+
+      case 0x4012:
+        this.deltaModulationChannel.setSampleAddress(data);
+        break;
+
+      case 0x4013:
+        this.deltaModulationChannel.setSampleLength(data);
+        break;
+
+      case 0x5001:
+        this.deltaModulationChannel.setAllSamples(data);
+        break;
+
+
+
       /*
          ***************************
          | Enable/Disable Channels |
          ***************************
      */
 
-
-
       case 0x4015:
         this.squareChannel1.setEnable(data & 0x01);
         this.squareChannel2.setEnable(data & 0x02);
         this.triangleChannel.setEnable(data & 0x04);
         this.noiseChannel.setEnable(data & 0x08);
+        this.deltaModulationChannel.setEnabled(data & 0x10);
+
+        this.deltaModulationChannel.clearInterrupt();
 
         if (!this.squareChannel1.isEnabled()) {
           this.squareChannel1.clearCounter();
@@ -289,6 +333,14 @@ export class APU {
         }
         if (!this.noiseChannel.isEnabled()) {
           this.noiseChannel.clearCounter();
+        }
+        if (!this.deltaModulationChannel.isEnabled()) {
+          this.deltaModulationChannel.clearBytesRemaining();
+        } else {
+          if (!this.deltaModulationChannel.hasBytesRemaining()) {
+            this.deltaModulationChannel.setNextSampleAddress();
+            this.deltaModulationChannel.setBytesRemaining();
+          }
         }
         break;
 
@@ -312,6 +364,7 @@ export class APU {
     this.noiseChannel.reset();
     this.squareChannel2.reset();
     this.squareChannel1.reset();
+    this.deltaModulationChannel.reset();
     this.globalTime = 0.0;
     this.frameClockCounter[0] = 0x00000000;
     this.clockCounter[0] = 0x00000000;
@@ -319,6 +372,7 @@ export class APU {
     this.square2Output = 0.0;
     this.triangleOutput = 0.0;
     this.noiseOutput = 0.0;
+    this.dmcOutput = 0.0;
   }
 }
 

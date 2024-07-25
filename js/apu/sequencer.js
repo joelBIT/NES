@@ -13,7 +13,7 @@ export class Sequencer {
   reload = new Uint16Array(1);
   output = new Uint8Array(1);
 
-  reloadTable = [0, 4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 1016, 2034, 4068];
+  reloadTable = [0, 4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 1016, 2034, 4068];      // NTSC
 
   setReloadFromTable(index) {
     this.reload[0] = this.reloadTable[index];
