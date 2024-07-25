@@ -191,7 +191,6 @@ export class MapperFour extends Mapper {
       return false;
     }
 
-
     if (address >= 0xE000 && address <= 0xFFFF) {
       if (isEven) {
         this.irqEnabled = false;

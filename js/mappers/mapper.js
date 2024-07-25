@@ -34,9 +34,10 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
+   * @param data    - data often written to static VRAM in mapper, or used for bank selection
    * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
-  mapWriteByCPU(address) {
+  mapWriteByCPU(address, data) {
     return false;
   }
 
