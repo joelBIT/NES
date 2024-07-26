@@ -395,7 +395,7 @@ class PPU {
       case 0x0003: // OAM Address
         break;
       case 0x0004: // OAM Data
-        return this.foreground.getOAM;
+        return this.foreground.getOAM();
       case 0x0005: // Scroll
         break;
       case 0x0006: // PPU Address
