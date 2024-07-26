@@ -46,7 +46,7 @@ class PPU {
   cycle = 0;        // Represent current column of the screen
   frameComplete = false;
   addressLatch = 0x00;      // Address latch is used to indicate if write is to the low byte or the high byte
-  dataBuffer;   // When we read data from the PPU it is delayed by 1 cycle so we need to buffer that byte
+  dataBuffer = 0x00;   // When we read data from the PPU it is delayed by 1 cycle so we need to buffer that byte
 
   // Background rendering
   background = new Background();
