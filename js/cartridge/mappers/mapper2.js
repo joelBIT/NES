@@ -1,5 +1,5 @@
 import { Mapper } from "./mapper.js";
-import { Mirror } from "../mirror.js";
+import { Mirror } from "../../mirror.js";
 
 /**
  * Mapper 2 is the implementation of the most common usage of UxROM compatible boards.

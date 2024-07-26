@@ -1,4 +1,4 @@
-import { Mirror } from "../mirror.js";
+import { Mirror } from "../../mirror.js";
 import { Mapper } from "./mapper.js";
 
 /**

@@ -1,5 +1,5 @@
 import { Mapper } from "./mapper.js";
-import { Mirror } from "../mirror.js";
+import { Mirror } from "../../mirror.js";
 
 /**
  * Mapper 7. The generic designation AxROM refers to Nintendo cartridge boards NES-AMROM, NES-ANROM, NES-AN1ROM,

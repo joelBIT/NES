@@ -1,4 +1,4 @@
-import { Mirror } from "../mirror.js";
+import { Mirror } from "../../mirror.js";
 
 /**
  * A Mapper takes the incoming addresses from both buses and transform them to the correct memory location on

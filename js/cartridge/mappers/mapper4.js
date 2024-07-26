@@ -1,7 +1,9 @@
-import { Mirror } from "../mirror.js";
+import { Mirror } from "../../mirror.js";
 import { Mapper } from "./mapper.js";
 
-
+/**
+ *  MMC3 has only 6-bit bank registers, hence a 512 KiB PRG-ROM limit.
+ */
 class BankRegister {
   register = new Uint32Array(8);
 
@@ -24,7 +26,7 @@ class BankRegister {
   }
 
   reset() {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < this.register.length; i++) {
       this.register[i] = 0x00000000;
     }
   }
