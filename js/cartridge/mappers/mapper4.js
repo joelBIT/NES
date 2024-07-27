@@ -216,31 +216,31 @@ export class MapperFour extends Mapper {
       return { "address": this.characterBank[0] + (address & 0x03FF) };
     }
 
-    if (address >= 0x0400 && address <= 0x07FF) {
+    if (address < 0x0800) {
       return { "address": this.characterBank[1] + (address & 0x03FF) };
     }
 
-    if (address >= 0x0800 && address <= 0x0BFF) {
+    if (address < 0x0C00) {
       return { "address": this.characterBank[2] + (address & 0x03FF) };
     }
 
-    if (address >= 0x0C00 && address <= 0x0FFF) {
+    if (address < 0x1000) {
       return { "address": this.characterBank[3] + (address & 0x03FF) };
     }
 
-    if (address >= 0x1000 && address <= 0x13FF) {
+    if (address < 0x1400) {
       return { "address": this.characterBank[4] + (address & 0x03FF) };
     }
 
-    if (address >= 0x1400 && address <= 0x17FF) {
+    if (address < 0x1800) {
       return { "address": this.characterBank[5] + (address & 0x03FF) };
     }
 
-    if (address >= 0x1800 && address <= 0x1BFF) {
+    if (address < 0x1C00) {
       return { "address": this.characterBank[6] + (address & 0x03FF) };
     }
 
-    if (address >= 0x1C00 && address <= 0x1FFF) {
+    if (address < 0x2000) {
       return { "address": this.characterBank[7] + (address & 0x03FF) };
     }
 
@@ -332,15 +332,14 @@ export class MapperFour extends Mapper {
    */
   updateProgramBanks() {
     if (this.programBankMode) {
-      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTE;
       this.programBank[0] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
+      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTE;
     } else {
       this.programBank[0] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTE;
       this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
     }
 
     this.programBank[1] = this.bankRegister.getRegisterData(7) * this.EIGHT_KILOBYTE;
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
   }
 
   mirror() {
