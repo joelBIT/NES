@@ -17,6 +17,11 @@ import { MapperSeven } from "./mappers/mapper7.js";
  */
 export class Cartridge {
   header;
+  EIGHT_KILOBYTES = 8192;
+  SIXTEEN_KILOBYTES = 16384;
+  MAPPER_VRAM_USED = 0xFFFFFFFF;      // Means that the data was written to, or read from, the mapper's RAM
+  HEADER_BYTES = 16;
+  TRAINER_BYTES = 512;
 
   programMemory = [];
   characterMemory = [];
@@ -27,14 +32,14 @@ export class Cartridge {
   mirror = Mirror.HORIZONTAL;
 
   constructor(cartridge) {
-    this.header = new FormatHeader(cartridge.subarray(0, 16));
+    this.header = new FormatHeader(cartridge.subarray(0, this.HEADER_BYTES));
     if (!this.header.isINES()) {
       throw 'Not an iNES Rom';
     }
-    let index = 16;
+    let index = this.HEADER_BYTES;
 
     if (this.header.hasTrainer()) {
-      index += 512;   // If a "trainer" exists we read past it
+      index += this.TRAINER_BYTES;   // If a "trainer" exists we read past it
     }
 
     this.mirror = this.header.getMirrorMode();
@@ -42,26 +47,26 @@ export class Cartridge {
 
     if (fileType === 1) {
       this.programBanks = this.header.getProgramChunks();
-      const programMemoryLength = this.header.getProgramChunks() * 16384;
+      const programMemoryLength = this.header.getProgramChunks() * this.SIXTEEN_KILOBYTES;
       this.programMemory = cartridge.subarray(index, index + programMemoryLength);
       index += programMemoryLength;
 
       this.characterBanks = this.header.getCharacterChunks();
       if (this.characterBanks !== 0) {
-        const characterMemoryLength = this.characterBanks * 8192;
+        const characterMemoryLength = this.characterBanks * this.EIGHT_KILOBYTES;
         this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
       }
     }
 
     if (fileType === 2) {
       this.programBanks = ((this.header.getProgramRamSize() & 0x07) << 8) | this.header.getProgramChunks();
-      const programMemoryLength = this.programBanks * 16384;
+      const programMemoryLength = this.programBanks * this.SIXTEEN_KILOBYTES;
       this.programMemory = cartridge.subarray(index, index + programMemoryLength);
       index += programMemoryLength;
 
       this.characterBanks = ((this.header.getProgramRamSize() & 0x38) << 8) | this.header.getCharacterChunks();
       if (this.characterBanks !== 0) {
-        const characterMemoryLength = this.characterBanks * 8192;
+        const characterMemoryLength = this.characterBanks * this.EIGHT_KILOBYTES;
         this.characterMemory = cartridge.subarray(index, index + characterMemoryLength);
       }
     }
@@ -95,7 +100,7 @@ export class Cartridge {
   readByCPU(address) {
     const mapped = this.mapper.mapReadByCPU(address);
     if (mapped) {
-      if (mapped.address === 0xFFFFFFFF) {
+      if (mapped.address === this.MAPPER_VRAM_USED) {
         return { "data": mapped.data };
       }
       return { "data": this.programMemory[mapped.address] };
@@ -106,7 +111,7 @@ export class Cartridge {
   writeByCPU(address, data) {
     const mapped = this.mapper.mapWriteByCPU(address, data);
     if (mapped) {
-      if (mapped.address === 0xFFFFFFFF) {
+      if (mapped.address === this.MAPPER_VRAM_USED) {
         return true;
       }
       this.programMemory[mapped.address] = data;
