@@ -212,35 +212,36 @@ export class MapperFour extends Mapper {
   }
 
   mapReadByPPU(address) {
-    if (address < 0x0400) {
+    address = this.characterInversion ? address ^ 0x1000 : address;
+    if (address <= 0x03FF) {
       return { "address": this.characterBank[0] + (address & 0x03FF) };
     }
 
-    if (address < 0x0800) {
+    if (address <= 0x07FF) {
       return { "address": this.characterBank[1] + (address & 0x03FF) };
     }
 
-    if (address < 0x0C00) {
+    if (address <= 0x0BFF) {
       return { "address": this.characterBank[2] + (address & 0x03FF) };
     }
 
-    if (address < 0x1000) {
+    if (address <= 0x0FFF) {
       return { "address": this.characterBank[3] + (address & 0x03FF) };
     }
 
-    if (address < 0x1400) {
+    if (address <= 0x13FF) {
       return { "address": this.characterBank[4] + (address & 0x03FF) };
     }
 
-    if (address < 0x1800) {
+    if (address <= 0x17FF) {
       return { "address": this.characterBank[5] + (address & 0x03FF) };
     }
 
-    if (address < 0x1C00) {
+    if (address <= 0x1BFF) {
       return { "address": this.characterBank[6] + (address & 0x03FF) };
     }
 
-    if (address < 0x2000) {
+    if (address <= 0x1FFF) {
       return { "address": this.characterBank[7] + (address & 0x03FF) };
     }
 
@@ -292,16 +293,6 @@ export class MapperFour extends Mapper {
    * 2KB banks may only select even numbered CHR banks. (The lowest bit is ignored.)
    */
   updateCharacterBanks() {
-    if (this.characterInversion) {
-      this.characterBank[0] = this.bankRegister.getRegisterData(2) * this.ONE_KILOBYTE;
-      this.characterBank[1] = this.bankRegister.getRegisterData(3) * this.ONE_KILOBYTE;
-      this.characterBank[2] = this.bankRegister.getRegisterData(4) * this.ONE_KILOBYTE;
-      this.characterBank[3] = this.bankRegister.getRegisterData(5) * this.ONE_KILOBYTE;
-      this.characterBank[4] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE;
-      this.characterBank[5] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE + this.ONE_KILOBYTE;
-      this.characterBank[6] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE;
-      this.characterBank[7] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE + this.ONE_KILOBYTE;
-    } else {
       this.characterBank[0] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE;
       this.characterBank[1] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE + this.ONE_KILOBYTE;
       this.characterBank[2] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE;
@@ -310,7 +301,6 @@ export class MapperFour extends Mapper {
       this.characterBank[5] = this.bankRegister.getRegisterData(3) * this.ONE_KILOBYTE;
       this.characterBank[6] = this.bankRegister.getRegisterData(4) * this.ONE_KILOBYTE;
       this.characterBank[7] = this.bankRegister.getRegisterData(5) * this.ONE_KILOBYTE;
-    }
   }
 
   /**
