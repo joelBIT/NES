@@ -6,9 +6,20 @@ import { Mapper } from "./mapper.js";
  */
 class BankRegister {
   register = new Uint32Array(8);
+  programBanksMask = 0x1F;
 
   getRegisterData(register) {
     return this.register[register];
+  }
+
+  setNumberOfProgramBanks(programBanks) {
+    if (programBanks <= 8) {
+      this.programBanksMask = 0xF;
+    } else if (programBanks === 16) {
+      this.programBanksMask = 0x1F;
+    } else if (programBanks === 32) {
+      this.programBanksMask = 0x3F;
+    }
   }
 
   /**
@@ -17,7 +28,7 @@ class BankRegister {
    */
   setData(register, data) {
     if (register === 6 || register === 7) {
-      this.register[register] = data & 0x3F;
+      this.register[register] = data & this.programBanksMask;
     } else if (register === 0 || register === 1) {
       this.register[register] = data & 0xFE;
     } else {
@@ -26,9 +37,15 @@ class BankRegister {
   }
 
   reset() {
-    for (let i = 0; i < this.register.length; i++) {
-      this.register[i] = 0x00000000;
-    }
+    this.programBanksMask = 0x1F;
+    this.register[0] = 0;
+    this.register[1] = 2;
+    this.register[2] = 4;
+    this.register[3] = 5;
+    this.register[4] = 6;
+    this.register[5] = 7;
+    this.register[6] = 0;
+    this.register[7] = 1;
   }
 }
 
@@ -156,8 +173,8 @@ export class MapperFour extends Mapper {
 
     const isEven = address % 2 === 0;
 
-    if (address >= 0x8000 && address <= 0x9FFF) {   // CPU $8000-$9FFF (or $C000-$DFFF): 8 KB switchable PRG ROM bank
-      if (isEven) {   // Bank Select
+    if (address >= 0x8000 && address <= 0x9FFF) {
+      if (isEven) {
         this.targetBankRegister[0] = data & 0x07;
         this.programBankMode = data & 0x40;
         this.characterInversion = data & 0x80;
@@ -170,7 +187,7 @@ export class MapperFour extends Mapper {
          * |||| ||||
          * ++++-++++- New bank value, based on last value written to Bank select register
          */
-      } else {    // Bank Data
+      } else {
         this.bankRegister.setData(this.targetBankRegister[0], data);
         this.updateCharacterBanks();
         this.updateProgramBanks();
@@ -350,20 +367,15 @@ export class MapperFour extends Mapper {
     this.characterInversion = false;
     this.mirrorMode = Mirror.HORIZONTAL;
 
+    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
     this.bankRegister.reset();
+    this.bankRegister.setNumberOfProgramBanks(this.programBanks);
+    this.updateProgramBanks();
+    this.updateCharacterBanks();
 
     this.irqActive = false;
     this.irqEnabled = false;
     this.irqCounter[0] = 0x0000;
     this.irqLatch[0] = 0x0000;
-
-    for (let i = 0; i < this.characterBank.length; i++) {
-      this.characterBank[i] = 0;
-    }
-
-    this.programBank[0] = 0;
-    this.programBank[1] = this.EIGHT_KILOBYTE;
-    this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
   }
 }
