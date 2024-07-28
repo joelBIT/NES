@@ -13,7 +13,7 @@ import { Mirror } from "../../mirror.js";
  * Battletoads
  * Cobra Triangle
  * R.C. Pro-AM
- * Aladdin
+ * Battletoads & Double Dragon
  * R.C. Pro-AM 2
  *
  */

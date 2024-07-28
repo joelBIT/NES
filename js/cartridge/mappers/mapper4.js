@@ -357,10 +357,6 @@ export class MapperFour extends Mapper {
     this.irqCounter[0] = 0x0000;
     this.irqLatch[0] = 0x0000;
 
-    for (let i = 0; i < this.programBank.length; i++) {
-      this.programBank[i] = 0;
-    }
-
     for (let i = 0; i < this.characterBank.length; i++) {
       this.characterBank[i] = 0;
     }
