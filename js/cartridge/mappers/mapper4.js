@@ -12,19 +12,26 @@ class BankRegister {
     return this.register[register];
   }
 
+  /**
+   * Decide mask for converting 16kb program banks into 8kb banks for bank swapping.
+   *
+   * @param programBanks are in sizes of 16kb
+   */
   setNumberOfProgramBanks(programBanks) {
     if (programBanks <= 8) {
-      this.programBanksMask = 0xF;
+      this.programBanksMask = 0xF;    // 16 (0 - 15) 8kb banks
     } else if (programBanks === 16) {
-      this.programBanksMask = 0x1F;
+      this.programBanksMask = 0x1F;   // 32 (0 - 31) 8kb banks
     } else if (programBanks === 32) {
-      this.programBanksMask = 0x3F;
+      this.programBanksMask = 0x3F;   // 64 (0 - 63) 8kb banks
     }
   }
 
   /**
-   * R6 and R7 will ignore the top two bits, as the MMC3 has only 6 PRG ROM address lines.
-   * R0 and R1 ignore the bottom bit, as the value written still counts banks in 1KB units but odd numbered banks can't be selected.
+   * R6 and R7 will ignore the top two bits, as the MMC3 has only 6 PRG ROM address lines. The programBanksMask is used
+   * to convert the data parameter into a value that is within the valid range of 8kb banks used for the current game.
+   * R0 and R1 ignore the bottom bit, as the value written still counts banks in 1KB units but odd numbered banks
+   * cannot be selected.
    */
   setData(register, data) {
     if (register === 6 || register === 7) {
