@@ -11,6 +11,8 @@ import { SystemClock } from "./systemClock.js";
  */
 export class Bus {
   controllerState = new Uint8Array(2);        // Internal cache of controller state
+  CONTROLLER_1 = 0;
+  CONTROLLER_2 = 1;
   writes = [];                                // Contain writes made by the CPU to the APU
   dma = new DMA();
   systemClock = new SystemClock();
@@ -105,9 +107,13 @@ export class Bus {
       return this.ppu.readRegister(address & 0x0007);          // PPU Address range, mirrored every 8
     } else if (address === 0x4015) {
       return 0x00;
-    } else if (address === 0x4016 || address === 0x4017) {
-      const data = (this.controllerState[address & 0x0001] & 0x80) > 0 ? 1 : 0;
-      this.controllerState[address & 0x0001] <<= 1;      // Read out the MSB of the controller status word
+    } else if (address === 0x4016) {
+      const data = (this.controllerState[this.CONTROLLER_1] & 0x80) >> 7;
+      this.controllerState[this.CONTROLLER_1] <<= 1;      // Read out the MSB of the controller status word
+      return data;
+    } else if (address === 0x4017) {
+      const data = (this.controllerState[this.CONTROLLER_2] & 0x80) >> 7;
+      this.controllerState[this.CONTROLLER_2] <<= 1;      // Read out the MSB of the controller status word
       return data;
     }
   }
@@ -127,9 +133,13 @@ export class Bus {
       this.writes.push({address: address, data: data});     // Postpone write to the APU
     } else if (address === 0x4014) {
       this.dma.enableTransfer(data);
-    } else if (address === 0x4016 || address === 0x4017) {
-      this.controllerState[0] = this.controllers[0].getActiveButton();
-      this.controllerState[1] = this.controllers[1].getActiveButton();
+    } else if (address === 0x4016) {
+      if (this.controllers[this.CONTROLLER_1].getActiveButton()) {
+        this.controllerState[this.CONTROLLER_1] = this.controllers[this.CONTROLLER_1].getActiveButton();
+      }
+      if (this.controllers[this.CONTROLLER_2].getActiveButton()) {
+        this.controllerState[this.CONTROLLER_2] = this.controllers[this.CONTROLLER_2].getActiveButton();
+      }
     }
   }
 
