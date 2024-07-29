@@ -43,16 +43,24 @@ class BankRegister {
     }
   }
 
+  /**
+   * The six registers 0 - 5 are for the four 1k character banks and the two 2kb character banks. Register
+   * 6 and 7 are for the switchable 8kb program banks. The reset values are the start values for the registers so that
+   * the size of each bank becomes the corresponding 1kb, 2kb and 8kb during bank updates. The ONE_KILOBYTE and
+   * EIGHT_KILOBYTE constants are used when the actual updates of the banks occur to achieve the correct bank size.
+   * This means that each increment of the value in registers 0 - 5 correspond to 1kb, and each increment in register
+   * 6 and 7 corresponds to 8kb.
+   */
   reset() {
     this.programBanksMask = 0x1F;
-    this.register[0] = 0;
-    this.register[1] = 2;
-    this.register[2] = 4;
-    this.register[3] = 5;
-    this.register[4] = 6;
-    this.register[5] = 7;
-    this.register[6] = 0;
-    this.register[7] = 1;
+    this.register[0] = 0;   // 2kb character bank
+    this.register[1] = 2;   // 2kb character bank, value is 2 because register 0 corresponds to a 2kb bank
+    this.register[2] = 4;   // 1kb character bank, value is 4 because register 1 corresponds to a 2kb bank
+    this.register[3] = 5;   // 1kb character bank
+    this.register[4] = 6;   // 1kb character bank
+    this.register[5] = 7;   // 1kb character bank
+    this.register[6] = 0;   // 8kb switchable program bank
+    this.register[7] = 1;   // 8kb switchable program bank
   }
 }
 
@@ -91,14 +99,13 @@ export class MapperFour extends Mapper {
   VRAM = new Uint8Array(this.EIGHT_KILOBYTE);
   mirrorMode = Mirror.HORIZONTAL;
 
-  bankRegister = new BankRegister();
-
-  targetBankRegister = new Uint8Array(1);
   programBankMode = false;
   characterInversion = false;
   ramEnabled = false;
   ramWritable = false;
 
+  bankRegister = new BankRegister();
+  targetBankRegister = new Uint8Array(1);
   characterBank = new Uint32Array(8);
   programBank = new Uint32Array(4);
 
@@ -374,7 +381,7 @@ export class MapperFour extends Mapper {
     this.characterInversion = false;
     this.mirrorMode = Mirror.HORIZONTAL;
 
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;
+    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;    // Fixed to the last bank, never changes
     this.bankRegister.reset();
     this.bankRegister.setNumberOfProgramBanks(this.programBanks);
     this.updateProgramBanks();
