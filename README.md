@@ -10,7 +10,7 @@
 <b>Fully functional 🖥️ PPU and almost fully functional :musical_note: APU</b>
 <br><br><br>
 
-🔌 <b>Supported mappers</b>
+🔌 <b>Most of the available NES games can be played on this emulator. Implemented mappers are:</b>
   - Mapper 0: NROM
   - Mapper 1: MMC1
   - Mapper 2: UxROM
