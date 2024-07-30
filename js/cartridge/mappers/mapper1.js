@@ -35,10 +35,6 @@ export class MapperOne extends Mapper {
   programBank = new Uint8Array(3);
   characterBank = new Uint8Array(3);
 
-  characterBankSelect4Low = new Uint8Array(1);
-  characterBankSelect4High = new Uint8Array(1);
-  characterBankSelect8 = new Uint8Array(1);
-
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
   }
