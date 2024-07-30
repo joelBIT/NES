@@ -18,9 +18,8 @@ import { Mapper } from "./mapper.js";
  */
 export class MapperSixtySix extends Mapper {
   id = 66;
-
-  characterBankSelect = new Uint8Array(1);
-  programBankSelect = new Uint8Array(1);
+  characterBank = 0;
+  programBank = 0;
 
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
@@ -32,7 +31,7 @@ export class MapperSixtySix extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": this.programBankSelect[0] * 0x8000 + (address & 0x7FFF) };
+      return { "address": this.programBank * 0x8000 + (address & 0x7FFF) };
     }
     return false;
   }
@@ -48,15 +47,15 @@ export class MapperSixtySix extends Mapper {
    */
   mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      this.characterBankSelect[0] = data & 0x03;
-      this.programBankSelect[0] = (data & 0x30) >> 4;
+      this.characterBank = data & 0x03;
+      this.programBank = (data & 0x30) >> 4;
     }
     return false;
   }
 
   mapReadByPPU(address) {
     if (address < 0x2000) {
-      return { "address": this.characterBankSelect[0] * 0x2000 + address };
+      return { "address": this.characterBank * 0x2000 + address };
     }
     return false;
   }
@@ -71,7 +70,7 @@ export class MapperSixtySix extends Mapper {
   }
 
   reset() {
-    this.characterBankSelect[0] = 0;
-    this.programBankSelect[0] = 0;
+    this.characterBank = 0;
+    this.programBank = 0;
   }
 }

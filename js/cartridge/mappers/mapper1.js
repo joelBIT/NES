@@ -32,9 +32,8 @@ export class MapperOne extends Mapper {
   writeCounter = new Uint8Array(1);
   controlRegister = new Uint8Array(1);
 
-  programBankSelect32 = new Uint8Array(1);
-  programBankSelect16Low = new Uint8Array(1);
-  programBankSelect16High = new Uint8Array(1);
+  programBank = new Uint8Array(3);
+  characterBank = new Uint8Array(3);
 
   characterBankSelect4Low = new Uint8Array(1);
   characterBankSelect4High = new Uint8Array(1);
@@ -55,13 +54,13 @@ export class MapperOne extends Mapper {
     if (address >= 0x8000) {
       if (this.controlRegister[0] & 0x08) {        // 16K Mode
         if (address >= 0x8000 && address <= 0xBFFF) {
-          return { "address": this.programBankSelect16Low[0] * 0x4000 + (address & 0x3FFF) };
+          return { "address": this.programBank[0] * 0x4000 + (address & 0x3FFF) };
         }
         if (address >= 0xC000 && address <= 0xFFFF) {
-          return { "address": this.programBankSelect16High[0] * 0x4000 + (address & 0x3FFF) };
+          return { "address": this.programBank[1] * 0x4000 + (address & 0x3FFF) };
         }
       } else {      // 32K Mode
-        return { "address": this.programBankSelect32[0] * 0x8000 + (address & 0x7FFF) };
+        return { "address": this.programBank[2] * 0x8000 + (address & 0x7FFF) };
       }
     }
     return false;
@@ -110,26 +109,26 @@ export class MapperOne extends Mapper {
             }
           } else if (targetRegister === 1) {      // 0xA000 - 0xBFFF
             if (this.controlRegister[0] & 0x10) {
-              this.characterBankSelect4Low[0] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x0000
+              this.characterBank[0] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x0000
             } else {
-              this.characterBankSelect8[0] = this.shiftRegister[0] & 0x1E;        // 8K CHR Bank at PPU 0x0000
+              this.characterBank[2] = this.shiftRegister[0] & 0x1E;        // 8K CHR Bank at PPU 0x0000
             }
           } else if (targetRegister === 2) {      // 0xC000 - 0xDFFF
             if (this.controlRegister[0] & 0x10) {
-              this.characterBankSelect4High[0] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x1000
+              this.characterBank[1] = this.shiftRegister[0] & 0x1F;      // 4K CHR Bank at PPU 0x1000
             }
           } else if (targetRegister === 3) {      // 0xE000 - 0xFFFF
             // Configure PRG Banks
 
             const programMode = (this.controlRegister[0] >> 2) & 0x03;
             if (programMode === 0 || programMode === 1) {
-              this.programBankSelect32[0] = (this.shiftRegister[0] & 0x0E) >> 1;  // Set 32K PRG Bank at CPU 0x8000
+              this.programBank[2] = (this.shiftRegister[0] & 0x0E) >> 1;  // Set 32K PRG Bank at CPU 0x8000
             } else if (programMode === 2) {
-              this.programBankSelect16Low[0] = 0;                              // Fix 16KB PRG Bank at CPU 0x8000 to First Bank
-              this.programBankSelect16High[0] = this.shiftRegister[0] & 0x0F;   // Set 16KB PRG Bank at CPU 0xC000
+              this.programBank[0] = 0;                              // Fix 16KB PRG Bank at CPU 0x8000 to First Bank
+              this.programBank[1] = this.shiftRegister[0] & 0x0F;   // Set 16KB PRG Bank at CPU 0xC000
             } else if (programMode === 3) {
-              this.programBankSelect16Low[0] = this.shiftRegister[0] & 0x0F;                 // Set 16KB PRG Bank at CPU 0x8000
-              this.programBankSelect16High[0] = this.programBanks - 1;                      // Fix 16KB PRG Bank at CPU 0xC000 to Last Bank
+              this.programBank[0] = this.shiftRegister[0] & 0x0F;                 // Set 16KB PRG Bank at CPU 0x8000
+              this.programBank[1] = this.programBanks - 1;                      // Fix 16KB PRG Bank at CPU 0xC000 to Last Bank
             }
           }
           // 5 bits were written, and decoded, so reset shift register
@@ -149,13 +148,13 @@ export class MapperOne extends Mapper {
       }
       if (this.controlRegister[0] & 0x10) {        // 4K CHR Bank Mode
         if (address <= 0x0FFF) {
-          return { "address": this.characterBankSelect4Low[0] * 0x1000 + (address & 0x0FFF) };
+          return { "address": this.characterBank[0] * 0x1000 + (address & 0x0FFF) };
         }
         if (address <= 0x1FFF) {
-          return { "address": this.characterBankSelect4High[0] * 0x1000 + (address & 0x0FFF) };
+          return { "address": this.characterBank[1] * 0x1000 + (address & 0x0FFF) };
         }
       } else {      // 8K CHR Bank Mode
-        return { "address": this.characterBankSelect8[0] * 0x2000 + address };
+        return { "address": this.characterBank[2] * 0x2000 + address };
       }
     }
 
@@ -181,12 +180,12 @@ export class MapperOne extends Mapper {
     this.shiftRegister[0] = 0x00;
     this.writeCounter[0] = 0x00;
 
-    this.characterBankSelect4Low[0] = 0;
-    this.characterBankSelect4High[0] = 0;
-    this.characterBankSelect8[0] = 0;
+    for (let i = 0; i < this.characterBank.length; i++) {
+      this.characterBank[0] = 0;
+    }
 
-    this.programBankSelect32[0] = 0;
-    this.programBankSelect16Low[0] = 0;
-    this.programBankSelect16High[0] = this.programBanks - 1;
+    this.programBank[0] = 0;
+    this.programBank[1] = this.programBanks - 1;
+    this.programBank[2] = 0;
   }
 }

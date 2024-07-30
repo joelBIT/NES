@@ -17,7 +17,7 @@ import { Mapper } from "./mapper.js";
  */
 export class MapperThree extends Mapper {
   id = 3;
-  characterBankSelect = new Uint8Array(1);
+  characterBank = 0;
 
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
@@ -54,7 +54,7 @@ export class MapperThree extends Mapper {
    */
   mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      this.characterBankSelect[0] = data & 0x03;
+      this.characterBank = data & 0x03;
       return { "address": address };
     }
     return false;
@@ -62,7 +62,7 @@ export class MapperThree extends Mapper {
 
   mapReadByPPU(address) {
     if (address < 0x2000) {
-      return { "address": this.characterBankSelect[0] * 0x2000 + address };
+      return { "address": this.characterBank * 0x2000 + address };
     }
     return false;
   }
@@ -77,6 +77,6 @@ export class MapperThree extends Mapper {
   }
 
   reset() {
-    this.characterBankSelect[0] = 0;
+    this.characterBank = 0;
   }
 }

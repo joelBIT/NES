@@ -20,8 +20,7 @@ import { Mirror } from "../../mirror.js";
 export class MapperSeven extends Mapper {
   id = 7;
   mirrorMode = Mirror.HORIZONTAL;
-
-  programBankSelect = 0;
+  programBank = 0;
 
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
@@ -33,7 +32,7 @@ export class MapperSeven extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": this.programBankSelect * 0x8000 + (address & 0x7FFF) };
+      return { "address": this.programBank * 0x8000 + (address & 0x7FFF) };
     }
 
     return false;
@@ -51,7 +50,7 @@ export class MapperSeven extends Mapper {
    */
   mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      this.programBankSelect = data & 0x07;
+      this.programBank = data & 0x07;
 
       if (data & 0x10) {
         this.mirrorMode = Mirror.SINGLE_SCREEN_LOW;
@@ -68,7 +67,7 @@ export class MapperSeven extends Mapper {
       if (this.characterBanks === 0) {
         return { "address": address };
       }
-      return { "address": this.programBankSelect * 0x2000 + address };
+      return { "address": this.programBank * 0x2000 + address };
     }
     return false;
   }
@@ -83,11 +82,11 @@ export class MapperSeven extends Mapper {
     return false;
   }
 
-  reset() {
-    this.programBankSelect = 0;
-  }
-
   mirror() {
     return this.mirrorMode;
+  }
+
+  reset() {
+    this.programBank = 0;
   }
 }
