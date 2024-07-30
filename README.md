@@ -7,17 +7,25 @@
   - nestest passes :heavy_check_mark:
 
 <br>
-<b>Fully functional 🖥️ PPU and almost fully functional :musical_note: APU</b>
+<b>Fully functional 🖥️ PPU</b>
 <br><br><br>
 
-🔌 <b>Most of the available NES games can be played on this emulator. Implemented mappers are:</b>
-  - Mapper 0: NROM
-  - Mapper 1: MMC1
-  - Mapper 2: UxROM
-  - Mapper 3: CNROM
-  - Mapper 4: MMC3
-  - Mapper 7: AxROM
-  - Mapper 66: GxROM
+:musical_note:  <b>APU</b>
+  - All five channels (Square1, Square2, Triangle, Noise, DMC) are implemented :heavy_check_mark:
+  - The APU needs some polishing but sounds decent most of the time
+
+<br><br>
+
+🔌 <b>Cartridge</b>
+  - Most of the available NES games can be played on this emulator
+  - Implemented mappers are:
+      - Mapper 0: NROM
+      - Mapper 1: MMC1
+      - Mapper 2: UxROM
+      - Mapper 3: CNROM
+      - Mapper 4: MMC3
+      - Mapper 7: AxROM
+      - Mapper 66: GxROM
 
 <br><br>
 :video_game: <b>Controls</b>
