@@ -3,7 +3,7 @@
 <br><br>
 
  💻 <b>CPU</b>
-  - All official instructions are implemented
+  - All official instructions are implemented :heavy_check_mark:
   - nestest passes :heavy_check_mark:
 
 <br>
