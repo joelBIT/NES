@@ -8,10 +8,23 @@ import { Mirror } from "../../mirror.js";
  * different circuits and hardware, and the configuration and capabilities of such cartridges is commonly called
  * their mapper. Mappers are designed to extend the system and bypass its limitations, such as by adding RAM to the
  * cartridge or even extra sound channels.
+ *
+ * The programBanks and characterBanks variables contains the number of chunks (each program chunk corresponds to 16kb
+ * of data, and each character chunk corresponds to 8kb of data) a loaded game consists of.
+ *
+ * The program memory is an array containing program data and the character memory is an array containing character data.
+ * This data can be logically divided into 'banks', which are logical segments of the array. By using the constants in
+ * this class the program data and the character data can be divided into segments of desired sizes without affecting the
+ * original array.
  */
 export class Mapper {
   programBanks;
   characterBanks;
+  ONE_KILOBYTE_BANK = 0x400;
+  FOUR_KILOBYTES_BANK = 0x1000;
+  EIGHT_KILOBYTES_BANK = 0x2000;
+  SIXTEEN_KILOBYTES_BANK = 0x4000;
+  THIRTY_TWO_KILOBYTES_BANK = 0x8000;
 
   constructor(programBanks, characterBanks) {
     this.programBanks = programBanks;

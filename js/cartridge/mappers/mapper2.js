@@ -19,7 +19,6 @@ export class MapperTwo extends Mapper {
   id = 2;
   mirrorMode = Mirror.VERTICAL;
   programBank = new Uint8Array(2);
-  SIXTEEN_KILOBYTES = 0x4000;
 
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
@@ -31,11 +30,11 @@ export class MapperTwo extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xBFFF) {
-      return { "address": this.programBank[0] * this.SIXTEEN_KILOBYTES + (address & 0x3FFF) };
+      return { "address": this.programBank[0] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
     }
 
     if (address >= 0xC000 && address <= 0xFFFF) {
-      return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES + (address & 0x3FFF) };
+      return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
     }
 
     return false;

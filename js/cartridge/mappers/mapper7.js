@@ -32,7 +32,7 @@ export class MapperSeven extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": this.programBank * 0x8000 + (address & 0x7FFF) };
+      return { "address": this.programBank * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF) };
     }
 
     return false;
@@ -67,7 +67,7 @@ export class MapperSeven extends Mapper {
       if (this.characterBanks === 0) {
         return { "address": address };
       }
-      return { "address": this.programBank * 0x2000 + address };
+      return { "address": this.programBank * this.EIGHT_KILOBYTES_BANK + address };
     }
     return false;
   }

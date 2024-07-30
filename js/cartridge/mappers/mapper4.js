@@ -94,9 +94,7 @@ class BankRegister {
  */
 export class MapperFour extends Mapper {
   id = 4;
-  ONE_KILOBYTE = 0x0400;
-  EIGHT_KILOBYTES = 0x2000;
-  VRAM = new Uint8Array(this.EIGHT_KILOBYTES);
+  VRAM = new Uint8Array(0x2000);
   mirrorMode = Mirror.HORIZONTAL;
 
   programBankMode = false;
@@ -332,14 +330,14 @@ export class MapperFour extends Mapper {
    * 2KB banks may only select even numbered CHR banks. (The lowest bit is ignored.)
    */
   updateCharacterBanks() {
-      this.characterBank[0] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE;
-      this.characterBank[1] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE + this.ONE_KILOBYTE;
-      this.characterBank[2] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE;
-      this.characterBank[3] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE + this.ONE_KILOBYTE;
-      this.characterBank[4] = this.bankRegister.getRegisterData(2) * this.ONE_KILOBYTE;
-      this.characterBank[5] = this.bankRegister.getRegisterData(3) * this.ONE_KILOBYTE;
-      this.characterBank[6] = this.bankRegister.getRegisterData(4) * this.ONE_KILOBYTE;
-      this.characterBank[7] = this.bankRegister.getRegisterData(5) * this.ONE_KILOBYTE;
+      this.characterBank[0] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE_BANK;
+      this.characterBank[1] = this.bankRegister.getRegisterData(0) * this.ONE_KILOBYTE_BANK + this.ONE_KILOBYTE_BANK;
+      this.characterBank[2] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE_BANK;
+      this.characterBank[3] = this.bankRegister.getRegisterData(1) * this.ONE_KILOBYTE_BANK + this.ONE_KILOBYTE_BANK;
+      this.characterBank[4] = this.bankRegister.getRegisterData(2) * this.ONE_KILOBYTE_BANK;
+      this.characterBank[5] = this.bankRegister.getRegisterData(3) * this.ONE_KILOBYTE_BANK;
+      this.characterBank[6] = this.bankRegister.getRegisterData(4) * this.ONE_KILOBYTE_BANK;
+      this.characterBank[7] = this.bankRegister.getRegisterData(5) * this.ONE_KILOBYTE_BANK;
   }
 
   /**
@@ -361,14 +359,14 @@ export class MapperFour extends Mapper {
    */
   updateProgramBanks() {
     if (this.programBankMode) {
-      this.programBank[0] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES;
-      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES;
+      this.programBank[0] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES_BANK;
+      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES_BANK;
     } else {
-      this.programBank[0] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES;
-      this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES;
+      this.programBank[0] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES_BANK;
+      this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES_BANK;
     }
 
-    this.programBank[1] = this.bankRegister.getRegisterData(7) * this.EIGHT_KILOBYTES;
+    this.programBank[1] = this.bankRegister.getRegisterData(7) * this.EIGHT_KILOBYTES_BANK;
   }
 
   mirror() {
@@ -381,7 +379,7 @@ export class MapperFour extends Mapper {
     this.characterInversion = false;
     this.mirrorMode = Mirror.HORIZONTAL;
 
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTES;    // Fixed to the last bank, never changes
+    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTES_BANK;    // Fixed to the last bank, never changes
     this.bankRegister.reset();
     this.bankRegister.setNumberOfProgramBanks(this.programBanks);
     this.updateProgramBanks();

@@ -48,15 +48,15 @@ export class MapperOne extends Mapper {
       return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };
     }
     if (address >= 0x8000) {
-      if (this.controlRegister[0] & 0x08) {        // 16K Mode
+      if (this.controlRegister[0] & 0x08) {
         if (address >= 0x8000 && address <= 0xBFFF) {
-          return { "address": this.programBank[0] * 0x4000 + (address & 0x3FFF) };
+          return { "address": this.programBank[0] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
         }
         if (address >= 0xC000 && address <= 0xFFFF) {
-          return { "address": this.programBank[1] * 0x4000 + (address & 0x3FFF) };
+          return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
         }
-      } else {      // 32K Mode
-        return { "address": this.programBank[2] * 0x8000 + (address & 0x7FFF) };
+      } else {
+        return { "address": this.programBank[2] * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF) };
       }
     }
     return false;
@@ -142,15 +142,15 @@ export class MapperOne extends Mapper {
       if (this.characterBanks === 0) {
         return { "address": address };
       }
-      if (this.controlRegister[0] & 0x10) {        // 4K CHR Bank Mode
+      if (this.controlRegister[0] & 0x10) {
         if (address <= 0x0FFF) {
-          return { "address": this.characterBank[0] * 0x1000 + (address & 0x0FFF) };
+          return { "address": this.characterBank[0] * this.FOUR_KILOBYTES_BANK + (address & 0x0FFF) };
         }
         if (address <= 0x1FFF) {
-          return { "address": this.characterBank[1] * 0x1000 + (address & 0x0FFF) };
+          return { "address": this.characterBank[1] * this.FOUR_KILOBYTES_BANK + (address & 0x0FFF) };
         }
-      } else {      // 8K CHR Bank Mode
-        return { "address": this.characterBank[2] * 0x2000 + address };
+      } else {
+        return { "address": this.characterBank[2] * this.EIGHT_KILOBYTES_BANK + address };
       }
     }
 

@@ -62,7 +62,7 @@ export class MapperThree extends Mapper {
 
   mapReadByPPU(address) {
     if (address < 0x2000) {
-      return { "address": this.characterBank * 0x2000 + address };
+      return { "address": this.characterBank * this.EIGHT_KILOBYTES_BANK + address };
     }
     return false;
   }
