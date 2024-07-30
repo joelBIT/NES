@@ -95,8 +95,8 @@ class BankRegister {
 export class MapperFour extends Mapper {
   id = 4;
   ONE_KILOBYTE = 0x0400;
-  EIGHT_KILOBYTE = 0x2000;
-  VRAM = new Uint8Array(this.EIGHT_KILOBYTE);
+  EIGHT_KILOBYTES = 0x2000;
+  VRAM = new Uint8Array(this.EIGHT_KILOBYTES);
   mirrorMode = Mirror.HORIZONTAL;
 
   programBankMode = false;
@@ -251,7 +251,7 @@ export class MapperFour extends Mapper {
   }
 
   mapReadByPPU(address) {
-    address = this.characterInversion ? address ^ 0x1000 : address;
+    address = this.characterInversion ? address ^ 0x1000 : address;   // Switches character banks depending on character inversion
     if (address <= 0x03FF) {
       return { "address": this.characterBank[0] + (address & 0x03FF) };
     }
@@ -361,14 +361,14 @@ export class MapperFour extends Mapper {
    */
   updateProgramBanks() {
     if (this.programBankMode) {
-      this.programBank[0] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
-      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTE;
+      this.programBank[0] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES;
+      this.programBank[2] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES;
     } else {
-      this.programBank[0] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTE;
-      this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTE;
+      this.programBank[0] = this.bankRegister.getRegisterData(6) * this.EIGHT_KILOBYTES;
+      this.programBank[2] = (this.programBanks * 2 - 2) * this.EIGHT_KILOBYTES;
     }
 
-    this.programBank[1] = this.bankRegister.getRegisterData(7) * this.EIGHT_KILOBYTE;
+    this.programBank[1] = this.bankRegister.getRegisterData(7) * this.EIGHT_KILOBYTES;
   }
 
   mirror() {
@@ -381,7 +381,7 @@ export class MapperFour extends Mapper {
     this.characterInversion = false;
     this.mirrorMode = Mirror.HORIZONTAL;
 
-    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTE;    // Fixed to the last bank, never changes
+    this.programBank[3] = (this.programBanks * 2 - 1) * this.EIGHT_KILOBYTES;    // Fixed to the last bank, never changes
     this.bankRegister.reset();
     this.bankRegister.setNumberOfProgramBanks(this.programBanks);
     this.updateProgramBanks();

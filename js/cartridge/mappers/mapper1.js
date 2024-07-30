@@ -25,7 +25,7 @@ import { Mapper } from "./mapper.js";
  */
 export class MapperOne extends Mapper {
   id = 1;
-  VRAM = new Uint8Array(32*1024);     // Could be dumped into a file for game save?
+  VRAM = new Uint8Array(32*1024);
   mirrorMode = Mirror.HORIZONTAL;
 
   shiftRegister = new Uint8Array(1);
@@ -50,7 +50,7 @@ export class MapperOne extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x6000 && address <= 0x7FFF) {
-      return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };      // Read is from static ram on cartridge
+      return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };
     }
     if (address >= 0x8000) {
       if (this.controlRegister[0] & 0x08) {        // 16K Mode
@@ -69,7 +69,7 @@ export class MapperOne extends Mapper {
 
   mapWriteByCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
-      this.VRAM[address & 0x1FFF] = data;       // Write is to static ram on cartridge
+      this.VRAM[address & 0x1FFF] = data;
       return { "address": 0xFFFFFFFF };
     }
 
@@ -151,7 +151,7 @@ export class MapperOne extends Mapper {
         if (address <= 0x0FFF) {
           return { "address": this.characterBankSelect4Low[0] * 0x1000 + (address & 0x0FFF) };
         }
-        if (address >= 0x1000 && address <= 0x1FFF) {
+        if (address <= 0x1FFF) {
           return { "address": this.characterBankSelect4High[0] * 0x1000 + (address & 0x0FFF) };
         }
       } else {      // 8K CHR Bank Mode
@@ -172,6 +172,10 @@ export class MapperOne extends Mapper {
     return false;
   }
 
+  mirror() {
+    return this.mirrorMode;
+  }
+
   reset() {
     this.controlRegister[0] = 0x1C;
     this.shiftRegister[0] = 0x00;
@@ -184,9 +188,5 @@ export class MapperOne extends Mapper {
     this.programBankSelect32[0] = 0;
     this.programBankSelect16Low[0] = 0;
     this.programBankSelect16High[0] = this.programBanks - 1;
-  }
-
-  mirror() {
-    return this.mirrorMode;
   }
 }

@@ -18,9 +18,8 @@ import { Mirror } from "../../mirror.js";
 export class MapperTwo extends Mapper {
   id = 2;
   mirrorMode = Mirror.VERTICAL;
-
-  programBankSelectLow = 0;
-  programBankSelectHigh = this.programBanks - 1;
+  programBank = new Uint8Array(2);
+  SIXTEEN_KILOBYTES = 0x4000;
 
   constructor(programBanks, characterBanks) {
     super(programBanks, characterBanks);
@@ -32,11 +31,11 @@ export class MapperTwo extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xBFFF) {
-      return { "address": this.programBankSelectLow * 0x4000 + (address & 0x3FFF) };
+      return { "address": this.programBank[0] * this.SIXTEEN_KILOBYTES + (address & 0x3FFF) };
     }
 
     if (address >= 0xC000 && address <= 0xFFFF) {
-      return { "address": this.programBankSelectHigh * 0x4000 + (address & 0x3FFF) };
+      return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES + (address & 0x3FFF) };
     }
 
     return false;
@@ -55,7 +54,7 @@ export class MapperTwo extends Mapper {
    */
   mapWriteByCPU(address, data) {
     if (address >= 0x8000 && address <= 0xFFFF) {
-      this.programBankSelectLow = data & 0x0F;
+      this.programBank[0] = data & 0x0F;
     }
 
     return false;
@@ -77,12 +76,12 @@ export class MapperTwo extends Mapper {
     return false;
   }
 
-  reset() {
-    this.programBankSelectLow = 0;
-    this.programBankSelectHigh = this.programBanks - 1;
-  }
-
   mirror() {
     return this.mirrorMode;
+  }
+
+  reset() {
+    this.programBank[0] = 0;
+    this.programBank[1] = this.programBanks - 1;
   }
 }

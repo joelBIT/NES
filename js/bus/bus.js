@@ -7,7 +7,6 @@ import { SystemClock } from "./systemClock.js";
  * A bus is used for communication between NES components such as CPU, Memory, and PPU (i.e., the communication that
  * takes place within the actual NES console). When a cartridge has been inserted into the console, the bus is used for
  * communicating with the cartridge as well.
- *
  */
 export class Bus {
   controllerState = new Uint8Array(2);        // Internal cache of controller state
@@ -144,7 +143,7 @@ export class Bus {
   }
 
   /**
-   *  Collect all DMC samples from memory locations $C000 - $FFFF
+   *  Collect all DMC samples from memory locations $C000 - $FFFF at the startup of a game.
    */
   collectAllSamples() {
     const samples = [];

@@ -3,7 +3,7 @@ import { Mapper } from "./mapper.js";
 /**
  * The iNES format assigns mapper 0 to NROM.
  *
- * CPU $6000-$7FFF: Family Basic only: PRG RAM, mirrored as necessary to fill entire 8 KiB window, write protectable with an external switch
+ * CPU $6000-$7FFF: PRG RAM, mirrored as necessary to fill entire 8 KiB window
  * CPU $8000-$BFFF: First 16 KB of ROM.
  * CPU $C000-$FFFF: Last 16 KB of ROM (NROM-256) or mirror of $8000-$BFFF (NROM-128).
  *
