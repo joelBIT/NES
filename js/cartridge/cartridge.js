@@ -76,10 +76,15 @@ export class Cartridge {
     return this.characterROM.read(this.mapper.mapReadByPPU(address));
   }
 
+  /**
+   * If a loaded game has 0 Character memory the CharacterROM is empty. In this case, the CharacterROM is used as a data
+   * table for storing graphical data in. Otherwise, when a loaded game has Character memory, the CharacterROM is read-only.
+   *
+   * @param address     the target address for the data
+   * @param data        the data to be written to the given address
+   */
   writeByPPU(address, data) {
-    if (this.mapper.hasCharacterBanks()) {
-      this.mapper.mapWriteByPPU(address);
-    } else {
+    if (!this.mapper.hasCharacterBanks()) {
       this.characterROM.write(address, data);
     }
   }

@@ -64,16 +64,6 @@ export class Mapper {
     return 0x00;
   }
 
-  /**
-   * Maps a write operation made by the PPU. The address that the PPU wants to write to is mapped to the corresponding
-   * address on the cartridge.
-   *
-   * @param address - the address to be mapped
-   */
-  mapWriteByPPU(address) {
-
-  }
-
   hasCharacterBanks() {
     return this.characterBanks > 0;
   }
