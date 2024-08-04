@@ -68,10 +68,19 @@ export class Cartridge {
   writeByCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
       this.programRAM.write(address, data);
+    } else {
+      this.mapper.mapWriteByCPU(address, data);
     }
-    this.mapper.mapWriteByCPU(address, data);
   }
 
+  /**
+   * If a loaded game has CharacterROM (i.e., has character banks) the address is mapped by the mapper to the desired
+   * place in the CharacterROM memory. Otherwise, the whole CharacterROM is treated like one memory bank and no mapper
+   * is used.
+   *
+   * @param address       the address in CharacterROM where the read is taking place
+   * @returns {number}    the data read from the given address in CharacterROM
+   */
   readByPPU(address) {
     if (this.mapper.hasCharacterBanks()) {
       return this.characterROM.read(this.mapper.mapReadByPPU(address));
