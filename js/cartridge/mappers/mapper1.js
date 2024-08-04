@@ -25,7 +25,6 @@ import { Mapper } from "./mapper.js";
  */
 export class MapperOne extends Mapper {
   id = 1;
-  VRAM = new Uint8Array(32*1024);
   mirrorMode = Mirror.HORIZONTAL;
 
   shiftRegister = new Uint8Array(1);
@@ -44,9 +43,6 @@ export class MapperOne extends Mapper {
   }
 
   mapReadByCPU(address) {
-    if (address >= 0x6000 && address <= 0x7FFF) {
-      return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };
-    }
     if (address >= 0x8000) {
       if (this.controlRegister[0] & 0x08) {
         if (address >= 0x8000 && address <= 0xBFFF) {
@@ -63,11 +59,6 @@ export class MapperOne extends Mapper {
   }
 
   mapWriteByCPU(address, data) {
-    if (address >= 0x6000 && address <= 0x7FFF) {
-      this.VRAM[address & 0x1FFF] = data;
-      return { "address": 0xFFFFFFFF };
-    }
-
     if (address >= 0x8000) {
       if (data & 0x80) {
 

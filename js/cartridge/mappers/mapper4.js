@@ -94,13 +94,10 @@ class BankRegister {
  */
 export class MapperFour extends Mapper {
   id = 4;
-  VRAM = new Uint8Array(0x2000);
   mirrorMode = Mirror.HORIZONTAL;
 
   programBankMode = false;
   characterInversion = false;
-  ramEnabled = false;
-  ramWritable = false;
 
   bankRegister = new BankRegister();
   targetBankRegister = new Uint8Array(1);
@@ -121,12 +118,6 @@ export class MapperFour extends Mapper {
   }
 
   mapReadByCPU(address) {
-    if (address >= 0x6000 && address <= 0x7FFF) {
-      if (this.ramEnabled) {
-        return { "address": 0xFFFFFFFF, "data": this.VRAM[address & 0x1FFF] };
-      }
-    }
-
     if (address >= 0x8000 && address <= 0x9FFF) {
       return { "address": this.programBank[0] + (address & 0x1FFF) };
     }
@@ -176,13 +167,6 @@ export class MapperFour extends Mapper {
    *
    */
   mapWriteByCPU(address, data) {
-    if (address >= 0x6000 && address <= 0x7FFF) {
-      if (this.ramEnabled && this.ramWritable) {
-        this.VRAM[address & 0x1FFF] = data;
-        return { "address": 0xFFFFFFFF };
-      }
-    }
-
     const isEven = address % 2 === 0;
 
     if (address >= 0x8000 && address <= 0x9FFF) {
@@ -215,9 +199,6 @@ export class MapperFour extends Mapper {
         } else {
           this.mirrorMode = Mirror.VERTICAL;
         }
-      } else {
-        this.ramEnabled = data & 0x80;
-        this.ramWritable = (data & 0x40) === 0;
       }
       return false;
     }
