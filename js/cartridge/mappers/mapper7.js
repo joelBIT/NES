@@ -34,8 +34,6 @@ export class MapperSeven extends Mapper {
     if (address >= 0x8000 && address <= 0xFFFF) {
       return { "address": this.programBank * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF) };
     }
-
-    return false;
   }
 
   /**
@@ -58,8 +56,6 @@ export class MapperSeven extends Mapper {
         this.mirrorMode = Mirror.SINGLE_SCREEN_HIGH;
       }
     }
-
-    return false;
   }
 
   mapReadByPPU(address) {

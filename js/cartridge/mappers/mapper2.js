@@ -36,8 +36,6 @@ export class MapperTwo extends Mapper {
     if (address >= 0xC000 && address <= 0xFFFF) {
       return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
     }
-
-    return false;
   }
 
   /**
@@ -55,8 +53,6 @@ export class MapperTwo extends Mapper {
     if (address >= 0x8000 && address <= 0xFFFF) {
       this.programBank[0] = data & 0x0F;
     }
-
-    return false;
   }
 
   mapReadByPPU(address) {

@@ -45,76 +45,40 @@ export class Cartridge {
 
     this.mirror = this.header.getMirrorMode();
 
-    this.programBanks = this.header.getProgramChunks();
-    const programMemoryLength = this.programBanks * this.SIXTEEN_KILOBYTES;
-    this.programROM = new ProgramROM(cartridge.subarray(index, index + programMemoryLength));
-    index += programMemoryLength;
+    index += this.setProgramROM(cartridge, index);
+    this.setCharacterROM(cartridge, index);
 
-    this.characterBanks = this.header.getCharacterChunks();
-    if (this.characterBanks !== 0) {
-      const characterMemoryLength = this.characterBanks * this.EIGHT_KILOBYTES;
-      this.characterROM = new CharacterROM(cartridge.subarray(index, index + characterMemoryLength));
-    } else {
-      this.characterROM = new CharacterROM();
-    }
-
-    switch (this.header.getMapperID()) {
-      case 0:
-        this.mapper = new MapperZero(this.programBanks, this.characterBanks);
-        break;
-      case 1:
-        this.mapper = new MapperOne(this.programBanks, this.characterBanks);
-        break;
-      case 2:
-        this.mapper = new MapperTwo(this.programBanks, this.characterBanks);
-        break;
-      case 3:
-        this.mapper = new MapperThree(this.programBanks, this.characterBanks);
-        break;
-      case 4:
-      case 68:    // This is to deal with that Shadowgate is mapper 4 while the Shadowgate ROMS indicate mapper 68
-        this.mapper = new MapperFour(this.programBanks, this.characterBanks);
-        break;
-      case 7:
-        this.mapper = new MapperSeven(this.programBanks, this.characterBanks);
-        break;
-      case 66:
-        this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);
-        break;
-    }
+    this.setMapper();
   }
 
   readByCPU(address) {
     if (address >= 0x6000 && address <= 0x7FFF) {
-      return { "data": this.programRAM.read(address) };
+      return this.programRAM.read(address);
     }
 
     const mapped = this.mapper.mapReadByCPU(address);
     if (mapped) {
-      return { "data": this.programROM.read(mapped.address) };
+      return this.programROM.read(mapped.address);
     }
-    return false;
+    return 0x00;
   }
 
   /**
-   *
+   * A write performed by the CPU. Data is either written to the Program RAM or mapped (in a mapper) to an address
+   * suitable for the program ROM.
    *
    * @param address         the address to be mapped, if possible
    * @param data            data to be written, or used to switch banks and other settings
-   * @returns {boolean}     true if the write request was handled, false otherwise
    */
   writeByCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
       this.programRAM.write(address, data);
-      return true;
     }
 
     const mapped = this.mapper.mapWriteByCPU(address, data);
     if (mapped) {
       this.programROM.write(mapped.address, data);
-      return true;
     }
-    return false;
   }
 
   readByPPU(address) {
@@ -153,6 +117,50 @@ export class Cartridge {
 
   clearIRQ() {
     this.mapper.irqClear();
+  }
+
+  setProgramROM(cartridge, index) {
+    this.programBanks = this.header.getProgramChunks();
+    const programMemoryLength = this.programBanks * this.SIXTEEN_KILOBYTES;
+    this.programROM = new ProgramROM(cartridge.subarray(index, index + programMemoryLength));
+    return programMemoryLength;
+  }
+
+  setCharacterROM(cartridge, index) {
+    this.characterBanks = this.header.getCharacterChunks();
+    if (this.characterBanks !== 0) {
+      const characterMemoryLength = this.characterBanks * this.EIGHT_KILOBYTES;
+      this.characterROM = new CharacterROM(cartridge.subarray(index, index + characterMemoryLength));
+    } else {
+      this.characterROM = new CharacterROM();
+    }
+  }
+
+  setMapper() {
+    switch (this.header.getMapperID()) {
+      case 0:
+        this.mapper = new MapperZero(this.programBanks, this.characterBanks);
+        break;
+      case 1:
+        this.mapper = new MapperOne(this.programBanks, this.characterBanks);
+        break;
+      case 2:
+        this.mapper = new MapperTwo(this.programBanks, this.characterBanks);
+        break;
+      case 3:
+        this.mapper = new MapperThree(this.programBanks, this.characterBanks);
+        break;
+      case 4:
+      case 68:    // This is to deal with that Shadowgate is mapper 4 while the Shadowgate ROMS indicate mapper 68
+        this.mapper = new MapperFour(this.programBanks, this.characterBanks);
+        break;
+      case 7:
+        this.mapper = new MapperSeven(this.programBanks, this.characterBanks);
+        break;
+      case 66:
+        this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);
+        break;
+    }
   }
 
   reset() {

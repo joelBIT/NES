@@ -55,7 +55,6 @@ export class MapperOne extends Mapper {
         return { "address": this.programBank[2] * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF) };
       }
     }
-    return false;
   }
 
   mapWriteByCPU(address, data) {
@@ -124,8 +123,6 @@ export class MapperOne extends Mapper {
         }
       }
     }
-
-    return false;
   }
 
   mapReadByPPU(address) {

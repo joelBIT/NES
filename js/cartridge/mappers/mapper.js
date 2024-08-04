@@ -36,10 +36,10 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
+   * @returns {number} the mapped address
    */
   mapReadByCPU(address) {
-    return false;
+    return 0x00;
   }
 
   /**
@@ -47,11 +47,10 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @param data    - data often written to static VRAM in mapper, or used for bank selection
-   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
+   * @param data    - data written to ROM or RAM, or used for bank selection or other settings
    */
   mapWriteByCPU(address, data) {
-    return false;
+
   }
 
   /**

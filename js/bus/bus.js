@@ -97,10 +97,7 @@ export class Bus {
    *  The RAM is addressed within an 8-kilobyte range. Every 2 kilobyte is mirrored. The CPU invokes this read(..) method.
    */
   read(address) {
-    const read = this.cartridge.readByCPU(address);
-    if (read) {
-      return read.data;
-    } else if (address >= 0x0000 && address <= 0x1FFF) {
+    if (address >= 0x0000 && address <= 0x1FFF) {
       return this.cpuRAM[address & 0x07FF];                // System RAM Address Range, mirrored every 2048
     } else if (address >= 0x2000 && address <= 0x3FFF) {
       return this.ppu.readRegister(address & 0x0007);          // PPU Address range, mirrored every 8
@@ -114,6 +111,8 @@ export class Bus {
       const data = (this.controllerState[this.CONTROLLER_2] & 0x80) >> 7;
       this.controllerState[this.CONTROLLER_2] <<= 1;      // Read out the MSB of the controller status word
       return data;
+    } else if (address >= 0x6000) {
+      return this.cartridge.readByCPU(address);
     }
   }
 
@@ -122,9 +121,7 @@ export class Bus {
    *  is mirrored. The CPU invokes this write(..) method.
    */
   write(address, data) {
-    if (this.cartridge.writeByCPU(address, data)) {
-
-    } else if (address >= 0x0000 && address <= 0x1FFF) {
+    if (address >= 0x0000 && address <= 0x1FFF) {
       this.cpuRAM[address & 0x07FF] = data;                 // Using bitwise AND to mask the bottom 11 bits is the same as addr % 2048.
     } else if (address >= 0x2000 && address <= 0x3FFF) {    // PPU Address range. The PPU only has 8 primary registers and these are repeated throughout this range.
       this.ppu.writeRegister(address & 0x0007, data);          // bitwise AND operation to mask the bottom 3 bits, which is the equivalent of addr % 8.
@@ -139,6 +136,8 @@ export class Bus {
       if (this.controllers[this.CONTROLLER_2].getActiveButton()) {
         this.controllerState[this.CONTROLLER_2] = this.controllers[this.CONTROLLER_2].getActiveButton();
       }
+    } else if (address >= 0x6000) {
+      this.cartridge.writeByCPU(address, data);
     }
   }
 

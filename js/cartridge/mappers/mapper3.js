@@ -35,9 +35,7 @@ export class MapperThree extends Mapper {
       if (this.programBanks === 2) {              // 32K ROM
         return { "address": address & 0x7FFF };
       }
-      return true;
     }
-    return false;
   }
 
   /**
@@ -57,7 +55,6 @@ export class MapperThree extends Mapper {
       this.characterBank = data & 0x03;
       return { "address": address };
     }
-    return false;
   }
 
   mapReadByPPU(address) {

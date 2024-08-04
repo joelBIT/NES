@@ -133,8 +133,6 @@ export class MapperFour extends Mapper {
     if (address >= 0xE000 && address <= 0xFFFF) {
       return { "address": this.programBank[3] + (address & 0x1FFF) };
     }
-
-    return false;
   }
 
   /**
@@ -188,8 +186,6 @@ export class MapperFour extends Mapper {
         this.updateCharacterBanks();
         this.updateProgramBanks();
       }
-
-      return false;
     }
 
     if (address >= 0xA000 && address <= 0xBFFF) {
@@ -200,7 +196,6 @@ export class MapperFour extends Mapper {
           this.mirrorMode = Mirror.VERTICAL;
         }
       }
-      return false;
     }
 
     /**
@@ -214,7 +209,6 @@ export class MapperFour extends Mapper {
       } else {
         this.irqCounter[0] = 0x0000;    // Writing any value to this register clears the MMC3 IRQ counter immediately
       }
-      return false;
     }
 
     if (address >= 0xE000 && address <= 0xFFFF) {
@@ -225,8 +219,6 @@ export class MapperFour extends Mapper {
         this.irqEnabled = true;
       }
     }
-
-    return false;
   }
 
   mapReadByPPU(address) {
