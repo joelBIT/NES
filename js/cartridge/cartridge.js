@@ -73,7 +73,11 @@ export class Cartridge {
   }
 
   readByPPU(address) {
-    return this.characterROM.read(this.mapper.mapReadByPPU(address));
+    if (this.mapper.hasCharacterBanks()) {
+      return this.characterROM.read(this.mapper.mapReadByPPU(address));
+    } else {
+      return this.characterROM.read(address);
+    }
   }
 
   /**
