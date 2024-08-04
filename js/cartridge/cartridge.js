@@ -7,9 +7,9 @@ import { MapperThree } from "./mappers/mapper3.js";
 import { MapperSixtySix } from "./mappers/mapper66.js";
 import { MapperFour } from "./mappers/mapper4.js";
 import { MapperSeven } from "./mappers/mapper7.js";
-import { CharacterROM } from "./characterROM.js";
-import { ProgramROM } from "./programROM.js";
-import { ProgramRAM } from "./ProgramRAM.js";
+import { CharacterROM } from "./memory/characterROM.js";
+import { ProgramROM } from "./memory/programROM.js";
+import { ProgramRAM } from "./memory/ProgramRAM.js";
 
 /**
  * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table. An NES cartridge
