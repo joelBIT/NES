@@ -30,11 +30,11 @@ export class MapperTwo extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0xBFFF) {
-      return { "address": this.programBank[0] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
+      return this.programBank[0] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF);
     }
 
     if (address >= 0xC000 && address <= 0xFFFF) {
-      return { "address": this.programBank[1] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF) };
+      return this.programBank[1] * this.SIXTEEN_KILOBYTES_BANK + (address & 0x3FFF);
     }
   }
 
@@ -50,25 +50,11 @@ export class MapperTwo extends Mapper {
    * (UNROM uses bits 2-0; UOROM uses bits 3-0)
    */
   mapWriteByCPU(address, data) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      this.programBank[0] = data & 0x0F;
-    }
+    this.programBank[0] = data & 0x0F;
   }
 
   mapReadByPPU(address) {
-    if (address < 0x2000) {
-      return { "address": address };
-    }
-    return false;
-  }
-
-  mapWriteByPPU(address) {
-    if (address < 0x2000) {
-      if (this.characterBanks === 0) {
-        return { "address": address };
-      }
-    }
-    return false;
+    return address;
   }
 
   mirror() {

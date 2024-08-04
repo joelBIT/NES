@@ -26,8 +26,6 @@ import { Canvas } from "./canvas.js";
 class PPU {
   palettes = new MemoryArea();                 // contains the colors
   nameTables = new NameTableContainer();       // describes the layout of the background
-  patternTable1 = new MemoryArea(4096);
-  patternTable2 = new MemoryArea(4096);
   END_OF_SCANLINE = 340;
   END_OF_VISIBLE_SCANLINE = 256;
   RESET_X_POSITION = 257;
@@ -466,15 +464,8 @@ class PPU {
 
   readMemory(address) {
     address &= 0x3FFF;
-    const read = this.cartridge.readByPPU(address);
-    if (read) {
-      return read.data;
-    } else if (address >= 0x0000 && address <= 0x1FFF) {
-      if ((address & 0x1000) >> 12) {
-        return this.patternTable2.read(address & 0x0FFF);
-      } else {
-        return this.patternTable1.read(address & 0x0FFF);
-      }
+    if (address >= 0x0000 && address <= 0x1FFF) {
+      return this.cartridge.readByPPU(address);
     } else if (address >= 0x2000 && address <= 0x3EFF) {
       address &= 0x0FFF;
       return this.nameTables.read(address, this.cartridge.getMirror());
@@ -496,15 +487,8 @@ class PPU {
 
   writeMemory(address, data) {
     address &= 0x3FFF;
-
-    if (this.cartridge.writeByPPU(address, data)) {
-
-    } else if (address >= 0x0000 && address <= 0x1FFF) {
-      if ((address & 0x1000) >> 12) {
-        this.patternTable2.write(address & 0x0FFF, data);
-      } else {
-        this.patternTable1.write(address & 0x0FFF, data);
-      }
+    if (address >= 0x0000 && address <= 0x1FFF) {
+      this.cartridge.writeByPPU(address, data);
     } else if (address >= 0x2000 && address <= 0x3EFF) {
       address &= 0x0FFF;
       this.nameTables.write(address, data, this.cartridge.getMirror());
@@ -549,8 +533,6 @@ class PPU {
     this.oddFrame = false;
     this.palettes = new MemoryArea();
     this.nameTables.reset();
-    this.patternTable1 = new MemoryArea(4096);
-    this.patternTable2 = new MemoryArea(4096);
   }
 }
 

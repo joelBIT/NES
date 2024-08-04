@@ -28,13 +28,11 @@ export class MapperThree extends Mapper {
   }
 
   mapReadByCPU(address) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      if (this.programBanks === 1) {                // 16K ROM
-        return { "address": address & 0x3FFF };
-      }
-      if (this.programBanks === 2) {              // 32K ROM
-        return { "address": address & 0x7FFF };
-      }
+    if (this.programBanks === 1) {
+      return address & 0x3FFF;
+    }
+    if (this.programBanks === 2) {
+      return address & 0x7FFF;
     }
   }
 
@@ -51,26 +49,11 @@ export class MapperThree extends Mapper {
    * bits for larger CHR.
    */
   mapWriteByCPU(address, data) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      this.characterBank = data & 0x03;
-      return { "address": address };
-    }
+    this.characterBank = data & 0x03;
   }
 
   mapReadByPPU(address) {
-    if (address < 0x2000) {
-      return { "address": this.characterBank * this.EIGHT_KILOBYTES_BANK + address };
-    }
-    return false;
-  }
-
-  mapWriteByPPU(address) {
-    if (address < 0x2000) {
-      if (this.characterBanks === 0) {
-        return { "address": address };
-      }
-    }
-    return false;
+    return this.characterBank * this.EIGHT_KILOBYTES_BANK + address;
   }
 
   reset() {

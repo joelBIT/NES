@@ -55,12 +55,7 @@ export class Cartridge {
     if (address >= 0x6000 && address <= 0x7FFF) {
       return this.programRAM.read(address);
     }
-
-    const mapped = this.mapper.mapReadByCPU(address);
-    if (mapped) {
-      return this.programROM.read(mapped.address);
-    }
-    return 0x00;
+    return this.programROM.read(this.mapper.mapReadByCPU(address));
   }
 
   /**
@@ -74,30 +69,19 @@ export class Cartridge {
     if (address >= 0x6000 && address <= 0x7FFF) {
       this.programRAM.write(address, data);
     }
-
-    const mapped = this.mapper.mapWriteByCPU(address, data);
-    if (mapped) {
-      this.programROM.write(mapped.address, data);
-    }
+    this.mapper.mapWriteByCPU(address, data);
   }
 
   readByPPU(address) {
-    const mapped = this.mapper.mapReadByPPU(address);
-    if (mapped) {
-      return { "data": this.characterROM.read(mapped.address) };
-    }
-    return false;
+    return this.characterROM.read(this.mapper.mapReadByPPU(address));
   }
 
   writeByPPU(address, data) {
-    const mapped = this.mapper.mapWriteByPPU(address);
-    if (mapped) {
-      if (mapped.address) {
-        this.characterROM.write(mapped.address, data);
-      }
-      return true;
+    if (this.mapper.hasCharacterBanks()) {
+      this.mapper.mapWriteByPPU(address);
+    } else {
+      this.characterROM.write(address, data);
     }
-    return false;
   }
 
   getMirror() {

@@ -31,9 +31,7 @@ export class MapperSeven extends Mapper {
   }
 
   mapReadByCPU(address) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": this.programBank * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF) };
-    }
+    return this.programBank * this.THIRTY_TWO_KILOBYTES_BANK + (address & 0x7FFF);
   }
 
   /**
@@ -47,35 +45,17 @@ export class MapperSeven extends Mapper {
    *    +------ Select 1 KB VRAM page for all 4 nametables
    */
   mapWriteByCPU(address, data) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      this.programBank = data & 0x07;
+    this.programBank = data & 0x07;
 
-      if (data & 0x10) {
-        this.mirrorMode = Mirror.SINGLE_SCREEN_LOW;
-      } else {
-        this.mirrorMode = Mirror.SINGLE_SCREEN_HIGH;
-      }
+    if (data & 0x10) {
+      this.mirrorMode = Mirror.SINGLE_SCREEN_LOW;
+    } else {
+      this.mirrorMode = Mirror.SINGLE_SCREEN_HIGH;
     }
   }
 
   mapReadByPPU(address) {
-    if (address < 0x2000) {
-      if (this.characterBanks === 0) {
-        return { "address": address };
-      }
-      return { "address": this.programBank * this.EIGHT_KILOBYTES_BANK + address };
-    }
-    return false;
-  }
-
-  mapWriteByPPU(address) {
-    if (address < 0x2000) {
-      if (this.characterBanks === 0) {
-        return { "address": address };
-      }
-      return true;
-    }
-    return false;
+    return this.programBank * this.EIGHT_KILOBYTES_BANK + address;
   }
 
   mirror() {

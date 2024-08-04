@@ -27,30 +27,14 @@ export class MapperZero extends Mapper {
   }
 
   mapReadByCPU(address) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": address & (this.programBanks > 1 ? 0x7FFF : 0x3FFF) };
-    }
+    return address & (this.programBanks > 1 ? 0x7FFF : 0x3FFF);
   }
 
   mapWriteByCPU(address) {
-    if (address >= 0x8000 && address <= 0xFFFF) {
-      return { "address": address & (this.programBanks > 1 ? 0x7FFF : 0x3FFF) };
-    }
+    return address & (this.programBanks > 1 ? 0x7FFF : 0x3FFF);
   }
 
   mapReadByPPU(address) {
-    if (address < 0x2000) {
-      return { "address": address };
-    }
-    return false;
-  }
-
-  mapWriteByPPU(address) {
-    if (address < 0x2000) {
-      if (this.programBanks === 0) {
-        return { "address": address };
-      }
-    }
-    return false;
+    return address;
   }
 }

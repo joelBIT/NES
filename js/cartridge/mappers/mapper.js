@@ -47,7 +47,7 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @param data    - data written to ROM or RAM, or used for bank selection or other settings
+   * @param data    - data written to RAM, or used for bank selection or other settings
    */
   mapWriteByCPU(address, data) {
 
@@ -57,11 +57,11 @@ export class Mapper {
    * Maps a read operation made by the PPU. The address that the PPU wants to read from is mapped to the corresponding
    * address on the cartridge.
    *
-   * @param address - the address to be mapped
-   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
+   * @param address -     the address to be mapped
+   * @returns {number}    the mapped address
    */
   mapReadByPPU(address) {
-    return false;
+    return 0x00;
   }
 
   /**
@@ -69,10 +69,13 @@ export class Mapper {
    * address on the cartridge.
    *
    * @param address - the address to be mapped
-   * @returns {boolean} false if the address could not be mapped, otherwise the mapped address is returned
    */
   mapWriteByPPU(address) {
-    return false;
+
+  }
+
+  hasCharacterBanks() {
+    return this.characterBanks > 0;
   }
 
   reset() {

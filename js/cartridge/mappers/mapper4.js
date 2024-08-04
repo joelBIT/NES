@@ -119,19 +119,19 @@ export class MapperFour extends Mapper {
 
   mapReadByCPU(address) {
     if (address >= 0x8000 && address <= 0x9FFF) {
-      return { "address": this.programBank[0] + (address & 0x1FFF) };
+      return this.programBank[0] + (address & 0x1FFF);
     }
 
     if (address >= 0xA000 && address <= 0xBFFF) {
-      return { "address": this.programBank[1] + (address & 0x1FFF) };
+      return this.programBank[1] + (address & 0x1FFF);
     }
 
     if (address >= 0xC000 && address <= 0xDFFF) {
-      return { "address": this.programBank[2] + (address & 0x1FFF) };
+      return this.programBank[2] + (address & 0x1FFF);
     }
 
     if (address >= 0xE000 && address <= 0xFFFF) {
-      return { "address": this.programBank[3] + (address & 0x1FFF) };
+      return this.programBank[3] + (address & 0x1FFF);
     }
   }
 
@@ -224,47 +224,36 @@ export class MapperFour extends Mapper {
   mapReadByPPU(address) {
     address = this.characterInversion ? address ^ 0x1000 : address;   // Switches character banks depending on character inversion
     if (address <= 0x03FF) {
-      return { "address": this.characterBank[0] + (address & 0x03FF) };
+      return this.characterBank[0] + (address & 0x03FF);
     }
 
     if (address <= 0x07FF) {
-      return { "address": this.characterBank[1] + (address & 0x03FF) };
+      return this.characterBank[1] + (address & 0x03FF);
     }
 
     if (address <= 0x0BFF) {
-      return { "address": this.characterBank[2] + (address & 0x03FF) };
+      return this.characterBank[2] + (address & 0x03FF);
     }
 
     if (address <= 0x0FFF) {
-      return { "address": this.characterBank[3] + (address & 0x03FF) };
+      return this.characterBank[3] + (address & 0x03FF);
     }
 
     if (address <= 0x13FF) {
-      return { "address": this.characterBank[4] + (address & 0x03FF) };
+      return this.characterBank[4] + (address & 0x03FF);
     }
 
     if (address <= 0x17FF) {
-      return { "address": this.characterBank[5] + (address & 0x03FF) };
+      return this.characterBank[5] + (address & 0x03FF);
     }
 
     if (address <= 0x1BFF) {
-      return { "address": this.characterBank[6] + (address & 0x03FF) };
+      return this.characterBank[6] + (address & 0x03FF);
     }
 
     if (address <= 0x1FFF) {
-      return { "address": this.characterBank[7] + (address & 0x03FF) };
+      return this.characterBank[7] + (address & 0x03FF);
     }
-
-    return false;
-  }
-
-  mapWriteByPPU(address) {
-    if (address < 0x2000) {
-      if (this.characterBanks === 0) {
-        return { "address": address };
-      }
-    }
-    return false;
   }
 
   irqState() {
