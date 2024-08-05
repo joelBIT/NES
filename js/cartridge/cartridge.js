@@ -10,6 +10,7 @@ import { MapperSeven } from "./mappers/mapper7.js";
 import { CharacterROM } from "./memory/characterROM.js";
 import { ProgramROM } from "./memory/programROM.js";
 import { ProgramRAM } from "./memory/ProgramRAM.js";
+import { CharacterRAM } from "./memory/characterRAM.js";
 
 /**
  * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table. An NES cartridge
@@ -28,6 +29,7 @@ export class Cartridge {
   programROM;
   characterROM;
   programRAM = new ProgramRAM();
+  characterRAM = new CharacterRAM();
   mapper;
 
   mirror = Mirror.HORIZONTAL;
@@ -85,7 +87,7 @@ export class Cartridge {
     if (this.mapper.hasCharacterBanks()) {
       return this.characterROM.read(this.mapper.mapReadByPPU(address));
     } else {
-      return this.characterROM.read(address);
+      return this.characterRAM.read(address);
     }
   }
 
@@ -98,7 +100,7 @@ export class Cartridge {
    */
   writeByPPU(address, data) {
     if (!this.mapper.hasCharacterBanks()) {
-      this.characterROM.write(address, data);
+      this.characterRAM.write(address, data);
     }
   }
 
