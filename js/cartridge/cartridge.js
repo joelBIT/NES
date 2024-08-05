@@ -53,6 +53,13 @@ export class Cartridge {
     this.setMapper();
   }
 
+  /**
+   * A read performed by the CPU. Data is either read from the Program RAM or mapped (in a mapper) to an address
+   * suitable for the program ROM.
+   *
+   * @param address       the address to be mapped, if possible
+   * @returns {number}    the data read from the given address in program memory
+   */
   readByCPU(address) {
     if (address >= 0x6000 && address <= 0x7FFF) {
       return this.programRAM.read(address);
@@ -76,12 +83,11 @@ export class Cartridge {
   }
 
   /**
-   * If a loaded game has CharacterROM (i.e., has character banks) the address is mapped by the mapper to the desired
-   * place in the CharacterROM memory. Otherwise, the whole CharacterROM is treated like one memory bank and no mapper
-   * is used.
+   * If a loaded game has Character memory the address is mapped by the mapper to the desired
+   * place in the Character read-only memory. Otherwise, the CharacterRAM is read from.
    *
-   * @param address       the address in CharacterROM where the read is taking place
-   * @returns {number}    the data read from the given address in CharacterROM
+   * @param address       the address in Character memory
+   * @returns {number}    the data read from the given address
    */
   readByPPU(address) {
     if (this.mapper.hasCharacterBanks()) {
@@ -92,8 +98,7 @@ export class Cartridge {
   }
 
   /**
-   * If a loaded game has 0 Character memory the CharacterROM is empty. In this case, the CharacterROM is used as a data
-   * table for storing graphical data in. Otherwise, when a loaded game has Character memory, the CharacterROM is read-only.
+   * If a loaded game has no Character memory the CharacterRAM is used instead for reading and writing.
    *
    * @param address     the target address for the data
    * @param data        the data to be written to the given address
