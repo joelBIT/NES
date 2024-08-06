@@ -83,7 +83,7 @@ export class Cartridge {
   }
 
   /**
-   * If a loaded game has Character memory the address is mapped by the mapper to the desired
+   * A read made by the PPU. If a loaded game has Character memory the address is mapped by the mapper to the desired
    * place in the Character read-only memory. Otherwise, the CharacterRAM is read from.
    *
    * @param address       the address in Character memory
@@ -98,7 +98,8 @@ export class Cartridge {
   }
 
   /**
-   * If a loaded game has no Character memory the CharacterRAM is used instead for reading and writing.
+   * A write made by the PPU. If a loaded game has no Character memory the CharacterRAM is used instead for reading
+   * and writing.
    *
    * @param address     the target address for the data
    * @param data        the data to be written to the given address
