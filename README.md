@@ -6,9 +6,12 @@
   - All official instructions are implemented :heavy_check_mark:
   - nestest passes :heavy_check_mark:
 
-<br>
-<b>Fully functional 🖥️ PPU</b>
-<br><br><br>
+<br><br>
+
+<b>🖥️ PPU</b>
+- Implemented as NTSC
+  
+<br><br>
 
 :musical_note:  <b>APU</b>
   - All five channels (Square1, Square2, Triangle, Noise, DMC) are implemented :heavy_check_mark:
