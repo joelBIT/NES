@@ -21,23 +21,12 @@ export class Bus {
   ppu;
   cartridge;
   controllers = [];
-  cpuRAM = new Uint8Array(2048);
+  cpuRAM = new Uint8Array(0x800);
 
   constructor(cpu, ppu) {
     this.cpu = cpu;
     this.ppu = ppu;
     this.cpu.connectBus(this);
-  }
-
-  reset() {
-    this.cartridge.reset();
-    this.cpu.reset();
-    this.ppu.reset();
-    this.dma.reset();
-    for (let i = 0; i < this.controllers.length; i++) {
-      this.controllers[i].reset();
-    }
-    this.systemClock.reset();
   }
 
   insertCartridge(cartridge) {
@@ -80,7 +69,7 @@ export class Bus {
 
     // The PPU is capable of emitting an interrupt to indicate the vertical blanking period has been entered. If it has, the irq is sent to the CPU.
     if (this.ppu.isNMI()) {
-      this.ppu.setNMI(false);
+      this.ppu.clearNMI();
       cpu.nmi();
     }
 
@@ -98,7 +87,7 @@ export class Bus {
    */
   read(address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
-      return this.cpuRAM[address & 0x07FF];                // System RAM Address Range, mirrored every 2048
+      return this.cpuRAM[address & 0x07FF];
     } else if (address >= 0x2000 && address <= 0x3FFF) {
       return this.ppu.readRegister(address & 0x0007);          // PPU Address range, mirrored every 8
     } else if (address === 0x4015) {
@@ -122,7 +111,7 @@ export class Bus {
    */
   write(address, data) {
     if (address >= 0x0000 && address <= 0x1FFF) {
-      this.cpuRAM[address & 0x07FF] = data;                 // Using bitwise AND to mask the bottom 11 bits is the same as addr % 2048.
+      this.cpuRAM[address & 0x07FF] = data;
     } else if (address >= 0x2000 && address <= 0x3FFF) {    // PPU Address range. The PPU only has 8 primary registers and these are repeated throughout this range.
       this.ppu.writeRegister(address & 0x0007, data);          // bitwise AND operation to mask the bottom 3 bits, which is the equivalent of addr % 8.
     } else if ((address >= 0x4000 && address <= 0x4013) || address === 0x4015) {
@@ -154,5 +143,17 @@ export class Bus {
     }
 
     return samples;
+  }
+
+  reset() {
+    this.cartridge.reset();
+    this.cpu.reset();
+    this.ppu.reset();
+    this.dma.reset();
+    for (let i = 0; i < this.controllers.length; i++) {
+      this.controllers[i].reset();
+    }
+    this.systemClock.reset();
+    this.cpuRAM = new Uint8Array(2048);
   }
 }

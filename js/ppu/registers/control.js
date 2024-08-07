@@ -103,7 +103,7 @@ export class ControlRegister {
     return this.getSpriteSize() === 0 ? 1 : 0;
   }
 
-  getEnableNMI() {
+  isNmiEnabled() {
     return (this.control[0] & 0x80) >> 7;
   }
 

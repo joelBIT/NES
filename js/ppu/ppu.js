@@ -14,20 +14,17 @@ import { Canvas } from "./canvas.js";
  * Picture Processing Unit - generates a composite video signal with 240 lines of pixels to a screen.
  * The CPU talks to the PPU via 8 (actually 9) registers using addresses 0x2000 - 0x2007 (although they are
  * mirrored over a larger address range).
- *
- * 0x2000 CTRL    responsible for configuring the PPU to render in different ways
- * 0x2001 MASK    decides whether background or sprites are being drawn, and what's happening at the edges of the screen
- * 0x2002 STATUS  tells when it is safe to render
-
- * 0x2005 SCROLL  through this register we can represent game worlds far larger than we can see on the screen
- * 0x2006 ADDRESS allows the CPU to directly read and write to the PPU's memory
- * 0x2007 DATA    allows the CPU to directly read and write to the PPU's memory
  */
 class PPU {
   palettes = new MemoryArea();                 // contains the colors
   nameTables = new NameTableContainer();       // describes the layout of the background
   END_OF_SCANLINE = 340;
   END_OF_VISIBLE_SCANLINE = 256;
+  VERTICAL_BLANK_LINE_START = 241;
+  POST_RENDER_IDLE_LINE = 240;
+  PRE_RENDER_LINE = 261;
+  VISIBLE_FRAME_START = 0;
+  PRE_VISIBLE_FRAME_LINE = -1;
   RESET_X_POSITION = 257;
   SPRITE_BYTES = 4;
 
@@ -71,8 +68,8 @@ class PPU {
     return this.nmi;
   }
 
-  setNMI(value) {
-    this.nmi = value;
+  clearNMI() {
+    this.nmi = false;
   }
 
   incrementScrollX() {
@@ -156,7 +153,7 @@ class PPU {
    * The CPU might have to wait an entire frame before the screen is updated.
    */
   clock() {
-    if (this.scanline >= -1 && this.scanline < 240) {
+    if (this.scanline >= this.PRE_VISIBLE_FRAME_LINE && this.scanline < this.POST_RENDER_IDLE_LINE) {
 
       /*
               ************************
@@ -165,12 +162,12 @@ class PPU {
        */
 
       // We leave the vertical blank period when we are at the top left of the screen, which is when scanline is -1 and cycle = 1
-      if (this.scanline === -1 && this.cycle === 1) {
+      if (this.scanline === this.PRE_VISIBLE_FRAME_LINE && this.cycle === 1) {
         this.statusRegister.reset();
         this.foreground.clearShifters();
       }
 
-      if (this.scanline === 0 && this.cycle === 0 && this.oddFrame && (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites())) {
+      if (this.scanline === this.VISIBLE_FRAME_START && this.cycle === 0 && this.oddFrame && (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites())) {
         this.cycle = 1;     // "Odd Frame" cycle skip
       }
 
@@ -210,7 +207,7 @@ class PPU {
         this.background.setTileID(this.readMemory(0x2000 | (this.scrollVRAM.getRegister() & 0x0FFF)));
       }
 
-      if (this.scanline === -1 && this.cycle >= 280 && this.cycle < 305) {    // End of vertical blank period so reset the Y address ready for rendering
+      if (this.scanline === this.PRE_VISIBLE_FRAME_LINE && this.cycle >= 280 && this.cycle < 305) {    // End of vertical blank period so reset the Y address ready for rendering
         this.transferAddressY();
       }
 
@@ -219,7 +216,7 @@ class PPU {
             | Foreground Rendering |
             ************************
      */
-      if (this.cycle === 257 && this.scanline >= 0) {
+      if (this.cycle === 257 && this.scanline >= this.VISIBLE_FRAME_START) {
         this.foreground.initializeForegroundRendering();
 
         this.foreground.clearShifters();
@@ -237,9 +234,9 @@ class PPU {
       }
     }
 
-    if (this.scanline === 241 && this.cycle === 1) {
+    if (this.scanline === this.VERTICAL_BLANK_LINE_START && this.cycle === 1) {
       this.statusRegister.setVerticalBlank();
-      if (this.controlRegister.getEnableNMI()) {
+      if (this.controlRegister.isNmiEnabled()) {
         this.nmi = true;                                // The PPU must inform the CPU about the nmi(), and this can be done in the bus
       }
     }
@@ -254,14 +251,14 @@ class PPU {
     this.cycle++;
 
     if (this.maskRegister.getRenderBackground() || this.maskRegister.getRenderSprites()) {
-      if (this.cycle === 260 && this.scanline < 240) {
+      if (this.cycle === 260 && this.scanline < this.POST_RENDER_IDLE_LINE) {
         this.cartridge.getMapper().scanLine();
       }
     }
 
     if (this.cycle > this.END_OF_SCANLINE) {
       this.endOfScanline();
-      if (this.scanline >= 261) {
+      if (this.scanline >= this.PRE_RENDER_LINE) {
         this.endOfFrame();
       }
     }
@@ -415,6 +412,14 @@ class PPU {
    * The PPU exposes eight memory-mapped registers to the CPU. These nominally sit at $2000 through $2007 in the
    * CPU's address space, but because their addresses are incompletely decoded, they're mirrored in every 8 bytes
    * from $2008 through $3FFF. For example, a write to $3456 is the same as a write to $2006.
+   *
+   * 0x2000 CTRL    responsible for configuring the PPU to render in different ways
+   * 0x2001 MASK    decides whether background or sprites are being drawn, and what's happening at the edges of the screen
+   * 0x2002 STATUS  tells when it is safe to render
+   *
+   * 0x2005 SCROLL  through this register we can represent game worlds far larger than we can see on the screen
+   * 0x2006 ADDRESS allows the CPU to directly read and write to the PPU's memory
+   * 0x2007 DATA    allows the CPU to directly read and write to the PPU's memory
    */
   writeRegister(address, data) {
     switch (address) {
