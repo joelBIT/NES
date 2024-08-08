@@ -29,6 +29,7 @@
       - Mapper 4: MMC3
       - Mapper 7: AxROM
       - Mapper 66: GxROM
+      - Mapper 69: FME-7
 
 <br><br>
 :video_game: <b>Controls</b>
