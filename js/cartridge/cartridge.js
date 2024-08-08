@@ -11,6 +11,7 @@ import { CharacterROM } from "./memory/characterROM.js";
 import { ProgramROM } from "./memory/programROM.js";
 import { ProgramRAM } from "./memory/ProgramRAM.js";
 import { CharacterRAM } from "./memory/characterRAM.js";
+import { MapperSixtyNine } from "./mappers/mapper69.js";
 
 /**
  * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table. An NES cartridge
@@ -62,7 +63,9 @@ export class Cartridge {
    */
   readByCPU(address) {
     if (address >= 0x6000 && address <= 0x7FFF) {
-      return this.programRAM.read(address);
+      if (!this.mapper.handlesProgramRAM()) {
+        return this.programRAM.read(address);
+      }
     }
     return this.programROM.read(this.mapper.mapReadByCPU(address));
   }
@@ -76,10 +79,12 @@ export class Cartridge {
    */
   writeByCPU(address, data) {
     if (address >= 0x6000 && address <= 0x7FFF) {
-      this.programRAM.write(address, data);
-    } else {
-      this.mapper.mapWriteByCPU(address, data);
+      if (!this.mapper.handlesProgramRAM()) {
+        this.programRAM.write(address, data);
+        return;
+      }
     }
+    this.mapper.mapWriteByCPU(address, data);
   }
 
   /**
@@ -169,6 +174,9 @@ export class Cartridge {
         break;
       case 66:
         this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);
+        break;
+      case 69:
+        this.mapper = new MapperSixtyNine(this.programBanks, this.characterBanks);
         break;
     }
   }

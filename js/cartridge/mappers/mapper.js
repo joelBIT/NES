@@ -80,6 +80,17 @@ export class Mapper {
     return false;
   }
 
+  /**
+   * Sometimes a mapper does something in the address space 0x6000 - 0x7FFF. Then this method can be used to inform
+   * the cartridge that the read/write within the range 0x6000 - 0x7FFF should be done in the mapper, instead of
+   * reading/writing to the cartridge program RAM.
+   *
+   * @returns {boolean} true if the mapper handles address space 0x6000 - 0x7FFF itself, false otherwise
+   */
+  handlesProgramRAM() {
+    return false;
+  }
+
   mirror() {
     return Mirror.HARDWARE;
   }
