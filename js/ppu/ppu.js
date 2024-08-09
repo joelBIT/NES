@@ -262,6 +262,10 @@ class PPU {
         this.endOfFrame();
       }
     }
+
+    if (this.cartridge.getMapper().hasCycleCounter()) {
+      this.cartridge.getMapper().tickCycleCounter();
+    }
   }
 
   /**

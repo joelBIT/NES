@@ -18,18 +18,21 @@ import { ProgramRAM } from "../memory/ProgramRAM.js";
 export class MapperSixtyNine extends Mapper {
   id = 69;
   mirrorMode = Mirror.HORIZONTAL;
-  enableIRQ = false;
-  counterDecrement = false;
-  irqActive = false;
-  counter = new Uint16Array(1);
+  commandRegister = new Uint8Array(1);
+
   programRamEnabled = false;
   programRamSelected = false;   // If false, program ROM is selected
   programRamBank = 0;
   programMemoryMask = 0x0F;
 
+  ppuCycles = 0;
+  irqEnabled = false;
+  counterEnabled = false;
+  irqActive = false;
+  counter = new Uint16Array(1);
+
   characterBank = new Uint8Array(8);
   programBank = new Uint8Array(4);
-  commandRegister = new Uint8Array(1);
   programRAM = new ProgramRAM();
 
   constructor(programBanks, characterBanks) {
@@ -117,7 +120,7 @@ export class MapperSixtyNine extends Mapper {
         case 0x8:
           this.programRamSelected = data & 0x40;
           this.programRamEnabled = data & 0x80;
-          this.programRamBank = data & this.programMemoryMask;
+          this.programRamBank = data & 0x1F;
           break;
         case 0x9:
           this.programBank[0] = data & this.programMemoryMask;
@@ -145,8 +148,8 @@ export class MapperSixtyNine extends Mapper {
           }
           break;
         case 0xD:
-          this.enableIRQ = data & 0x01;
-          this.counterDecrement = data & 0x80;
+          this.irqEnabled = data & 0x01;
+          this.counterEnabled = data & 0x80;
           break;
         case 0xE:
           this.counter[0] = (this.counter[0] & 0xFF00) | data;
@@ -204,6 +207,29 @@ export class MapperSixtyNine extends Mapper {
     return !this.programRamEnabled;
   }
 
+  hasCycleCounter() {
+    return true;
+  }
+
+  /**
+   * There are 3 PPU cycles for each CPU cycle, so the ppuCycles variable keeps track of how many CPU cycles has been
+   * executed.
+   */
+  tickCycleCounter() {
+    if (this.irqEnabled && this.counterEnabled) {
+      this.ppuCycles++;
+      if (this.ppuCycles % 3 === 0) {
+        if (this.counter[0] === 0xFFFF) {
+          this.counter[0] = 0x0000;
+          this.irqActive = true;
+        } else {
+          this.counter[0]--;
+        }
+        this.ppuCycles = 0;   // Reset PPU cycles so it never exceeds value 3
+      }
+    }
+  }
+
   mirror() {
     return this.mirrorMode;
   }
@@ -216,13 +242,14 @@ export class MapperSixtyNine extends Mapper {
     this.programBank[0] = 0;
     this.programBank[1] = 0;
     this.programBank[2] = 0;
-
-    this.programBank[3] = (this.programBanks * 2 - 1);
+    this.programBank[3] = (this.programBanks * 2 - 1);    // Fixed to the last bank, never changes
     this.commandRegister[0] = 0;
-    this.enableIRQ = false;
-    this.counterDecrement = false;
+
+    this.irqEnabled = false;
+    this.counterEnabled = false;
     this.irqActive = false;
     this.counter[0] = 0x0000;
+
     this.programRamEnabled = false;
     this.programRamSelected = false;   // If false, program ROM is selected
     this.programMemoryMask = this.programBanks === 16 ? 0x1F : 0x0F;

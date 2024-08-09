@@ -76,6 +76,20 @@ export class Mapper {
 
   }
 
+  /**
+   * @returns {boolean} returns true if mapper has a CPU cycle counter, false otherwise
+   */
+  hasCycleCounter() {
+    return false;
+  }
+
+  /**
+   * Invokes a CPU cycle counter. Some mappers use this to invoke an IRQ when the counter is decremented to 0 or below.
+   */
+  tickCycleCounter() {
+
+  }
+
   irqState() {
     return false;
   }
