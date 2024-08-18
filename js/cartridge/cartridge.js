@@ -12,6 +12,7 @@ import { ProgramROM } from "./memory/programROM.js";
 import { ProgramRAM } from "./memory/ProgramRAM.js";
 import { CharacterRAM } from "./memory/characterRAM.js";
 import { MapperSixtyNine } from "./mappers/mapper69.js";
+import { MapperNine } from "./mappers/mapper9.js";
 
 /**
  * A Cartridge contains game code and data, i.e., Program Rom, Mapper and an 8-kilobyte Pattern table. An NES cartridge
@@ -171,6 +172,9 @@ export class Cartridge {
         break;
       case 7:
         this.mapper = new MapperSeven(this.programBanks, this.characterBanks);
+        break;
+      case 9:
+        this.mapper = new MapperNine(this.programBanks, this.characterBanks);
         break;
       case 66:
         this.mapper = new MapperSixtySix(this.programBanks, this.characterBanks);
