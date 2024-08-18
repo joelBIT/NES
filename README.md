@@ -28,6 +28,7 @@
       - Mapper 3: CNROM
       - Mapper 4: MMC3
       - Mapper 7: AxROM
+      - Mapper 9: MMC2
       - Mapper 66: GxROM
       - Mapper 69: JxROM
 
