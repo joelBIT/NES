@@ -161,7 +161,7 @@ export class MapperNine extends Mapper {
      *
      */
     if (address >= 0xF000 && address <= 0xFFFF) {
-      this.mirrorMode = data & 0x1 === 0 ? Mirror.VERTICAL : Mirror.HORIZONTAL;
+      this.mirrorMode = data & 0x01 === 0 ? Mirror.VERTICAL : Mirror.HORIZONTAL;
     }
   }
 
