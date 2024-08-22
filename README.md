@@ -1,11 +1,14 @@
 <b><h2>A Nintendo Entertainment System (NES) emulator implemented in JavaScript.</h2></b>
 
-<br><br>
+<br>
+
 One way to play on this emulator is to start a local <b>http-server</b> using the script <b>server.js</b> that I have included in the root folder. Install [http-server](https://www.npmjs.com/package/http-server) and run
 ```console
 foo@bar:~$ node server.js
 ```
 from the root folder of the project. Then go to <b>localhost:8080</b> in a browser and load a game.
+
+
 <br><br>
 
  💻 <b>CPU</b>
